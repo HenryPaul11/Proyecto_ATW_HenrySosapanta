@@ -1,3 +1,41 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
+import { usePagosStore } from '@/stores/pagosStore'
+import Navbar       from '@/components/shared/Navbar.vue'
+import Footer       from '@/components/shared/Footer.vue'
+import PagoStatCard from '@/components/pagos/PagoStatCard.vue'
+import MetodoBadge  from '@/components/pagos/MetodoBadge.vue'
+import EstadoBadge  from '@/components/pagos/EstadoBadge.vue'
+
+const router = useRouter()
+const auth   = useAuthStore()
+const store  = usePagosStore()
+
+function logout() { auth.logout(); router.push('/login') }
+
+const busqueda = ref('')
+const columnas = ['ID', 'Cliente', 'Cédula', 'Membresía', 'Monto', 'Método', 'Fecha Pago', 'Vigencia', 'Estado']
+
+const totalIngresos = computed(() => store.pagos.reduce((s, p) => s + Number(p.monto), 0))
+const promedio      = computed(() => store.pagos.length ? (totalIngresos.value / store.pagos.length).toFixed(2) : '0.00')
+function conteoMetodo(m) { return store.pagos.filter(p => p.metodo_pago === m).length }
+
+const pagosFiltrados = computed(() => {
+  const q = busqueda.value.trim().toLowerCase()
+  if (!q) return store.pagos
+  return store.pagos.filter(p =>
+    `${p.cliente_nombre} ${p.cliente_apellido}`.toLowerCase().includes(q) || p.cedula.includes(q),
+  )
+})
+
+function formatFecha(str)      { if (!str) return '—'; return new Date(str).toLocaleString('es-EC',   { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) }
+function formatFechaCorta(str) { if (!str) return '—'; return new Date(str).toLocaleDateString('es-EC', { day:'2-digit', month:'2-digit', year:'numeric' }) }
+
+onMounted(() => store.fetchPagos())
+</script>
+
 <template>
   <div class="min-h-screen flex flex-col bg-slate-50 overflow-x-hidden">
     <Navbar :usuario="auth.usuario" @logout="logout" />
@@ -10,10 +48,10 @@
 
       <!-- Estadísticas -->
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        <PagoStatCard title="Total Ingresos"   :value="totalIngresos.toFixed(2)" prefix="$" subtitle="Acumulado total"           color="green"  />
-        <PagoStatCard title="Total Pagos"      :value="pagos.length"             subtitle="Transacciones registradas"            color="blue"   />
-        <PagoStatCard title="Promedio / Pago"  :value="promedio"                 prefix="$" subtitle="Monto promedio"            color="orange" />
-        <PagoStatCard title="Métodos de Pago"  subtitle="Efectivo · Tarjeta · Transferencia" color="purple" :large="false">
+        <PagoStatCard title="Total Ingresos"  :value="totalIngresos.toFixed(2)" prefix="$" subtitle="Acumulado total"            color="green"  />
+        <PagoStatCard title="Total Pagos"     :value="store.pagos.length"       subtitle="Transacciones registradas"             color="blue"   />
+        <PagoStatCard title="Promedio / Pago" :value="promedio"                 prefix="$" subtitle="Monto promedio"             color="orange" />
+        <PagoStatCard title="Métodos de Pago" subtitle="Efectivo · Tarjeta · Transferencia" color="purple" :large="false">
           <div class="flex flex-wrap gap-2 mt-1">
             <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">💵 {{ conteoMetodo('efectivo') }}</span>
             <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">💳 {{ conteoMetodo('tarjeta') }}</span>
@@ -43,7 +81,7 @@
 
       <!-- Contador -->
       <p class="text-sm text-slate-400 font-medium mb-3 px-1">
-        Mostrando <strong class="text-slate-600">{{ pagosFiltrados.length }}</strong> de {{ pagos.length }} pagos
+        Mostrando <strong class="text-slate-600">{{ pagosFiltrados.length }}</strong> de {{ store.pagos.length }} pagos
       </p>
 
       <!-- Tabla -->
@@ -60,7 +98,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="loading">
+              <tr v-if="store.loading">
                 <td :colspan="columnas.length" class="text-center py-16 text-slate-400 text-sm">
                   <span class="animate-pulse">Cargando pagos…</span>
                 </td>
@@ -100,54 +138,3 @@
     <Footer />
   </div>
 </template>
-
-<script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/authStore'
-import Navbar       from '../components/shared/Navbar.vue'
-import Footer       from '../components/shared/Footer.vue'
-import PagoStatCard from '../components/pagos/PagoStatCard.vue'
-import MetodoBadge  from '../components/pagos/MetodoBadge.vue'
-import EstadoBadge  from '../components/pagos/EstadoBadge.vue'
-
-const router = useRouter()
-const auth   = useAuthStore()
-function logout() { auth.logout(); router.push('/login') }
-
-const pagos    = ref([])
-const loading  = ref(false)
-const busqueda = ref('')
-
-const columnas = ['ID', 'Cliente', 'Cédula', 'Membresía', 'Monto', 'Método', 'Fecha Pago', 'Vigencia', 'Estado']
-
-const mockPagos = [
-  { id:1, cliente_nombre:'Juan',   cliente_apellido:'Pérez',  cedula:'1234567890', tipo_membresia:'Premium',    monto:70.00,  metodo_pago:'efectivo',      fecha_pago:'2026-05-19 10:30:00', fecha_inicio:'2026-05-19', fecha_fin:'2026-06-18', estado_membresia:'activa'  },
-  { id:2, cliente_nombre:'María',  cliente_apellido:'López',  cedula:'0987654321', tipo_membresia:'Básica',     monto:25.00,  metodo_pago:'tarjeta',       fecha_pago:'2026-05-18 14:00:00', fecha_inicio:'2026-05-18', fecha_fin:'2026-06-17', estado_membresia:'activa'  },
-  { id:3, cliente_nombre:'Carlos', cliente_apellido:'Ruiz',   cedula:'1122334455', tipo_membresia:'Mensual',    monto:40.00,  metodo_pago:'transferencia', fecha_pago:'2026-04-01 09:15:00', fecha_inicio:'2026-04-01', fecha_fin:'2026-05-01', estado_membresia:'vencida' },
-  { id:4, cliente_nombre:'Ana',    cliente_apellido:'Torres', cedula:'5566778899', tipo_membresia:'Trimestral', monto:100.00, metodo_pago:'tarjeta',       fecha_pago:'2026-03-01 11:00:00', fecha_inicio:'2026-03-01', fecha_fin:'2026-06-01', estado_membresia:'activa'  },
-  { id:5, cliente_nombre:'Luis',   cliente_apellido:'Gómez',  cedula:'1111111111', tipo_membresia:'Básica',     monto:25.00,  metodo_pago:'efectivo',      fecha_pago:'2026-02-15 08:45:00', fecha_inicio:'2026-02-15', fecha_fin:'2026-03-15', estado_membresia:'vencida' },
-]
-
-onMounted(async () => {
-  loading.value = true
-  await new Promise(r => setTimeout(r, 350))
-  pagos.value   = mockPagos
-  loading.value = false
-})
-
-const totalIngresos = computed(() => pagos.value.reduce((s, p) => s + Number(p.monto), 0))
-const promedio      = computed(() => pagos.value.length ? (totalIngresos.value / pagos.value.length).toFixed(2) : '0.00')
-function conteoMetodo(m) { return pagos.value.filter(p => p.metodo_pago === m).length }
-
-const pagosFiltrados = computed(() => {
-  const q = busqueda.value.trim().toLowerCase()
-  if (!q) return pagos.value
-  return pagos.value.filter(p =>
-    `${p.cliente_nombre} ${p.cliente_apellido}`.toLowerCase().includes(q) || p.cedula.includes(q),
-  )
-})
-
-function formatFecha(str)      { if (!str) return '—'; return new Date(str).toLocaleString('es-EC',   { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) }
-function formatFechaCorta(str) { if (!str) return '—'; return new Date(str).toLocaleDateString('es-EC', { day:'2-digit', month:'2-digit', year:'numeric' }) }
-</script>

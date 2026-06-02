@@ -1,3 +1,36 @@
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
+
+const router = useRouter()
+const auth = useAuthStore()
+
+const form = ref({ usuario: '', contrasena: '' })
+const errorMessage = ref('')
+const loading = ref(false)
+
+async function handleLogin() {
+  errorMessage.value = ''
+  loading.value = true
+
+  const match = await auth.login(form.value.usuario, form.value.contrasena)
+
+  if (match) {
+    const destinos = {
+      admin:      '/dashboard',
+      entrenador: '/entrenador/dashboard',
+      cliente:    '/cliente/dashboard',
+    }
+    router.push(destinos[match.rol] ?? '/login')
+  } else {
+    errorMessage.value = 'Usuario o contraseña incorrectos.'
+  }
+
+  loading.value = false
+}
+</script>
+
 <template>
   <form @submit.prevent="handleLogin">
     <div class="form-group">
@@ -31,44 +64,6 @@
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
   </form>
 </template>
-
-<script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../../stores/authStore'
-
-const router = useRouter()
-const auth = useAuthStore()
-
-const form = ref({ usuario: '', contrasena: '' })
-const errorMessage = ref('')
-const loading = ref(false)
-
-const MOCK_USERS = [
-  { usuario: 'admin',     contrasena: '1234', rol: 'admin' },
-  { usuario: 'juanperez', contrasena: '1234', rol: 'cliente' },
-]
-
-function handleLogin() {
-  errorMessage.value = ''
-  loading.value = true
-
-  setTimeout(() => {
-    const match = MOCK_USERS.find(
-      u => u.usuario === form.value.usuario && u.contrasena === form.value.contrasena
-    )
-
-    if (match) {
-      auth.login(match)
-      router.push(match.rol === 'admin' ? '/dashboard' : '/dashboard')
-    } else {
-      errorMessage.value = 'Usuario o contraseña incorrectos.'
-    }
-
-    loading.value = false
-  }, 600)
-}
-</script>
 
 <style scoped>
 form {

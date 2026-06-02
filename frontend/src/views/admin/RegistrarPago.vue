@@ -1,3 +1,134 @@
+<script setup>
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
+import { useClientesStore } from '@/stores/clientesStore'
+import { usePagosStore } from '@/stores/pagosStore'
+import Navbar        from '@/components/shared/Navbar.vue'
+import Footer        from '@/components/shared/Footer.vue'
+import StepIndicator from '@/components/pagos/StepIndicator.vue'
+import MembresiaCard from '@/components/pagos/MembresiaCard.vue'
+
+const router        = useRouter()
+const auth          = useAuthStore()
+const clientesStore = useClientesStore()
+const pagosStore    = usePagosStore()
+
+function logout() { auth.logout(); router.push('/login') }
+
+const pasos      = ['Buscar Cliente', 'Registrar Pago', 'Confirmación']
+const pasoActual = ref(0)
+
+const cedulaBusqueda        = ref('')
+const clienteEncontrado     = ref(null)
+const membresiasDisponibles = ref([])
+const membresiaSeleccionada = ref(null)
+const monto                 = ref('')
+const metodoPago            = ref('')
+const message               = ref('')
+const messageType           = ref('')
+const pagoIdConfirmado      = ref(null)
+const confirmacion          = ref({})
+
+const camposCliente = computed(() => {
+  if (!clienteEncontrado.value) return []
+  const c = clienteEncontrado.value
+  return [
+    { label: 'Nombre',   value: `${c.nombre} ${c.apellido}` },
+    { label: 'Cédula',   value: c.cedula   },
+    { label: 'Teléfono', value: c.telefono },
+    { label: 'Email',    value: c.email    },
+  ]
+})
+
+const resumenConfirmacion = computed(() => {
+  const c = confirmacion.value
+  return [
+    { label: 'Cliente',   value: c.cliente   ?? '—' },
+    { label: 'Membresía', value: c.membresia ?? '—' },
+    { label: 'Monto',     value: c.monto     ?? '—' },
+    { label: 'Método',    value: c.metodo    ?? '—' },
+    { label: 'Fecha',     value: c.fecha     ?? '—' },
+  ]
+})
+
+const puedeRegistrar = computed(() =>
+  membresiaSeleccionada.value && monto.value && metodoPago.value && membresiasDisponibles.value.length > 0,
+)
+
+async function buscarCliente() {
+  message.value = ''
+  const cedula = cedulaBusqueda.value.trim()
+  if (!cedula) { message.value = 'Por favor ingrese una cédula.'; messageType.value = 'error'; return }
+
+  const cliente = await clientesStore.buscarPorCedula(cedula)
+
+  if (!cliente) { message.value = 'Cliente no encontrado. Verifique la cédula.'; messageType.value = 'error'; return }
+
+  clienteEncontrado.value = cliente
+  await clientesStore.fetchMembresiasPorCliente(cliente.id)
+  membresiasDisponibles.value = clientesStore.membresiasPorCliente[cliente.id] ?? []
+  membresiaSeleccionada.value = null
+  monto.value = ''
+  metodoPago.value = ''
+  message.value = ''
+  pasoActual.value = 1
+
+  if (membresiasDisponibles.value.length === 0) {
+    message.value = 'El cliente no tiene membresías activas.'
+    messageType.value = 'warning'
+  }
+}
+
+function seleccionarMembresia(id, precio) {
+  membresiaSeleccionada.value = id
+  monto.value = Number(precio).toFixed(2)
+}
+
+async function registrarPago() {
+  if (!puedeRegistrar.value) return
+  const c    = clienteEncontrado.value
+  const memb = membresiasDisponibles.value.find(m => m.id === membresiaSeleccionada.value)
+  const ml   = { efectivo: '💵 Efectivo', tarjeta: '💳 Tarjeta', transferencia: '🏦 Transferencia' }
+
+  const nuevo = await pagosStore.registrarPago({
+    cliente_nombre:    c.nombre,
+    cliente_apellido:  c.apellido,
+    cedula:            c.cedula,
+    tipo_membresia:    memb?.tipo_membresia ?? '',
+    monto:             Number(monto.value),
+    metodo_pago:       metodoPago.value,
+    fecha_pago:        new Date().toISOString(),
+    fecha_inicio:      memb?.fecha_inicio ?? '',
+    fecha_fin:         memb?.fecha_fin ?? '',
+    estado_membresia:  memb?.estado ?? 'activa',
+  })
+
+  pagoIdConfirmado.value = nuevo.id
+  confirmacion.value = {
+    cliente:   `${c.nombre} ${c.apellido}`,
+    membresia: memb?.tipo_membresia ?? '—',
+    monto:     `$${Number(monto.value).toFixed(2)}`,
+    metodo:    ml[metodoPago.value] ?? metodoPago.value,
+    fecha:     new Date().toLocaleString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+  }
+  pasoActual.value = 2
+}
+
+function resetBusqueda() {
+  clienteEncontrado.value = null
+  membresiasDisponibles.value = []
+  membresiaSeleccionada.value = null
+  cedulaBusqueda.value = ''
+  monto.value = ''
+  metodoPago.value = ''
+  message.value = ''
+  pasoActual.value = 0
+}
+
+function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmacion.value = {} }
+</script>
+
 <template>
   <div class="min-h-screen flex flex-col bg-slate-50">
     <Navbar :usuario="auth.usuario" @logout="logout" />
@@ -9,7 +140,6 @@
           Registrar Nuevo Pago
         </h1>
 
-        <!-- Stepper -->
         <StepIndicator :steps="pasos" :current="pasoActual" />
 
         <!-- Feedback -->
@@ -50,10 +180,10 @@
             <div class="flex flex-col sm:flex-row gap-3">
               <button
                 @click="buscarCliente"
-                :disabled="loading"
+                :disabled="clientesStore.loading"
                 class="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-semibold text-sm px-5 py-3 rounded-xl transition-all disabled:opacity-60 cursor-pointer"
               >
-              {{ loading ? 'Buscando…' : 'Buscar Cliente' }}
+                {{ clientesStore.loading ? 'Buscando…' : 'Buscar Cliente' }}
               </button>
               <router-link
                 to="/clientes"
@@ -67,7 +197,6 @@
 
         <!-- PASO 2 -->
         <template v-if="pasoActual === 1">
-          <!-- Info cliente -->
           <div class="bg-white border-l-4 border-blue-500 rounded-xl p-4 mb-5">
             <h3 class="text-blue-600 font-bold text-sm mb-3">Cliente Encontrado</h3>
             <div class="divide-y divide-slate-100">
@@ -78,11 +207,9 @@
             </div>
           </div>
 
-          <!-- Formulario -->
           <div class="bg-slate-50 rounded-xl p-5">
             <h2 class="text-base font-bold text-slate-700 mb-4">Registrar Pago</h2>
 
-            <!-- Membresías -->
             <div class="mb-4">
               <label class="block text-sm font-semibold text-slate-700 mb-3">Seleccione la Membresía</label>
               <div v-if="membresiasDisponibles.length === 0" class="text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm font-medium">
@@ -99,7 +226,6 @@
               </div>
             </div>
 
-            <!-- Monto -->
             <div class="mb-4">
               <label for="monto" class="block text-sm font-semibold text-slate-700 mb-2">Monto a Pagar</label>
               <div class="relative">
@@ -116,7 +242,6 @@
               <p class="text-xs text-slate-400 mt-1">Se completa automáticamente al seleccionar la membresía.</p>
             </div>
 
-            <!-- Método -->
             <div class="mb-5">
               <label for="metodo" class="block text-sm font-semibold text-slate-700 mb-2">Método de Pago</label>
               <select
@@ -131,14 +256,13 @@
               </select>
             </div>
 
-            <!-- Acciones -->
             <div class="flex flex-col sm:flex-row gap-3">
               <button
                 @click="registrarPago"
-                :disabled="!puedeRegistrar || loading"
+                :disabled="!puedeRegistrar || pagosStore.loading"
                 class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm px-5 py-3 rounded-xl transition-all disabled:opacity-60 cursor-pointer"
               >
-              {{ loading ? 'Registrando…' : 'Registrar Pago' }}
+                {{ pagosStore.loading ? 'Registrando…' : 'Registrar Pago' }}
               </button>
               <button
                 @click="resetBusqueda"
@@ -200,116 +324,6 @@
     <Footer />
   </div>
 </template>
-
-<script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/authStore'
-import Navbar        from '../components/shared/Navbar.vue'
-import Footer        from '../components/shared/Footer.vue'
-import StepIndicator from '../components/pagos/StepIndicator.vue'
-import MembresiaCard from '../components/pagos/MembresiaCard.vue'
-
-const router = useRouter()
-const auth   = useAuthStore()
-function logout() { auth.logout(); router.push('/login') }
-
-const pasos      = ['Buscar Cliente', 'Registrar Pago', 'Confirmación']
-const pasoActual = ref(0)
-
-const cedulaBusqueda        = ref('')
-const clienteEncontrado     = ref(null)
-const membresiasDisponibles = ref([])
-const membresiaSeleccionada = ref(null)
-const monto                 = ref('')
-const metodoPago            = ref('')
-const loading               = ref(false)
-const message               = ref('')
-const messageType           = ref('')
-const pagoIdConfirmado      = ref(null)
-const confirmacion          = ref({})
-
-const mockClientes = [
-  { id:1,  nombre:'Juan',  apellido:'Pérez',  cedula:'1234567890', telefono:'0991234567', email:'juan@mail.com'  },
-  { id:2,  nombre:'María', apellido:'López',  cedula:'0987654321', telefono:'0997654321', email:'maria@mail.com' },
-  { id:10, nombre:'Luis',  apellido:'Gómez',  cedula:'1111111111', telefono:'0991111111', email:'luis@mail.com'  },
-  { id:11, nombre:'Sara',  apellido:'Mora',   cedula:'2222222222', telefono:'0992222222', email:'sara@mail.com'  },
-]
-const mockMembresias = {
-  1:  [{ id:101, tipo_membresia:'Premium',  precio:70.00, fecha_inicio:'2026-05-19', fecha_fin:'2026-06-18', estado:'activa' }],
-  2:  [{ id:102, tipo_membresia:'Básica',   precio:25.00, fecha_inicio:'2026-05-18', fecha_fin:'2026-06-17', estado:'activa' }],
-  10: [{ id:103, tipo_membresia:'Mensual',  precio:40.00, fecha_inicio:'2026-05-01', fecha_fin:'2026-05-31', estado:'activa' }],
-  11: [],
-}
-
-const camposCliente = computed(() => {
-  if (!clienteEncontrado.value) return []
-  const c = clienteEncontrado.value
-  return [
-    { label:'Nombre',   value:`${c.nombre} ${c.apellido}` },
-    { label:'Cédula',   value:c.cedula   },
-    { label:'Teléfono', value:c.telefono },
-    { label:'Email',    value:c.email    },
-  ]
-})
-const resumenConfirmacion = computed(() => {
-  const c = confirmacion.value
-  return [
-    { label:'Cliente',   value:c.cliente   ?? '—' },
-    { label:'Membresía', value:c.membresia ?? '—' },
-    { label:'Monto',     value:c.monto     ?? '—' },
-    { label:'Método',    value:c.metodo    ?? '—' },
-    { label:'Fecha',     value:c.fecha     ?? '—' },
-  ]
-})
-const puedeRegistrar = computed(() =>
-  membresiaSeleccionada.value && monto.value && metodoPago.value && membresiasDisponibles.value.length > 0,
-)
-
-async function buscarCliente() {
-  message.value = ''
-  const cedula = cedulaBusqueda.value.trim()
-  if (!cedula) { message.value = 'Por favor ingrese una cédula.'; messageType.value = 'error'; return }
-  loading.value = true
-  await new Promise(r => setTimeout(r, 400))
-  const cliente = mockClientes.find(c => c.cedula === cedula)
-  loading.value = false
-  if (!cliente) { message.value = 'Cliente no encontrado. Verifique la cédula.'; messageType.value = 'error'; return }
-  clienteEncontrado.value     = cliente
-  membresiasDisponibles.value = mockMembresias[cliente.id] ?? []
-  membresiaSeleccionada.value = null; monto.value = ''; metodoPago.value = ''; message.value = ''
-  pasoActual.value = 1
-  if (membresiasDisponibles.value.length === 0) { message.value = 'El cliente no tiene membresías activas.'; messageType.value = 'warning' }
-}
-
-function seleccionarMembresia(id, precio) { membresiaSeleccionada.value = id; monto.value = Number(precio).toFixed(2) }
-
-async function registrarPago() {
-  if (!puedeRegistrar.value) return
-  loading.value = true; message.value = ''
-  await new Promise(r => setTimeout(r, 500))
-  const idGenerado = Math.floor(Math.random() * 9000) + 1000
-  loading.value = false
-  const memb = membresiasDisponibles.value.find(m => m.id === membresiaSeleccionada.value)
-  const c    = clienteEncontrado.value
-  const ml   = { efectivo:'💵 Efectivo', tarjeta:'💳 Tarjeta', transferencia:'🏦 Transferencia' }
-  pagoIdConfirmado.value = idGenerado
-  confirmacion.value = {
-    cliente:   `${c.nombre} ${c.apellido}`,
-    membresia: memb?.tipo_membresia ?? '—',
-    monto:     `$${Number(monto.value).toFixed(2)}`,
-    metodo:    ml[metodoPago.value] ?? metodoPago.value,
-    fecha:     new Date().toLocaleString('es-EC', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }),
-  }
-  pasoActual.value = 2
-}
-
-function resetBusqueda() {
-  clienteEncontrado.value = null; membresiasDisponibles.value = []; membresiaSeleccionada.value = null
-  cedulaBusqueda.value = ''; monto.value = ''; metodoPago.value = ''; message.value = ''; pasoActual.value = 0
-}
-function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmacion.value = {} }
-</script>
 
 <style scoped>
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }

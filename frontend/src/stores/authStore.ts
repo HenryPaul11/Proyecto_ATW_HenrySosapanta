@@ -1,13 +1,19 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { authApi } from '@/services/api'
+import type { User } from '@/services/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const usuario = ref('')
   const rol = ref('')
 
-  function login(user) {
-    usuario.value = user.usuario
-    rol.value = user.rol
+  async function login(u: string, p: string): Promise<User | null> {
+    const match = await authApi.login(u, p)
+    if (match) {
+      usuario.value = match.usuario
+      rol.value = match.rol
+    }
+    return match
   }
 
   function logout() {

@@ -1,0 +1,140 @@
+{
+  "users": [
+    { "usuario": "admin",      "contrasena": "1234", "rol": "admin"      },
+    { "usuario": "juanperez",  "contrasena": "1234", "rol": "cliente"    },
+    { "usuario": "marialopez", "contrasena": "1234", "rol": "cliente"    },
+    { "usuario": "carlosfit",  "contrasena": "1234", "rol": "entrenador" },
+    { "usuario": "anatrainer", "contrasena": "1234", "rol": "entrenador" }
+  ],
+
+  "adminStats": {
+    "clientes": 24,
+    "membresias": 18,
+    "ingresos": 1340.00
+  },
+
+  "clientes": [
+    { "id": 1,  "nombre": "Juan",  "apellido": "Pérez", "cedula": "1234567890", "telefono": "0991234567", "email": "juan@mail.com"  },
+    { "id": 2,  "nombre": "María", "apellido": "López", "cedula": "0987654321", "telefono": "0997654321", "email": "maria@mail.com" },
+    { "id": 10, "nombre": "Luis",  "apellido": "Gómez", "cedula": "1111111111", "telefono": "0991111111", "email": "luis@mail.com"  },
+    { "id": 11, "nombre": "Sara",  "apellido": "Mora",  "cedula": "2222222222", "telefono": "0992222222", "email": "sara@mail.com"  },
+    { "id": 12, "nombre": "Pedro", "apellido": "Vega",  "cedula": "3333333333", "telefono": "0993333333", "email": "pedro@mail.com" }
+  ],
+
+  "tiposMembresia": [
+    { "id": 1, "nombre": "Básica",     "descripcion": "Acceso a equipos de cardio y pesas.",    "duracion_dias": 30,  "precio": 25.00  },
+    { "id": 2, "nombre": "Mensual",    "descripcion": "Acceso completo + clases grupales.",      "duracion_dias": 30,  "precio": 40.00  },
+    { "id": 3, "nombre": "Premium",    "descripcion": "Acceso ilimitado + entrenador personal.", "duracion_dias": 30,  "precio": 70.00  },
+    { "id": 4, "nombre": "Trimestral", "descripcion": "Plan de 3 meses con descuento especial.", "duracion_dias": 90,  "precio": 100.00 },
+    { "id": 5, "nombre": "Anual",      "descripcion": "Plan anual con el mejor precio por mes.", "duracion_dias": 365, "precio": 300.00 }
+  ],
+
+  "membresias": [
+    { "id": 1, "cliente_id": 1,  "nombre": "Juan",   "apellido": "Pérez",  "cedula": "1234567890", "tipo": "Premium",    "inicio": "2026-05-01", "fin": "2026-05-25" },
+    { "id": 2, "cliente_id": 2,  "nombre": "María",  "apellido": "López",  "cedula": "0987654321", "tipo": "Básica",     "inicio": "2026-04-01", "fin": "2026-05-20" },
+    { "id": 3, "cliente_id": 10, "nombre": "Carlos", "apellido": "Ruiz",   "cedula": "1122334455", "tipo": "Mensual",    "inicio": "2026-03-01", "fin": "2026-04-01" },
+    { "id": 4, "cliente_id": 12, "nombre": "Ana",    "apellido": "Torres", "cedula": "5566778899", "tipo": "Premium",    "inicio": "2026-02-01", "fin": "2026-03-01" }
+  ],
+
+  "clientesSinMembresia": [
+    { "id": 10, "nombre": "Luis", "apellido": "Gómez", "cedula": "1111111111", "telefono": "0991111111", "email": "luis@mail.com" },
+    { "id": 11, "nombre": "Sara", "apellido": "Mora",  "cedula": "2222222222", "telefono": "0992222222", "email": "sara@mail.com" }
+  ],
+
+  "membresiasPorCliente": {
+    "1":  [{ "id": 101, "tipo_membresia": "Premium",  "precio": 70.00, "fecha_inicio": "2026-05-19", "fecha_fin": "2026-06-18", "estado": "activa" }],
+    "2":  [{ "id": 102, "tipo_membresia": "Básica",   "precio": 25.00, "fecha_inicio": "2026-05-18", "fecha_fin": "2026-06-17", "estado": "activa" }],
+    "10": [{ "id": 103, "tipo_membresia": "Mensual",  "precio": 40.00, "fecha_inicio": "2026-05-01", "fecha_fin": "2026-05-31", "estado": "activa" }],
+    "11": []
+  },
+
+  "pagos": [
+    { "id": 1, "cliente_nombre": "Juan",   "cliente_apellido": "Pérez",  "cedula": "1234567890", "tipo_membresia": "Premium",    "monto": 70.00,  "metodo_pago": "efectivo",      "fecha_pago": "2026-05-19 10:30:00", "fecha_inicio": "2026-05-19", "fecha_fin": "2026-06-18", "estado_membresia": "activa"  },
+    { "id": 2, "cliente_nombre": "María",  "cliente_apellido": "López",  "cedula": "0987654321", "tipo_membresia": "Básica",     "monto": 25.00,  "metodo_pago": "tarjeta",       "fecha_pago": "2026-05-18 14:00:00", "fecha_inicio": "2026-05-18", "fecha_fin": "2026-06-17", "estado_membresia": "activa"  },
+    { "id": 3, "cliente_nombre": "Carlos", "cliente_apellido": "Ruiz",   "cedula": "1122334455", "tipo_membresia": "Mensual",    "monto": 40.00,  "metodo_pago": "transferencia", "fecha_pago": "2026-04-01 09:15:00", "fecha_inicio": "2026-04-01", "fecha_fin": "2026-05-01", "estado_membresia": "vencida" },
+    { "id": 4, "cliente_nombre": "Ana",    "cliente_apellido": "Torres", "cedula": "5566778899", "tipo_membresia": "Trimestral", "monto": 100.00, "metodo_pago": "tarjeta",       "fecha_pago": "2026-03-01 11:00:00", "fecha_inicio": "2026-03-01", "fecha_fin": "2026-06-01", "estado_membresia": "activa"  },
+    { "id": 5, "cliente_nombre": "Luis",   "cliente_apellido": "Gómez",  "cedula": "1111111111", "tipo_membresia": "Básica",     "monto": 25.00,  "metodo_pago": "efectivo",      "fecha_pago": "2026-02-15 08:45:00", "fecha_inicio": "2026-02-15", "fecha_fin": "2026-03-15", "estado_membresia": "vencida" }
+  ],
+
+  "auditorias": [
+    { "tabla_afectada": "clientes",   "accion": "INSERT", "usuario": "admin", "fecha_hora": "2026-05-19 10:32:00", "datos_anteriores": "",                                                                          "datos_nuevos": "{\"nombre\":\"Juan\",\"apellido\":\"Pérez\",\"cedula\":\"1234567890\",\"email\":\"juan@mail.com\"}"          },
+    { "tabla_afectada": "membresias", "accion": "INSERT", "usuario": "admin", "fecha_hora": "2026-05-19 10:35:00", "datos_anteriores": "",                                                                          "datos_nuevos": "{\"cliente_id\":\"1\",\"tipo_membresia_id\":\"2\",\"fecha_inicio\":\"2026-05-19\",\"fecha_fin\":\"2026-06-18\",\"estado\":\"activa\"}" },
+    { "tabla_afectada": "clientes",   "accion": "UPDATE", "usuario": "admin", "fecha_hora": "2026-05-18 14:20:00", "datos_anteriores": "{\"nombre\":\"María\",\"apellido\":\"López\",\"telefono\":\"0991000000\"}", "datos_nuevos": "{\"nombre\":\"María\",\"apellido\":\"López\",\"telefono\":\"0999999999\"}"                                    },
+    { "tabla_afectada": "membresias", "accion": "UPDATE", "usuario": "admin", "fecha_hora": "2026-05-17 09:10:00", "datos_anteriores": "Estado: activa, Fecha fin: 2026-05-01",                                    "datos_nuevos": "Estado: vencida, Fecha fin: 2026-05-01"                                                                   },
+    { "tabla_afectada": "pagos",      "accion": "INSERT", "usuario": "admin", "fecha_hora": "2026-05-16 16:45:00", "datos_anteriores": "",                                                                          "datos_nuevos": "{\"cliente_id\":\"3\",\"monto\":\"40.00\",\"metodo\":\"efectivo\",\"fecha\":\"2026-05-16\"}"               },
+    { "tabla_afectada": "clientes",   "accion": "DELETE", "usuario": "admin", "fecha_hora": "2026-05-15 11:00:00", "datos_anteriores": "{\"nombre\":\"Carlos\",\"apellido\":\"Ruiz\",\"cedula\":\"1122334455\"}",   "datos_nuevos": ""                                                                                                         }
+  ],
+
+  "clientesPorUsuario": {
+    "juanperez": {
+      "id": 1, "nombre": "Juan", "apellido": "Pérez", "cedula": "1234567890",
+      "telefono": "0991234567", "email": "juan@mail.com", "fecha_registro": "2025-01-15"
+    },
+    "marialopez": {
+      "id": 2, "nombre": "María", "apellido": "López", "cedula": "0987654321",
+      "telefono": "0997654321", "email": "maria@mail.com", "fecha_registro": "2025-03-10"
+    }
+  },
+
+  "membresiaCliente": {
+    "1": { "id": 101, "tipo_membresia": "Premium", "descripcion": "Acceso ilimitado + entrenador personal.", "precio": 70.00, "fecha_inicio": "2026-05-19", "fecha_fin": "2026-06-18", "estado": "activa"  },
+    "2": { "id": 102, "tipo_membresia": "Básica",  "descripcion": "Acceso a equipos de cardio y pesas.",    "precio": 25.00, "fecha_inicio": "2026-04-01", "fecha_fin": "2026-05-01", "estado": "vencida" }
+  },
+
+  "historialPagos": {
+    "1": [
+      { "id": 1, "tipo_membresia": "Premium",    "monto": 70.00,  "metodo_pago": "efectivo",      "fecha_pago": "2026-05-19", "fecha_inicio": "2026-05-19", "fecha_fin": "2026-06-18" },
+      { "id": 2, "tipo_membresia": "Trimestral", "monto": 100.00, "metodo_pago": "tarjeta",       "fecha_pago": "2026-02-01", "fecha_inicio": "2026-02-01", "fecha_fin": "2026-05-01" },
+      { "id": 3, "tipo_membresia": "Mensual",    "monto": 40.00,  "metodo_pago": "transferencia", "fecha_pago": "2025-12-01", "fecha_inicio": "2025-12-01", "fecha_fin": "2026-01-01" }
+    ],
+    "2": [
+      { "id": 4, "tipo_membresia": "Básica", "monto": 25.00, "metodo_pago": "efectivo", "fecha_pago": "2026-04-01", "fecha_inicio": "2026-04-01", "fecha_fin": "2026-05-01" }
+    ]
+  },
+
+  "entrenadorPorUsuario": {
+    "carlosfit": {
+      "id": 1, "nombre": "Carlos", "apellido": "Mendoza", "cedula": "0501234567",
+      "telefono": "0981234567", "email": "carlos@powerfit.com",
+      "especialidad": "Musculación y Fuerza", "fecha_ingreso": "2024-03-01",
+      "horario": "Lunes a Viernes 06:00 – 14:00"
+    },
+    "anatrainer": {
+      "id": 2, "nombre": "Ana", "apellido": "Salazar", "cedula": "0509876543",
+      "telefono": "0989876543", "email": "ana@powerfit.com",
+      "especialidad": "Cardio y Funcional", "fecha_ingreso": "2024-06-15",
+      "horario": "Lunes a Viernes 14:00 – 22:00"
+    }
+  },
+
+  "clientesAsignados": {
+    "1": [
+      { "id": 1,  "nombre": "Juan",  "apellido": "Pérez", "cedula": "1234567890", "plan": "Premium",    "estado_membresia": "activa",  "proxima_sesion": "2026-05-27" },
+      { "id": 10, "nombre": "Luis",  "apellido": "Gómez", "cedula": "1111111111", "plan": "Mensual",    "estado_membresia": "activa",  "proxima_sesion": "2026-05-28" },
+      { "id": 12, "nombre": "Pedro", "apellido": "Vega",  "cedula": "3333333333", "plan": "Trimestral", "estado_membresia": "activa",  "proxima_sesion": "2026-05-29" }
+    ],
+    "2": [
+      { "id": 2,  "nombre": "María", "apellido": "López", "cedula": "0987654321", "plan": "Básica",  "estado_membresia": "activa",  "proxima_sesion": "2026-05-27" },
+      { "id": 11, "nombre": "Sara",  "apellido": "Mora",  "cedula": "2222222222", "plan": "Mensual", "estado_membresia": "vencida", "proxima_sesion": null }
+    ]
+  },
+
+  "sesiones": {
+    "1": [
+      { "id": 1, "cliente_nombre": "Juan Pérez",  "fecha": "2026-05-26", "hora": "07:00", "tipo": "Fuerza",      "estado": "completada", "notas": "Excelente progreso en press de banca." },
+      { "id": 2, "cliente_nombre": "Luis Gómez",  "fecha": "2026-05-26", "hora": "09:00", "tipo": "Hipertrofia", "estado": "completada", "notas": "Aumentó peso en sentadilla."            },
+      { "id": 3, "cliente_nombre": "Juan Pérez",  "fecha": "2026-05-27", "hora": "07:00", "tipo": "Fuerza",      "estado": "pendiente",  "notas": ""                                       },
+      { "id": 4, "cliente_nombre": "Pedro Vega",  "fecha": "2026-05-27", "hora": "10:00", "tipo": "Resistencia", "estado": "pendiente",  "notas": ""                                       },
+      { "id": 5, "cliente_nombre": "Luis Gómez",  "fecha": "2026-05-28", "hora": "09:00", "tipo": "Hipertrofia", "estado": "pendiente",  "notas": ""                                       }
+    ],
+    "2": [
+      { "id": 6, "cliente_nombre": "María López", "fecha": "2026-05-26", "hora": "15:00", "tipo": "Cardio",    "estado": "completada", "notas": "Mejoró tiempo en cinta." },
+      { "id": 7, "cliente_nombre": "María López", "fecha": "2026-05-27", "hora": "15:00", "tipo": "Funcional", "estado": "pendiente",  "notas": ""                        }
+    ]
+  },
+
+  "todosEntrenadores": [
+    { "id": 1, "nombre": "Carlos", "apellido": "Mendoza", "especialidad": "Musculación y Fuerza", "clientes_activos": 3, "sesiones_semana": 5, "horario": "06:00 – 14:00" },
+    { "id": 2, "nombre": "Ana",    "apellido": "Salazar", "especialidad": "Cardio y Funcional",   "clientes_activos": 2, "sesiones_semana": 3, "horario": "14:00 – 22:00" }
+  ]
+}

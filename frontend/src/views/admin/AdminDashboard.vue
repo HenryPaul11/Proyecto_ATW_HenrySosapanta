@@ -1,3 +1,22 @@
+<script setup>
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
+import { useAdminStore } from '@/stores/adminStore'
+import Navbar     from '@/components/shared/Navbar.vue'
+import Footer     from '@/components/shared/Footer.vue'
+import StatCard   from '@/components/admin/StatCard.vue'
+import ActionCard from '@/components/admin/ActionCard.vue'
+
+const router = useRouter()
+const auth   = useAuthStore()
+const admin  = useAdminStore()
+
+function logout() { auth.logout(); router.push('/login') }
+
+onMounted(() => admin.fetchStats())
+</script>
+
 <template>
   <div class="min-h-screen flex flex-col bg-slate-50">
     <Navbar :usuario="auth.usuario" @logout="logout" />
@@ -14,10 +33,13 @@
       </div>
 
       <!-- Stats -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
-        <StatCard title="Clientes Registrados" :value="stats.clientes"            color="blue"  />
-        <StatCard title="Membresías Activas"   :value="stats.membresias"          color="sky"   />
-        <StatCard title="Ingresos Mensuales"   :value="stats.ingresos.toFixed(2)" color="green" prefix="$" />
+      <div v-if="admin.loading" class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
+        <div v-for="i in 3" :key="i" class="h-24 bg-slate-200 animate-pulse rounded-2xl" />
+      </div>
+      <div v-else-if="admin.stats" class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
+        <StatCard title="Clientes Registrados" :value="admin.stats.clientes"            color="blue"  />
+        <StatCard title="Membresías Activas"   :value="admin.stats.membresias"          color="sky"   />
+        <StatCard title="Ingresos Mensuales"   :value="admin.stats.ingresos.toFixed(2)" color="green" prefix="$" />
       </div>
 
       <!-- Acciones -->
@@ -48,17 +70,3 @@
     <Footer />
   </div>
 </template>
-
-<script setup>
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/authStore'
-import Navbar     from '../components/shared/Navbar.vue'
-import Footer     from '../components/shared/Footer.vue'
-import StatCard   from '../components/admin/StatCard.vue'
-import ActionCard from '../components/admin/ActionCard.vue'
-
-const router = useRouter()
-const auth   = useAuthStore()
-const stats  = { clientes: 24, membresias: 18, ingresos: 1340.00 }
-function logout() { auth.logout(); router.push('/login') }
-</script>
