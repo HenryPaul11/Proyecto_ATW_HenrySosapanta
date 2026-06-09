@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useClientesStore } from '@/stores/clientesStore'
-import Navbar from '@/components/shared/Navbar.vue'
+import Navbar from '@/components/admin/AdminNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 
 const router = useRouter()
@@ -112,7 +112,7 @@ async function renovar() {
 
       <!-- Info del cliente -->
       <div class="bg-white rounded-2xl shadow-sm border-t-4 border-blue-500 p-5 sm:p-6 mb-5">
-        <h2 class="text-base font-bold text-slate-700 mb-4">👤 Información del Cliente</h2>
+        <h2 class="text-base font-bold text-slate-700 mb-4 flex items-center gap-2"><img src="/icons/usuario.svg" class="w-6 h-6 icon-slate inline-block mr-1" alt="" /> Información del Cliente</h2>
         <div class="divide-y divide-slate-100">
           <div v-for="row in clienteRows" :key="row.label" class="flex justify-between py-2.5 text-sm">
             <span class="font-semibold text-slate-500">{{ row.label }}</span>
@@ -140,20 +140,23 @@ async function renovar() {
             </p>
             <p class="text-xs mt-2 font-medium"
               :class="membresiaActual.estado === 'activa' ? 'text-emerald-700' : 'text-red-700'">
-              {{ membresiaActual.estado === 'activa'
-                ? '✅ La renovación comenzará el día siguiente al vencimiento actual.'
-                : '⚠️ Esta membresía está vencida. La renovación comenzará desde hoy.' }}
+              <template v-if="membresiaActual.estado === 'activa'">
+                <svg class="w-3.5 h-3.5 inline-block mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>La renovación comenzará el día siguiente al vencimiento actual.
+              </template>
+              <template v-else>
+                <svg class="w-4 h-4 shrink-0 inline-block mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Esta membresía está vencida. La renovación comenzará desde hoy.
+              </template>
             </p>
           </div>
         </template>
-        <p v-else class="text-sm text-slate-500">
-          ⚠️ Este cliente no tiene membresía registrada. Se creará una nueva desde hoy.
+        <p v-else class="text-sm text-slate-500 flex items-center gap-1">
+          <svg class="w-4 h-4 shrink-0 inline-block mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Este cliente no tiene membresía registrada. Se creará una nueva desde hoy.
         </p>
       </div>
 
       <!-- Selección de tipo -->
       <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5 sm:p-6">
-        <h2 class="text-base font-bold text-slate-700 mb-4">🎫 Seleccione el Tipo de Membresía</h2>
+        <h2 class="text-base font-bold text-slate-700 mb-4 flex items-center gap-2"><img src="/icons/boleto.svg" class="w-6 h-6 icon-slate inline-block mr-1" alt="" /> Seleccione el Tipo de Membresía</h2>
 
         <div v-if="store.loading" class="text-center py-8 text-slate-400 text-sm animate-pulse">
           Cargando tipos de membresía…
@@ -170,9 +173,9 @@ async function renovar() {
           >
             <div class="flex items-start justify-between gap-3">
               <div>
-                <p class="font-bold text-slate-800 text-base">🎫 {{ tipo.nombre }}</p>
+                <p class="font-bold text-slate-800 text-base">{{ tipo.nombre }}</p>
                 <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                  📝 {{ tipo.descripcion }}<br />
+                  {{ tipo.descripcion }}<br />
                   ⏱️ Duración: {{ tipo.duracion_dias }} días
                 </p>
               </div>
@@ -192,11 +195,14 @@ async function renovar() {
         <div class="flex flex-col sm:flex-row gap-3">
           <button @click="renovar" :disabled="!tipoSeleccionado || loading"
             class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-sm hover:-translate-y-0.5 disabled:opacity-60 cursor-pointer">
-            {{ loading ? 'Renovando…' : '✅ Renovar Membresía' }}
+            <template v-if="loading">Renovando…</template>
+            <template v-else>
+              <svg class="w-4 h-4 inline-block mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Renovar Membresía
+            </template>
           </button>
           <router-link to="/membresias"
-            class="flex-1 text-center bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm py-3 rounded-xl transition-all">
-            ❌ Cancelar
+            class="flex-1 text-center bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm py-3 rounded-xl transition-all inline-flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Cancelar
           </router-link>
         </div>
       </div>
@@ -210,4 +216,6 @@ async function renovar() {
 <style scoped>
 .fade-enter-active, .fade-leave-active { transition: opacity 0.25s ease; }
 .fade-enter-from,  .fade-leave-to      { opacity: 0; }
+.icon-slate { filter: brightness(0) saturate(0) opacity(0.55); }
+html.dark .icon-slate { filter: brightness(0) invert(1) opacity(0.8); }
 </style>

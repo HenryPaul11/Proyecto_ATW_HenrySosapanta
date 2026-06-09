@@ -8,17 +8,20 @@ export const useMembresiasStore = defineStore('membresias', () => {
   const clientesSinMembresia = ref<ClienteSinMembresia[]>([])
   const loading = ref(false)
 
-  async function fetchMembresias() {
+  async function fetchMembresias(force = false) {
+    if (membresias.value.length > 0 && !force) return
     loading.value = true
     membresias.value = await membresiasApi.getAll()
     loading.value = false
   }
 
-  async function fetchClientesSinMembresia() {
+  async function fetchClientesSinMembresia(force = false) {
+    if (clientesSinMembresia.value.length > 0 && !force) return
     clientesSinMembresia.value = await membresiasApi.getClientesSinMembresia()
   }
 
-  async function fetchAll() {
+  async function fetchAll(force = false) {
+    if (membresias.value.length > 0 && clientesSinMembresia.value.length > 0 && !force) return
     loading.value = true
     const [m, s] = await Promise.all([
       membresiasApi.getAll(),

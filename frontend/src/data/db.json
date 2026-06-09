@@ -1,10 +1,10 @@
 {
   "users": [
-    { "usuario": "admin",      "contrasena": "1234", "rol": "admin"      },
-    { "usuario": "juanperez",  "contrasena": "1234", "rol": "cliente"    },
-    { "usuario": "marialopez", "contrasena": "1234", "rol": "cliente"    },
-    { "usuario": "carlosfit",  "contrasena": "1234", "rol": "entrenador" },
-    { "usuario": "anatrainer", "contrasena": "1234", "rol": "entrenador" }
+    { "id": 1, "usuario": "admin",      "nombre": "Administrador",  "correo": "admin@powerfit.com",    "password": "1234", "rol": "admin"      },
+    { "id": 2, "usuario": "juanperez",  "nombre": "Juan Pérez",     "correo": "juan@mail.com",         "password": "1234", "rol": "cliente"    },
+    { "id": 3, "usuario": "marialopez", "nombre": "María López",    "correo": "maria@mail.com",        "password": "1234", "rol": "cliente"    },
+    { "id": 4, "usuario": "carlosfit",  "nombre": "Carlos Mendoza", "correo": "carlos@powerfit.com",   "password": "1234", "rol": "entrenador" },
+    { "id": 5, "usuario": "anatrainer", "nombre": "Ana Salazar",    "correo": "ana@powerfit.com",      "password": "1234", "rol": "entrenador" }
   ],
 
   "adminStats": {
@@ -136,5 +136,56 @@
   "todosEntrenadores": [
     { "id": 1, "nombre": "Carlos", "apellido": "Mendoza", "especialidad": "Musculación y Fuerza", "clientes_activos": 3, "sesiones_semana": 5, "horario": "06:00 – 14:00" },
     { "id": 2, "nombre": "Ana",    "apellido": "Salazar", "especialidad": "Cardio y Funcional",   "clientes_activos": 2, "sesiones_semana": 3, "horario": "14:00 – 22:00" }
+  ],
+
+  "equipos": [
+    {
+      "id": 1,
+      "nombre": "Cinta de Correr Pro",
+      "categoria": "Cardio",
+      "descripcion": "Cinta profesional con pantalla táctil, velocidad hasta 22 km/h e inclinación automática.",
+      "estado": "disponible",
+      "imagen": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80"
+    },
+    {
+      "id": 2,
+      "nombre": "Bicicleta Estática",
+      "categoria": "Cardio",
+      "descripcion": "Bicicleta de spinning con resistencia magnética y monitor de frecuencia cardíaca.",
+      "estado": "disponible",
+      "imagen": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80"
+    },
+    {
+      "id": 3,
+      "nombre": "Rack de Sentadillas",
+      "categoria": "Fuerza",
+      "descripcion": "Rack multiuso de acero reforzado para sentadillas, press de banca y dominadas.",
+      "estado": "disponible",
+      "imagen": "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&q=80"
+    },
+    {
+      "id": 4,
+      "nombre": "Mancuernas Ajustables",
+      "categoria": "Fuerza",
+      "descripcion": "Set de mancuernas ajustables de 5 a 52 kg. Perfectas para entrenamiento en casa o gym.",
+      "estado": "disponible",
+      "imagen": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&q=80"
+    },
+    {
+      "id": 5,
+      "nombre": "Elíptica Profesional",
+      "categoria": "Cardio",
+      "descripcion": "Elíptica de bajo impacto articular con 20 niveles de resistencia y programas preestablecidos.",
+      "estado": "mantenimiento",
+      "imagen": "https://images.unsplash.com/photo-1593079831268-3381b0db4a77?w=400&q=80"
+    },
+    {
+      "id": 6,
+      "nombre": "Banco Ajustable",
+      "categoria": "Fuerza",
+      "descripcion": "Banco con 7 posiciones de inclinación, desde -15° hasta 85°. Capacidad 300 kg.",
+      "estado": "disponible",
+      "imagen": "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=400&q=80"
+    }
   ]
 }

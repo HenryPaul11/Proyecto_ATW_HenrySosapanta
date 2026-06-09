@@ -1,0 +1,7 @@
+[
+  { "id": 1, "usuario": "admin",      "nombre": "Administrador",  "correo": "admin@powerfit.com",  "password": "1234", "rol": "admin"      },
+  { "id": 2, "usuario": "juanperez",  "nombre": "Juan Pérez",     "correo": "juan@mail.com",       "password": "1234", "rol": "cliente"    },
+  { "id": 3, "usuario": "marialopez", "nombre": "María López",    "correo": "maria@mail.com",      "password": "1234", "rol": "cliente"    },
+  { "id": 4, "usuario": "carlosfit",  "nombre": "Carlos Mendoza", "correo": "carlos@powerfit.com", "password": "1234", "rol": "entrenador" },
+  { "id": 5, "usuario": "anatrainer", "nombre": "Ana Salazar",    "correo": "ana@powerfit.com",    "password": "1234", "rol": "entrenador" }
+]

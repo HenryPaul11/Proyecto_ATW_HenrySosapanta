@@ -44,8 +44,8 @@ onMounted(async () => {
 
     <main class="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-8 py-8 md:py-10 fade-in">
 
-      <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight mb-8">
-        🎫 Mi Membresía
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight mb-8 flex items-center gap-2">
+        <img src="/icons/boleto.svg" class="w-6 h-6 icon-slate inline-block mr-1" alt="" />Mi Membresía
       </h1>
 
       <!-- Loading -->
@@ -54,7 +54,7 @@ onMounted(async () => {
       <!-- Sin membresía -->
       <template v-else-if="!store.membresia">
         <div class="bg-white rounded-2xl border-2 border-dashed border-slate-300 p-10 text-center">
-          <div class="text-5xl mb-4">😕</div>
+              <img src="/icons/boleto.svg" class="w-10 h-10 mx-auto mb-3 icon-slate" alt="" />
           <h2 class="text-lg font-bold text-slate-700 mb-2">No tienes membresía activa</h2>
           <p class="text-slate-500 text-sm mb-6">Visita la recepción del gimnasio para adquirir un plan y comenzar a entrenar.</p>
           <div class="bg-blue-50 rounded-xl p-4 text-sm text-blue-800 font-medium">
@@ -85,7 +85,12 @@ onMounted(async () => {
             </div>
             <span class="px-4 py-2 rounded-full font-black text-sm uppercase tracking-wide"
               :class="store.membresia.estado === 'activa' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'">
-              {{ store.membresia.estado === 'activa' ? '✅ ACTIVA' : '❌ VENCIDA' }}
+              <template v-if="store.membresia.estado === 'activa'">
+                <svg class="w-3.5 h-3.5 inline-block mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>ACTIVA
+              </template>
+              <template v-else>
+                <svg class="w-3.5 h-3.5 inline-block mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>VENCIDA
+              </template>
             </span>
           </div>
         </div>
@@ -119,12 +124,13 @@ onMounted(async () => {
 
         <!-- Alertas -->
         <div v-if="store.membresia.estado === 'activa' && diasRestantes <= 7"
-          class="bg-amber-50 border-l-4 border-amber-400 rounded-xl px-5 py-4 mb-5 text-sm text-amber-800 font-semibold">
-          ⏳ Tu membresía vence en <strong>{{ diasRestantes }} día{{ diasRestantes !== 1 ? 's' : '' }}</strong>. Acércate a recepción para renovarla.
+          class="bg-amber-50 border-l-4 border-amber-400 rounded-xl px-5 py-4 mb-5 text-sm text-amber-800 font-semibold flex items-center gap-2">
+          <img src="/icons/reloj.svg" class="w-4 h-4 icon-amber inline-block mr-1" alt="" /> Tu membresía vence en <strong>{{ diasRestantes }} día{{ diasRestantes !== 1 ? 's' : '' }}</strong>. Acércate a recepción para renovarla.
         </div>
         <div v-else-if="store.membresia.estado === 'vencida'"
-          class="bg-red-50 border-l-4 border-red-400 rounded-xl px-5 py-4 mb-5 text-sm text-red-800 font-semibold">
-          ❌ Tu membresía está vencida. Visita recepción para renovarla y seguir disfrutando del gimnasio.
+          class="bg-red-50 border-l-4 border-red-400 rounded-xl px-5 py-4 mb-5 text-sm text-red-800 font-semibold flex items-center gap-2">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Tu membresía está vencida. Visita recepción para renovarla y seguir disfrutando del gimnasio.
         </div>
 
         <!-- Barra de progreso -->
@@ -148,3 +154,9 @@ onMounted(async () => {
     <Footer />
   </div>
 </template>
+
+<style scoped>
+.icon-slate { filter: brightness(0) saturate(0) opacity(0.55); }
+.icon-amber { filter: brightness(0) saturate(100%) invert(55%) sepia(60%) saturate(600%) hue-rotate(10deg) opacity(0.9); }
+html.dark .icon-slate, html.dark .icon-amber { filter: brightness(0) invert(1) opacity(0.8); }
+</style>

@@ -44,8 +44,9 @@ onMounted(() => store.fetchAll(auth.usuario))
 
     <main class="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 py-8 md:py-10 fade-in">
 
-      <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight mb-8">
-        👥 Mis Clientes
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight mb-8 flex items-center gap-2">
+        <img src="/icons/grupo.svg" class="w-8 h-8 icon-slate" alt="" />
+        Mis Clientes
       </h1>
 
       <!-- Stats -->
@@ -91,7 +92,7 @@ onMounted(() => store.fetchAll(auth.usuario))
 
         <div v-if="clientesFiltrados.length === 0"
           class="bg-white rounded-2xl border-2 border-dashed border-slate-300 p-10 text-center">
-          <div class="text-4xl mb-3">👥</div>
+          <img src="/icons/grupo.svg" class="w-12 h-12 mx-auto mb-3 icon-slate" alt="" />
           <p class="text-slate-500 font-semibold">No se encontraron clientes.</p>
         </div>
 
@@ -125,8 +126,11 @@ onMounted(() => store.fetchAll(auth.usuario))
               </div>
             </div>
             <div v-if="c.estado_membresia === 'vencida'"
-              class="bg-red-50 rounded-lg px-3 py-2 text-xs text-red-700 font-semibold">
-              ⚠️ Membresía vencida. No puede entrenar.
+              class="bg-red-50 rounded-lg px-3 py-2 text-xs text-red-700 font-semibold flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              Membresía vencida. No puede entrenar.
             </div>
           </div>
         </div>
@@ -136,3 +140,8 @@ onMounted(() => store.fetchAll(auth.usuario))
     <Footer />
   </div>
 </template>
+
+<style scoped>
+.icon-slate { filter: brightness(0) saturate(0) opacity(0.55); }
+html.dark .icon-slate { filter: brightness(0) invert(1) opacity(0.8); }
+</style>

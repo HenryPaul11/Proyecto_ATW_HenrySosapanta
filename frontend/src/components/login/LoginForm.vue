@@ -1,20 +1,21 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
-const auth = useAuthStore()
+const route  = useRoute()
+const auth   = useAuthStore()
 
-const form = ref({ usuario: '', contrasena: '' })
+const form         = ref({ usuario: '', password: '' })
 const errorMessage = ref('')
-const loading = ref(false)
+const loading      = ref(false)
 
 async function handleLogin() {
   errorMessage.value = ''
   loading.value = true
 
-  const match = await auth.login(form.value.usuario, form.value.contrasena)
+  const match = await auth.login(form.value.usuario, form.value.password)
 
   if (match) {
     const destinos = {
@@ -22,7 +23,9 @@ async function handleLogin() {
       entrenador: '/entrenador/dashboard',
       cliente:    '/cliente/dashboard',
     }
-    router.push(destinos[match.rol] ?? '/login')
+    // Si venía de una URL protegida, redirige ahí; si no, al dashboard del rol
+    const destino = route.query.redirect || destinos[match.rol] || '/login'
+    router.push(destino)
   } else {
     errorMessage.value = 'Usuario o contraseña incorrectos.'
   }
@@ -49,7 +52,7 @@ async function handleLogin() {
       <label for="contrasena">Contraseña</label>
       <input
         id="contrasena"
-        v-model="form.contrasena"
+        v-model="form.password"
         type="password"
         placeholder="Ingresa tu contraseña"
         required

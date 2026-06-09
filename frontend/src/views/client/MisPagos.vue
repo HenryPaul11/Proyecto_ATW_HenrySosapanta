@@ -31,8 +31,8 @@ onMounted(async () => {
 
     <main class="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-8 py-8 md:py-10 fade-in">
 
-      <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight mb-8">
-        💳 Mis Pagos
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight mb-8 flex items-center gap-2">
+        <img src="/icons/tarjeta.svg" class="w-6 h-6 icon-slate inline-block mr-1" alt="" />Mis Pagos
       </h1>
 
       <!-- Stats -->
@@ -62,7 +62,9 @@ onMounted(async () => {
       <!-- Sin pagos -->
       <div v-else-if="store.historialPagos.length === 0"
         class="bg-white rounded-2xl border-2 border-dashed border-slate-300 p-10 text-center">
-        <div class="text-4xl mb-3">📭</div>
+        <div class="text-4xl mb-3">
+          <img src="/icons/boleto.svg" class="w-12 h-12 mx-auto mb-3 icon-slate" alt="" />
+        </div>
         <p class="text-slate-600 font-semibold">No tienes pagos registrados aún.</p>
         <p class="text-slate-400 text-sm mt-1">Tus transacciones aparecerán aquí.</p>
       </div>
@@ -116,3 +118,8 @@ onMounted(async () => {
     <Footer />
   </div>
 </template>
+
+<style scoped>
+.icon-slate { filter: brightness(0) saturate(0) opacity(0.55); }
+html.dark .icon-slate { filter: brightness(0) invert(1) opacity(0.8); }
+</style>

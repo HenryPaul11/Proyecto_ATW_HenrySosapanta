@@ -1,0 +1,19 @@
+{
+  "lista": [
+    { "id": 1, "cliente_nombre": "Juan",   "cliente_apellido": "Pérez",  "cedula": "1234567890", "tipo_membresia": "Premium",    "monto": 70.00,  "metodo_pago": "efectivo",      "fecha_pago": "2026-05-19 10:30:00", "fecha_inicio": "2026-05-19", "fecha_fin": "2026-06-18", "estado_membresia": "activa"  },
+    { "id": 2, "cliente_nombre": "María",  "cliente_apellido": "López",  "cedula": "0987654321", "tipo_membresia": "Básica",     "monto": 25.00,  "metodo_pago": "tarjeta",       "fecha_pago": "2026-05-18 14:00:00", "fecha_inicio": "2026-05-18", "fecha_fin": "2026-06-17", "estado_membresia": "activa"  },
+    { "id": 3, "cliente_nombre": "Carlos", "cliente_apellido": "Ruiz",   "cedula": "1122334455", "tipo_membresia": "Mensual",    "monto": 40.00,  "metodo_pago": "transferencia", "fecha_pago": "2026-04-01 09:15:00", "fecha_inicio": "2026-04-01", "fecha_fin": "2026-05-01", "estado_membresia": "vencida" },
+    { "id": 4, "cliente_nombre": "Ana",    "cliente_apellido": "Torres", "cedula": "5566778899", "tipo_membresia": "Trimestral", "monto": 100.00, "metodo_pago": "tarjeta",       "fecha_pago": "2026-03-01 11:00:00", "fecha_inicio": "2026-03-01", "fecha_fin": "2026-06-01", "estado_membresia": "activa"  },
+    { "id": 5, "cliente_nombre": "Luis",   "cliente_apellido": "Gómez",  "cedula": "1111111111", "tipo_membresia": "Básica",     "monto": 25.00,  "metodo_pago": "efectivo",      "fecha_pago": "2026-02-15 08:45:00", "fecha_inicio": "2026-02-15", "fecha_fin": "2026-03-15", "estado_membresia": "vencida" }
+  ],
+  "historialPorCliente": {
+    "1": [
+      { "id": 1, "tipo_membresia": "Premium",    "monto": 70.00,  "metodo_pago": "efectivo",      "fecha_pago": "2026-05-19", "fecha_inicio": "2026-05-19", "fecha_fin": "2026-06-18" },
+      { "id": 2, "tipo_membresia": "Trimestral", "monto": 100.00, "metodo_pago": "tarjeta",       "fecha_pago": "2026-02-01", "fecha_inicio": "2026-02-01", "fecha_fin": "2026-05-01" },
+      { "id": 3, "tipo_membresia": "Mensual",    "monto": 40.00,  "metodo_pago": "transferencia", "fecha_pago": "2025-12-01", "fecha_inicio": "2025-12-01", "fecha_fin": "2026-01-01" }
+    ],
+    "2": [
+      { "id": 4, "tipo_membresia": "Básica", "monto": 25.00, "metodo_pago": "efectivo", "fecha_pago": "2026-04-01", "fecha_inicio": "2026-04-01", "fecha_fin": "2026-05-01" }
+    ]
+  }
+}

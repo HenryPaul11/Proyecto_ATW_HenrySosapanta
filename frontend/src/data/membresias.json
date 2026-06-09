@@ -1,0 +1,25 @@
+{
+  "lista": [
+    { "id": 1, "cliente_id": 1,  "nombre": "Juan",   "apellido": "Pérez",  "cedula": "1234567890", "tipo": "Premium", "inicio": "2026-05-01", "fin": "2026-05-25" },
+    { "id": 2, "cliente_id": 2,  "nombre": "María",  "apellido": "López",  "cedula": "0987654321", "tipo": "Básica",  "inicio": "2026-04-01", "fin": "2026-05-20" },
+    { "id": 3, "cliente_id": 10, "nombre": "Carlos", "apellido": "Ruiz",   "cedula": "1122334455", "tipo": "Mensual", "inicio": "2026-03-01", "fin": "2026-04-01" },
+    { "id": 4, "cliente_id": 12, "nombre": "Ana",    "apellido": "Torres", "cedula": "5566778899", "tipo": "Premium", "inicio": "2026-02-01", "fin": "2026-03-01" }
+  ],
+  "tipos": [
+    { "id": 1, "nombre": "Básica",     "descripcion": "Acceso a equipos de cardio y pesas.",    "duracion_dias": 30,  "precio": 25.00  },
+    { "id": 2, "nombre": "Mensual",    "descripcion": "Acceso completo + clases grupales.",      "duracion_dias": 30,  "precio": 40.00  },
+    { "id": 3, "nombre": "Premium",    "descripcion": "Acceso ilimitado + entrenador personal.", "duracion_dias": 30,  "precio": 70.00  },
+    { "id": 4, "nombre": "Trimestral", "descripcion": "Plan de 3 meses con descuento especial.", "duracion_dias": 90,  "precio": 100.00 },
+    { "id": 5, "nombre": "Anual",      "descripcion": "Plan anual con el mejor precio por mes.", "duracion_dias": 365, "precio": 300.00 }
+  ],
+  "porCliente": {
+    "1":  [{ "id": 101, "tipo_membresia": "Premium",  "precio": 70.00, "fecha_inicio": "2026-05-19", "fecha_fin": "2026-06-18", "estado": "activa" }],
+    "2":  [{ "id": 102, "tipo_membresia": "Básica",   "precio": 25.00, "fecha_inicio": "2026-05-18", "fecha_fin": "2026-06-17", "estado": "activa" }],
+    "10": [{ "id": 103, "tipo_membresia": "Mensual",  "precio": 40.00, "fecha_inicio": "2026-05-01", "fecha_fin": "2026-05-31", "estado": "activa" }],
+    "11": []
+  },
+  "porClienteDetalle": {
+    "1": { "id": 101, "tipo_membresia": "Premium", "descripcion": "Acceso ilimitado + entrenador personal.", "precio": 70.00, "fecha_inicio": "2026-05-19", "fecha_fin": "2026-06-18", "estado": "activa"  },
+    "2": { "id": 102, "tipo_membresia": "Básica",  "descripcion": "Acceso a equipos de cardio y pesas.",    "precio": 25.00, "fecha_inicio": "2026-04-01", "fecha_fin": "2026-05-01", "estado": "vencida" }
+  }
+}

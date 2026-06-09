@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useClientesStore } from '@/stores/clientesStore'
-import Navbar from '@/components/shared/Navbar.vue'
+import Navbar from '@/components/admin/AdminNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 
 const router = useRouter()

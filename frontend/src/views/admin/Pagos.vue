@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { usePagosStore } from '@/stores/pagosStore'
-import Navbar       from '@/components/shared/Navbar.vue'
+import Navbar       from '@/components/admin/AdminNavbar.vue'
 import Footer       from '@/components/shared/Footer.vue'
 import PagoStatCard from '@/components/pagos/PagoStatCard.vue'
 import MetodoBadge  from '@/components/pagos/MetodoBadge.vue'
@@ -53,9 +53,18 @@ onMounted(() => store.fetchPagos())
         <PagoStatCard title="Promedio / Pago" :value="promedio"                 prefix="$" subtitle="Monto promedio"             color="orange" />
         <PagoStatCard title="Métodos de Pago" subtitle="Efectivo · Tarjeta · Transferencia" color="purple" :large="false">
           <div class="flex flex-wrap gap-2 mt-1">
-            <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">💵 {{ conteoMetodo('efectivo') }}</span>
-            <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">💳 {{ conteoMetodo('tarjeta') }}</span>
-            <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">🏦 {{ conteoMetodo('transferencia') }}</span>
+            <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
+              <img src="/icons/efectivo.svg" alt="Efectivo" class="w-4 h-4 object-contain" />
+              {{ conteoMetodo('efectivo') }}
+            </span>
+            <span class="inline-flex items-center gap-1.5 bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
+              <img src="/icons/tarjeta.svg" alt="Tarjeta" class="w-4 h-4 object-contain" />
+              {{ conteoMetodo('tarjeta') }}
+            </span>
+            <span class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">
+              <img src="/icons/transferencia.svg" alt="Transferencia" class="w-4 h-4 object-contain" />
+              {{ conteoMetodo('transferencia') }}
+            </span>
           </div>
         </PagoStatCard>
       </div>

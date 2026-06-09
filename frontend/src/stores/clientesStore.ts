@@ -9,7 +9,8 @@ export const useClientesStore = defineStore('clientes', () => {
   const membresiasPorCliente = ref<Record<number, MembresiaCliente[]>>({})
   const loading = ref(false)
 
-  async function fetchClientes() {
+  async function fetchClientes(force = false) {
+    if (clientes.value.length > 0 && !force) return
     loading.value = true
     clientes.value = await clientesApi.getAll()
     loading.value = false

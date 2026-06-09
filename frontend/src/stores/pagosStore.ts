@@ -7,7 +7,8 @@ export const usePagosStore = defineStore('pagos', () => {
   const pagos = ref<Pago[]>([])
   const loading = ref(false)
 
-  async function fetchPagos() {
+  async function fetchPagos(force = false) {
+    if (pagos.value.length > 0 && !force) return
     loading.value = true
     pagos.value = await pagosApi.getAll()
     loading.value = false

@@ -69,6 +69,12 @@ const router = createRouter({
       component: () => import('@/views/admin/RegistrarPago.vue'),
       meta: { requiresAuth: true, rol: 'admin' },
     },
+    {
+      path: '/equipos',
+      name: 'Equipos',
+      component: () => import('@/views/admin/Equipos.vue'),
+      meta: { requiresAuth: true, rol: 'admin' },
+    },
 
     // ─── Entrenador ────────────────────────────────────────────────────────
     {
@@ -129,12 +135,12 @@ const router = createRouter({
 router.beforeEach((to) => {
   const auth = useAuthStore()
 
-  // Ruta protegida sin sesión
+  // Ruta protegida sin sesión → manda al login guardando la URL de destino
   if (to.meta.requiresAuth && !auth.isLoggedIn()) {
-    return '/login'
+    return { path: '/login', query: { redirect: to.fullPath } }
   }
 
-  // Ruta con rol requerido
+  // Ruta con rol requerido → redirige al dashboard del rol correcto
   if (to.meta.requiresAuth && to.meta.rol && auth.rol !== to.meta.rol) {
     if (auth.rol === 'admin')       return '/dashboard'
     if (auth.rol === 'entrenador')  return '/entrenador/dashboard'

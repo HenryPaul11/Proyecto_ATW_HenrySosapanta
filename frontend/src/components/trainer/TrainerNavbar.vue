@@ -39,21 +39,40 @@
         </router-link>
       </nav>
 
-      <!-- Right -->
+      <!-- Right: usuario + dark mode + logout -->
       <div class="hidden md:flex items-center gap-3">
         <div class="flex items-center gap-2 bg-emerald-50 rounded-xl px-3 py-1.5">
-          <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold">
-            {{ inicial }}
-          </div>
+          <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold">{{ inicial }}</div>
           <span class="text-emerald-700 font-semibold text-sm">{{ usuario }}</span>
           <span class="text-xs bg-emerald-200 text-emerald-800 font-bold px-1.5 py-0.5 rounded-full">Entrenador</span>
         </div>
+
+        <!-- Toggle modo oscuro -->
+        <button
+          @click="theme.toggle()"
+          class="p-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          :title="theme.dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+        >
+          <!-- Sol -->
+          <svg v-if="theme.dark" class="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <!-- Luna -->
+          <svg v-else class="w-5 h-5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+
         <button
           @click="$emit('logout')"
           class="flex items-center gap-1.5 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white font-semibold text-sm px-3.5 py-2 rounded-lg transition-all duration-200 cursor-pointer border border-red-200 hover:border-red-500"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
           </svg>
           Salir
         </button>
@@ -61,15 +80,26 @@
 
       <!-- Mobile -->
       <div class="flex items-center gap-2 md:hidden">
-        <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold">
-          {{ inicial }}
-        </div>
+        <!-- Toggle móvil -->
+        <button @click="theme.toggle()" class="p-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+          <svg v-if="theme.dark" class="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg v-else class="w-5 h-5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold">{{ inicial }}</div>
         <button @click="menuAbierto = !menuAbierto" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
           <svg v-if="!menuAbierto" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
           <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
       </div>
@@ -86,7 +116,7 @@
         <div class="border-t border-slate-100 mt-2 pt-2">
           <button @click="handleLogout" class="w-full flex items-center gap-2.5 text-red-500 font-semibold text-sm px-4 py-3 rounded-xl hover:bg-red-50 transition-all cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
             </svg>
             Cerrar sesión
           </button>
@@ -98,20 +128,26 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useThemeStore } from '@/stores/themeStore'
+
 const props = defineProps({ usuario: String })
 const emit  = defineEmits(['logout'])
+
 const menuAbierto = ref(false)
-const inicial = computed(() => props.usuario?.charAt(0).toUpperCase() ?? '?')
+const inicial     = computed(() => props.usuario?.charAt(0).toUpperCase() ?? '?')
+const theme       = useThemeStore()
+
 const navLinks = [
-  { to: '/entrenador/dashboard', label: 'Inicio',      icon: 'home'     },
+  { to: '/entrenador/dashboard', label: 'Inicio',       icon: 'home'     },
   { to: '/entrenador/clientes',  label: 'Mis Clientes', icon: 'clientes' },
-  { to: '/entrenador/sesiones',  label: 'Sesiones',    icon: 'sesiones' },
-  { to: '/entrenador/perfil',    label: 'Mi Perfil',   icon: 'perfil'   },
+  { to: '/entrenador/sesiones',  label: 'Sesiones',     icon: 'sesiones' },
+  { to: '/entrenador/perfil',    label: 'Mi Perfil',    icon: 'perfil'   },
 ]
+
 function handleLogout() { menuAbierto.value = false; emit('logout') }
 </script>
 
 <style scoped>
 .slide-down-enter-active, .slide-down-leave-active { transition: all 0.2s ease; }
-.slide-down-enter-from,  .slide-down-leave-to      { opacity: 0; transform: translateY(-6px); }
+.slide-down-enter-from,   .slide-down-leave-to     { opacity: 0; transform: translateY(-6px); }
 </style>

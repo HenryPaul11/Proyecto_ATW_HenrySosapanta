@@ -1,0 +1,44 @@
+{
+  "porUsuario": {
+    "carlosfit": {
+      "id": 1, "nombre": "Carlos", "apellido": "Mendoza", "cedula": "0501234567",
+      "telefono": "0981234567", "email": "carlos@powerfit.com",
+      "especialidad": "Musculación y Fuerza", "fecha_ingreso": "2024-03-01",
+      "horario": "Lunes a Viernes 06:00 – 14:00"
+    },
+    "anatrainer": {
+      "id": 2, "nombre": "Ana", "apellido": "Salazar", "cedula": "0509876543",
+      "telefono": "0989876543", "email": "ana@powerfit.com",
+      "especialidad": "Cardio y Funcional", "fecha_ingreso": "2024-06-15",
+      "horario": "Lunes a Viernes 14:00 – 22:00"
+    }
+  },
+  "clientesAsignados": {
+    "1": [
+      { "id": 1,  "nombre": "Juan",  "apellido": "Pérez", "cedula": "1234567890", "plan": "Premium",    "estado_membresia": "activa",  "proxima_sesion": "2026-05-27" },
+      { "id": 10, "nombre": "Luis",  "apellido": "Gómez", "cedula": "1111111111", "plan": "Mensual",    "estado_membresia": "activa",  "proxima_sesion": "2026-05-28" },
+      { "id": 12, "nombre": "Pedro", "apellido": "Vega",  "cedula": "3333333333", "plan": "Trimestral", "estado_membresia": "activa",  "proxima_sesion": "2026-05-29" }
+    ],
+    "2": [
+      { "id": 2,  "nombre": "María", "apellido": "López", "cedula": "0987654321", "plan": "Básica",  "estado_membresia": "activa",  "proxima_sesion": "2026-05-27" },
+      { "id": 11, "nombre": "Sara",  "apellido": "Mora",  "cedula": "2222222222", "plan": "Mensual", "estado_membresia": "vencida", "proxima_sesion": null }
+    ]
+  },
+  "sesiones": {
+    "1": [
+      { "id": 1, "cliente_nombre": "Juan Pérez",  "fecha": "2026-05-26", "hora": "07:00", "tipo": "Fuerza",      "estado": "completada", "notas": "Excelente progreso en press de banca." },
+      { "id": 2, "cliente_nombre": "Luis Gómez",  "fecha": "2026-05-26", "hora": "09:00", "tipo": "Hipertrofia", "estado": "completada", "notas": "Aumentó peso en sentadilla."            },
+      { "id": 3, "cliente_nombre": "Juan Pérez",  "fecha": "2026-05-27", "hora": "07:00", "tipo": "Fuerza",      "estado": "pendiente",  "notas": ""                                       },
+      { "id": 4, "cliente_nombre": "Pedro Vega",  "fecha": "2026-05-27", "hora": "10:00", "tipo": "Resistencia", "estado": "pendiente",  "notas": ""                                       },
+      { "id": 5, "cliente_nombre": "Luis Gómez",  "fecha": "2026-05-28", "hora": "09:00", "tipo": "Hipertrofia", "estado": "pendiente",  "notas": ""                                       }
+    ],
+    "2": [
+      { "id": 6, "cliente_nombre": "María López", "fecha": "2026-05-26", "hora": "15:00", "tipo": "Cardio",    "estado": "completada", "notas": "Mejoró tiempo en cinta." },
+      { "id": 7, "cliente_nombre": "María López", "fecha": "2026-05-27", "hora": "15:00", "tipo": "Funcional", "estado": "pendiente",  "notas": ""                        }
+    ]
+  },
+  "todos": [
+    { "id": 1, "nombre": "Carlos", "apellido": "Mendoza", "especialidad": "Musculación y Fuerza", "clientes_activos": 3, "sesiones_semana": 5, "horario": "06:00 – 14:00" },
+    { "id": 2, "nombre": "Ana",    "apellido": "Salazar", "especialidad": "Cardio y Funcional",   "clientes_activos": 2, "sesiones_semana": 3, "horario": "14:00 – 22:00" }
+  ]
+}

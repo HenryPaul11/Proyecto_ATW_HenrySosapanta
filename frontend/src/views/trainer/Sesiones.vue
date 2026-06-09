@@ -45,8 +45,9 @@ onMounted(() => store.fetchAll(auth.usuario))
 
     <main class="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 py-8 md:py-10 fade-in">
 
-      <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight mb-8">
-        📅 Sesiones de Entrenamiento
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight mb-8 flex items-center gap-2">
+        <img src="/icons/calendario.svg" class="w-8 h-8 icon-slate" alt="" />
+        Sesiones de Entrenamiento
       </h1>
 
       <!-- Stats -->
@@ -86,7 +87,7 @@ onMounted(() => store.fetchAll(auth.usuario))
 
         <div v-if="sesionesFiltradas.length === 0"
           class="bg-white rounded-2xl border-2 border-dashed border-slate-300 p-10 text-center">
-          <div class="text-4xl mb-3">📭</div>
+          <img src="/icons/calendario.svg" class="w-12 h-12 mx-auto mb-3 icon-slate" alt="" />
           <p class="text-slate-500 font-semibold">No se encontraron sesiones.</p>
         </div>
 
@@ -115,9 +116,15 @@ onMounted(() => store.fetchAll(auth.usuario))
                     </span>
                   </td>
                   <td class="px-4 py-3 whitespace-nowrap">
-                    <span class="inline-block px-2.5 py-1 rounded-full text-xs font-bold"
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
                       :class="s.estado === 'completada' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
-                      {{ s.estado === 'completada' ? '✅ Completada' : '⏳ Pendiente' }}
+                      <!-- Check SVG para completada -->
+                      <svg v-if="s.estado === 'completada'" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <!-- Reloj SVG para pendiente -->
+                      <img v-else src="/icons/reloj.svg" class="w-3.5 h-3.5 icon-amber" alt="" />
+                      {{ s.estado === 'completada' ? 'Completada' : 'Pendiente' }}
                     </span>
                   </td>
                   <td class="px-4 py-3 text-xs text-slate-400 max-w-[180px] truncate">{{ s.notas || '—' }}</td>
@@ -132,3 +139,10 @@ onMounted(() => store.fetchAll(auth.usuario))
     <Footer />
   </div>
 </template>
+
+<style scoped>
+.icon-slate { filter: brightness(0) saturate(0) opacity(0.55); }
+.icon-amber { filter: brightness(0) saturate(100%) invert(55%) sepia(60%) saturate(600%) hue-rotate(10deg) opacity(0.9); }
+html.dark .icon-slate,
+html.dark .icon-amber { filter: brightness(0) invert(1) opacity(0.8); }
+</style>

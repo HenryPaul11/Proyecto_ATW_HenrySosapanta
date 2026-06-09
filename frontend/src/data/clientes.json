@@ -1,0 +1,17 @@
+{
+  "lista": [
+    { "id": 1,  "nombre": "Juan",  "apellido": "Pérez", "cedula": "1234567890", "telefono": "0991234567", "email": "juan@mail.com"  },
+    { "id": 2,  "nombre": "María", "apellido": "López", "cedula": "0987654321", "telefono": "0997654321", "email": "maria@mail.com" },
+    { "id": 10, "nombre": "Luis",  "apellido": "Gómez", "cedula": "1111111111", "telefono": "0991111111", "email": "luis@mail.com"  },
+    { "id": 11, "nombre": "Sara",  "apellido": "Mora",  "cedula": "2222222222", "telefono": "0992222222", "email": "sara@mail.com"  },
+    { "id": 12, "nombre": "Pedro", "apellido": "Vega",  "cedula": "3333333333", "telefono": "0993333333", "email": "pedro@mail.com" }
+  ],
+  "sinMembresia": [
+    { "id": 10, "nombre": "Luis", "apellido": "Gómez", "cedula": "1111111111", "telefono": "0991111111", "email": "luis@mail.com" },
+    { "id": 11, "nombre": "Sara", "apellido": "Mora",  "cedula": "2222222222", "telefono": "0992222222", "email": "sara@mail.com" }
+  ],
+  "porUsuario": {
+    "juanperez":  { "id": 1,  "nombre": "Juan",  "apellido": "Pérez", "cedula": "1234567890", "telefono": "0991234567", "email": "juan@mail.com",  "fecha_registro": "2025-01-15" },
+    "marialopez": { "id": 2,  "nombre": "María", "apellido": "López", "cedula": "0987654321", "telefono": "0997654321", "email": "maria@mail.com", "fecha_registro": "2025-03-10" }
+  }
+}
