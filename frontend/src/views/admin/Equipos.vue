@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { useEquiposStore } from '@/stores/equiposStore'
+import { useEquiposStore, IMAGEN_EQUIPO_DEFAULT } from '@/stores/equiposStore'
 import Navbar from '@/components/admin/AdminNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 
@@ -66,7 +66,7 @@ async function registrar() {
     categoria:   form.value.categoria,
     descripcion: form.value.descripcion.trim(),
     estado:      form.value.estado,
-    imagen:      form.value.imagen.trim() || 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80',
+    imagen:      form.value.imagen.trim() || IMAGEN_EQUIPO_DEFAULT,
   })
 
   form.value    = { nombre: '', categoria: 'Cardio', descripcion: '', imagen: '', estado: 'disponible' }
@@ -77,7 +77,16 @@ async function registrar() {
   setTimeout(() => message.value = '', 3000)
 }
 
-onMounted(() => store.fetchEquipos())
+function imagenEquipo(e: { imagenUrl?: string; imagen?: string }) {
+  return (e.imagenUrl || e.imagen || IMAGEN_EQUIPO_DEFAULT).trim()
+}
+
+function onImgError(ev: Event) {
+  const img = ev.target as HTMLImageElement
+  if (img.src !== IMAGEN_EQUIPO_DEFAULT) img.src = IMAGEN_EQUIPO_DEFAULT
+}
+
+onMounted(() => store.fetchEquipos(true))
 </script>
 
 <template>
@@ -90,7 +99,7 @@ onMounted(() => store.fetchEquipos())
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Equipos del Gimnasio</h1>
-          <p class="text-slate-400 text-sm mt-1">Datos cargados desde <code class="bg-slate-100 px-1 rounded text-xs">db.json</code></p>
+          <p class="text-slate-400 text-sm mt-1">Datos cargados desde la API del backend</p>
         </div>
         <button
           @click="mostrarForm = !mostrarForm"
@@ -216,10 +225,11 @@ onMounted(() => store.fetchEquipos())
           <!-- Imagen -->
           <div class="h-44 overflow-hidden bg-slate-100">
             <img
-              :src="e.imagen"
+              :src="imagenEquipo(e)"
               :alt="e.nombre"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
+              @error="onImgError"
             />
           </div>
 

@@ -92,18 +92,18 @@ const colVencidas     = ['Cliente', 'Cédula', 'Tipo', 'F. Inicio', 'F. Fin', 'E
               class="border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50 bg-white"
             >
               <td class="px-4 py-3.5 text-sm font-semibold text-slate-800">
-                {{ m.nombre }} {{ m.apellido }}
+                {{ m.clienteNombre }} {{ m.clienteApellido }}
               </td>
-              <td class="px-4 py-3.5 text-sm text-slate-500">{{ m.cedula }}</td>
-              <td class="px-4 py-3.5 text-sm font-semibold text-slate-700">{{ m.tipo }}</td>
-              <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.inicio) }}</td>
-              <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.fin) }}</td>
+              <td class="px-4 py-3.5 text-sm text-slate-500">{{ m.clienteCedula }}</td>
+              <td class="px-4 py-3.5 text-sm font-semibold text-slate-700">{{ m.tipoMembresiaNombre }}</td>
+              <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.fechaInicio) }}</td>
+              <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.fechaFin) }}</td>
               <td class="px-4 py-3.5">
                 <span
                   class="inline-block px-2.5 py-1 rounded-full text-xs font-bold"
-                  :class="diasRestantes(m.fin) <= 7 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'"
+                  :class="diasRestantes(m.fechaFin) <= 7 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'"
                 >
-                  {{ diasRestantes(m.fin) }}d
+                  {{ diasRestantes(m.fechaFin) }}d
                 </span>
               </td>
               <td class="px-4 py-3.5">
@@ -135,12 +135,12 @@ const colVencidas     = ['Cliente', 'Cédula', 'Tipo', 'F. Inicio', 'F. Fin', 'E
               class="border-b border-slate-100 transition-colors duration-150 hover:bg-red-50/30 bg-white"
             >
               <td class="px-4 py-3.5 text-sm font-semibold text-slate-800">
-                {{ m.nombre }} {{ m.apellido }}
+                {{ m.clienteNombre }} {{ m.clienteApellido }}
               </td>
-              <td class="px-4 py-3.5 text-sm text-slate-500">{{ m.cedula }}</td>
-              <td class="px-4 py-3.5 text-sm font-semibold text-slate-700">{{ m.tipo }}</td>
-              <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.inicio) }}</td>
-              <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.fin) }}</td>
+              <td class="px-4 py-3.5 text-sm text-slate-500">{{ m.clienteCedula }}</td>
+              <td class="px-4 py-3.5 text-sm font-semibold text-slate-700">{{ m.tipoMembresiaNombre }}</td>
+              <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.fechaInicio) }}</td>
+              <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.fechaFin) }}</td>
               <td class="px-4 py-3.5">
                 <span class="inline-block px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">
                   Vencida
@@ -148,7 +148,7 @@ const colVencidas     = ['Cliente', 'Cédula', 'Tipo', 'F. Inicio', 'F. Fin', 'E
               </td>
               <td class="px-4 py-3.5">
                 <router-link
-                  :to="{ name: 'RenovarMembresia', params: { clienteId: m.id } }"
+                  :to="{ name: 'RenovarMembresia', params: { clienteId: m.clienteId } }"
                   class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm inline-block whitespace-nowrap"
                 >
                   Renovar Membresía

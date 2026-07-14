@@ -61,11 +61,26 @@ async function buscarCliente() {
   if (!cedula) { message.value = 'Ingrese una cédula.'; messageType.value = 'error'; return }
   loadingBuscar.value = true
   try {
-    const clienteRes = await httpClient.get(`/clientes/cedula/${cedula}`)
+    // Buscar cliente y tipos de membresía en paralelo
+    const [clienteRes, tiposRes] = await Promise.all([
+      httpClient.get(`/clientes/cedula/${cedula}`),
+      httpClient.get('/tipos-membresia'),
+    ])
     clienteEncontrado.value = clienteRes.data
+    const tipos = tiposRes.data ?? []
 
+    // Obtener membresías del cliente
     const membRes = await httpClient.get(`/membresias/cliente/${clienteEncontrado.value.id}`).catch(() => ({ data: [] }))
-    membresiasDisponibles.value = (membRes.data ?? []).filter(m => m.estado === 'activa')
+    const todasMembresias = membRes.data ?? []
+
+    // Cruzar precio desde tipos de membresía
+    membresiasDisponibles.value = todasMembresias
+      .filter(m => m.estado === 'activa')
+      .map(m => {
+        const tipo = tipos.find(t => t.id === m.tipoMembresiaId)
+        return { ...m, precio: tipo?.precio ?? 0 }
+      })
+
     membresiaSeleccionada.value = null
     monto.value = ''
     metodoPago.value = ''
@@ -84,7 +99,9 @@ async function buscarCliente() {
 
 function seleccionarMembresia(id, precio) {
   membresiaSeleccionada.value = id
-  monto.value = Number(precio).toFixed(2)
+  // Buscar el precio directamente de la membresía enriquecida
+  const memb = membresiasDisponibles.value.find(m => m.id === id)
+  monto.value = Number(memb?.precio ?? precio ?? 0).toFixed(2)
 }
 
 async function registrarPago() {
@@ -96,7 +113,7 @@ async function registrarPago() {
     const res = await httpClient.post('/pagos', {
       clienteId:     c.id,
       membresiaId:   membresiaSeleccionada.value,
-      monto:         Number(monto.value),
+      monto:         parseFloat(monto.value),
       metodoPago:    metodoPago.value,
     })
     const nuevo = res.data

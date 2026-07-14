@@ -28,7 +28,7 @@ async function eliminarCliente() {
     await httpClient.delete(`/clientes/${c.id}`)
     message.value     = `Cliente ${c.nombre} ${c.apellido} eliminado correctamente.`
     messageType.value = 'success'
-  } catch (err) {
+  } catch (err: any) {
     message.value     = err.error || 'No se pudo eliminar el cliente.'
     messageType.value = 'error'
   }

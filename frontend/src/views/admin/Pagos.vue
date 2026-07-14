@@ -73,16 +73,16 @@ onMounted(() => admin.fetchStats())
               :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
             >
               <td class="px-4 py-3 text-sm font-bold text-slate-700 whitespace-nowrap">#{{ pago.id }}</td>
-              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ pago.cliente_nombre }} {{ pago.cliente_apellido }}</td>
+              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ pago.clienteNombre }} {{ pago.clienteApellido }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ pago.cedula }}</td>
-              <td class="px-4 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap">{{ pago.tipo_membresia }}</td>
+              <td class="px-4 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap">{{ pago.tipoMembresia }}</td>
               <td class="px-4 py-3 whitespace-nowrap">
                 <span class="text-emerald-600 font-bold">${{ Number(pago.monto).toFixed(2) }}</span>
               </td>
-              <td class="px-4 py-3 whitespace-nowrap"><MetodoBadge :metodo="pago.metodo_pago" /></td>
-              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(pago.fecha_pago) }}</td>
-              <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{{ formatFechaCorta(pago.fecha_inicio) }} – {{ formatFechaCorta(pago.fecha_fin) }}</td>
-              <td class="px-4 py-3 whitespace-nowrap"><EstadoBadge :estado="pago.estado_membresia" /></td>
+              <td class="px-4 py-3 whitespace-nowrap"><MetodoBadge :metodo="pago.metodoPago" /></td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(pago.fechaPago) }}</td>
+              <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{{ formatFechaCorta(pago.fechaInicio) }} – {{ formatFechaCorta(pago.fechaFin) }}</td>
+              <td class="px-4 py-3 whitespace-nowrap"><EstadoBadge :estado="pago.estadoMembresia" /></td>
             </tr>
           </template>
         </PaginatedTable>

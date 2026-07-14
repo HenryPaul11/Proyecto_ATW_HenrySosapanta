@@ -226,7 +226,10 @@ export interface Equipo {
   categoria: string
   descripcion: string
   estado: string
+  /** Alias usado en db.json / formulario */
   imagen: string
+  /** Campo devuelto por el backend Spring */
+  imagenUrl?: string
 }
 
 // ─── API Auth ─────────────────────────────────────────────────────────────────

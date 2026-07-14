@@ -4,7 +4,7 @@
     :class="selected
       ? 'border-blue-500 bg-blue-50 shadow-sm'
       : 'border-slate-200 bg-white'"
-    @click="$emit('select', membresia.id, membresia.precio)"
+    @click="$emit('select', membresia.id, membresia.precio ?? 0)"
   >
     <div class="flex items-start gap-3">
       <!-- Radio -->
@@ -16,17 +16,17 @@
         class="mt-1 accent-blue-500 shrink-0"
         required
         @click.stop
-        @change="$emit('select', membresia.id, membresia.precio)"
+        @change="$emit('select', membresia.id, membresia.precio ?? 0)"
       />
       <div class="flex-1">
-        <p class="font-bold text-slate-800 mb-1">{{ membresia.tipo_membresia }}</p>
+        <p class="font-bold text-slate-800 mb-1">{{ membresia.tipoMembresiaNombre ?? membresia.tipo_membresia }}</p>
         <p class="text-slate-500 text-sm">
           Vigencia:
           <strong class="text-slate-700">
-            {{ formatFecha(membresia.fecha_inicio) }} – {{ formatFecha(membresia.fecha_fin) }}
+            {{ formatFecha(membresia.fechaInicio ?? membresia.fecha_inicio) }} – {{ formatFecha(membresia.fechaFin ?? membresia.fecha_fin) }}
           </strong>
         </p>
-        <p class="text-slate-500 text-sm mt-0.5">
+        <p v-if="membresia.precio" class="text-slate-500 text-sm mt-0.5">
           Precio:
           <strong class="text-emerald-600 text-lg">${{ Number(membresia.precio).toFixed(2) }}</strong>
         </p>
