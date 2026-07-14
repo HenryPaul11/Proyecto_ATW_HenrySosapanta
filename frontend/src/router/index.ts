@@ -142,8 +142,8 @@ router.beforeEach((to) => {
 
   // Ruta con rol requerido → redirige al dashboard del rol correcto
   if (to.meta.requiresAuth && to.meta.rol && auth.rol !== to.meta.rol) {
-    if (auth.rol === 'admin')       return '/dashboard'
-    if (auth.rol === 'entrenador')  return '/entrenador/dashboard'
+    if (auth.rol === 'admin') return '/dashboard'
+    if (auth.rol === 'entrenador') return '/entrenador/dashboard'
     return '/cliente/dashboard'
   }
 })

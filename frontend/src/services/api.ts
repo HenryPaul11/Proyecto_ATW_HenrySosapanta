@@ -1,133 +1,363 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * api.ts — Capa de servicio mock.
- * Flujo: JSON individuales → api.ts → stores → vistas
+ * api.ts — Capa de servicio API real conectada al backend de Spring Boot.
  */
 
-import usuarios   from '@/data/usuarios.json'
-import clientesDB from '@/data/clientes.json'
-import membresDB  from '@/data/membresias.json'
-import pagosDB    from '@/data/pagos.json'
-import auditDB    from '@/data/auditorias.json'
-import entreDB    from '@/data/entrenadores.json'
-import equiposDB  from '@/data/equipos.json'
-import statsDB    from '@/data/stats.json'
+import axios from 'axios'
 
-const delay = (ms = 300) => new Promise<void>(r => setTimeout(r, ms))
+// ─── Cliente HTTP Centralizado con Interceptores ──────────────────────────────
+export const httpClient = axios.create({
+  baseURL: 'http://localhost:8081/api',
+  timeout: 30000,
+})
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
+// Interceptor para inyectar token JWT
+httpClient.interceptors.request.use(
+  (config) => {
+    const token = sessionStorage.getItem('auth_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+// Interceptor para desenvolver respuestas y mapear errores estructurados
+httpClient.interceptors.response.use(
+  (response) => {
+    // Si la respuesta ya viene envuelta en { success, data, message }
+    if (response.data && response.data.success !== undefined) {
+      if (response.data.success) {
+        return response.data
+      } else {
+        return Promise.reject(response.data)
+      }
+    }
+    return { success: true, data: response.data }
+  },
+  (error) => {
+    if (error.response && error.response.data) {
+      return Promise.reject(error.response.data)
+    }
+    return Promise.reject({
+      success: false,
+      error: error.message || 'Error de conexión con el servidor',
+      code: 'CONNECTION_ERROR'
+    })
+  }
+)
+
+// ─── Tipos e Interfaces ────────────────────────────────────────────────────────
 
 export interface User {
   id: number
   usuario: string
   nombre: string
   correo: string
-  password: string
+  password?: string
   rol: 'admin' | 'cliente' | 'entrenador'
+  token?: string // Token JWT opcional recibido al loguear
 }
 
-export interface AdminStats   { clientes: number; membresias: number; ingresos: number }
-export interface Cliente      { id: number; nombre: string; apellido: string; cedula: string; telefono: string; email: string }
-export interface TipoMembresia{ id: number; nombre: string; descripcion: string; duracion_dias: number; precio: number }
-export interface Membresia    { id: number; cliente_id: number; nombre: string; apellido: string; cedula: string; tipo: string; inicio: string; fin: string }
-export interface ClienteSinMembresia { id: number; nombre: string; apellido: string; cedula: string; telefono: string; email: string }
-export interface MembresiaCliente    { id: number; tipo_membresia: string; precio: number; fecha_inicio: string; fecha_fin: string; estado: string }
-export interface MembresiaActiva     { id: number; tipo_membresia: string; descripcion: string; precio: number; fecha_inicio: string; fecha_fin: string; estado: 'activa' | 'vencida' }
-export interface Pago         { id: number; cliente_nombre: string; cliente_apellido: string; cedula: string; tipo_membresia: string; monto: number; metodo_pago: string; fecha_pago: string; fecha_inicio: string; fecha_fin: string; estado_membresia: string }
-export interface HistorialPago{ id: number; tipo_membresia: string; monto: number; metodo_pago: string; fecha_pago: string; fecha_inicio: string; fecha_fin: string }
-export interface Auditoria    { tabla_afectada: string; accion: string; usuario: string; fecha_hora: string; datos_anteriores: string; datos_nuevos: string }
-export interface ClienteSession{ id: number; nombre: string; apellido: string; cedula: string; telefono: string; email: string; fecha_registro: string }
-export interface EntrenadorSession { id: number; nombre: string; apellido: string; cedula: string; telefono: string; email: string; especialidad: string; fecha_ingreso: string; horario: string }
-export interface ClienteAsignado   { id: number; nombre: string; apellido: string; cedula: string; plan: string; estado_membresia: string; proxima_sesion: string | null }
-export interface Sesion       { id: number; cliente_nombre: string; fecha: string; hora: string; tipo: string; estado: 'completada' | 'pendiente' | 'cancelada'; notas: string }
-export interface EntrenadorResumen { id: number; nombre: string; apellido: string; especialidad: string; clientes_activos: number; sesiones_semana: number; horario: string }
-export interface Equipo       { id: number; nombre: string; categoria: string; descripcion: string; estado: string; imagen: string }
+export interface AdminStats {
+  totalClientes: number
+  clientesActivos: number
+  membresiasActivas: number
+  membresiasTotales: number
+  ingresosMensuales: number
+  ingresosTotal: number
+  sesionesTotales: number
+  sesionesCompletadas: number
+  sesionesPendientes: number
+  pagosTotales: number
+  equiposDisponibles: number
+  totalEntrenadores: number
+  // aliases para compatibilidad con vistas existentes
+  clientes?: number
+  membresias?: number
+  ingresos?: number
+}
 
-// ─── Estado Temporal en Memoria ──────────────────────────────────────────────
-const usuariosState = [...usuarios] as unknown as User[]
-const clientesState = [...clientesDB.lista] as Cliente[]
-const membresiasState = [...membresDB.lista] as Membresia[]
-const pagosState = [...pagosDB.lista] as Pago[]
-const equiposState = [...equiposDB] as Equipo[]
+export interface Cliente {
+  id: number
+  nombre: string
+  apellido: string
+  cedula: string
+  telefono: string
+  email: string
+}
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
+export interface TipoMembresia {
+  id: number
+  nombre: string
+  descripcion: string
+  duracion_dias: number
+  precio: number
+}
+
+export interface Membresia {
+  id: number
+  cliente_id: number
+  nombre: string
+  apellido: string
+  cedula: string
+  tipo: string
+  inicio: string
+  fin: string
+}
+
+export interface ClienteSinMembresia {
+  id: number
+  nombre: string
+  apellido: string
+  cedula: string
+  telefono: string
+  email: string
+}
+
+export interface MembresiaCliente {
+  id: number
+  tipo_membresia: string
+  precio: number
+  fecha_inicio: string
+  fecha_fin: string
+  estado: string
+}
+
+export interface MembresiaActiva {
+  id: number
+  tipo_membresia: string
+  descripcion: string
+  precio: number
+  fecha_inicio: string
+  fecha_fin: string
+  estado: 'activa' | 'vencida'
+}
+
+export interface Pago {
+  id: number
+  cliente_nombre: string
+  cliente_apellido: string
+  cedula: string
+  tipo_membresia: string
+  monto: number
+  metodo_pago: string
+  fecha_pago: string
+  fecha_inicio: string
+  fecha_fin: string
+  estado_membresia: string
+}
+
+export interface HistorialPago {
+  id: number
+  tipo_membresia: string
+  monto: number
+  metodo_pago: string
+  fecha_pago: string
+  fecha_inicio: string
+  fecha_fin: string
+}
+
+export interface Auditoria {
+  tabla_afectada: string
+  accion: string
+  usuario: string
+  fecha_hora: string
+  datos_anteriores: string
+  datos_nuevos: string
+}
+
+export interface ClienteSession {
+  id: number
+  nombre: string
+  apellido: string
+  cedula: string
+  telefono: string
+  email: string
+  fecha_registro: string
+}
+
+export interface EntrenadorSession {
+  id: number
+  nombre: string
+  apellido: string
+  cedula: string
+  telefono: string
+  email: string
+  especialidad: string
+  fecha_ingreso: string
+  horario: string
+}
+
+export interface ClienteAsignado {
+  id: number
+  nombre: string
+  apellido: string
+  cedula: string
+  plan: string
+  estado_membresia: string
+  proxima_sesion: string | null
+}
+
+export interface Sesion {
+  id: number
+  cliente_nombre: string
+  fecha: string
+  hora: string
+  tipo: string
+  estado: 'completada' | 'pendiente' | 'cancelada'
+  notas: string
+}
+
+export interface EntrenadorResumen {
+  id: number
+  nombre: string
+  apellido: string
+  especialidad: string
+  clientes_activos: number;
+  sesiones_semana: number;
+  horario: string
+}
+
+export interface Equipo {
+  id: number
+  nombre: string
+  categoria: string
+  descripcion: string
+  estado: string
+  imagen: string
+}
+
+// ─── API Auth ─────────────────────────────────────────────────────────────────
 
 export const authApi = {
   async login(usuario: string, password: string): Promise<User | null> {
-    await delay(600)
-    return usuariosState.find(u => u.usuario === usuario && u.password === password) ?? null
+    try {
+      // Enviamos tanto 'usuario' como 'username' para total compatibilidad
+      const res = (await httpClient.post<any>('/auth/login', {
+        usuario,
+        contrasena: password
+      })) as any
+      if (res && res.success && res.data) {
+        const u = res.data
+        if (u.rol) u.rol = u.rol.toLowerCase()
+        // Guardar el token JWT si viene en la respuesta
+        if (u.token) {
+          sessionStorage.setItem('auth_token', u.token)
+        }
+        return u
+      }
+      return null
+    } catch (e) {
+      console.error('Error de login:', e)
+      return null
+    }
   },
 }
 
-// ─── Admin ────────────────────────────────────────────────────────────────────
+// ─── API Admin ────────────────────────────────────────────────────────────────
 
 export const adminApi = {
   async getStats(): Promise<AdminStats> {
-    await delay()
-    return statsDB.admin as AdminStats
+    const res = await httpClient.get<any>('/admin/stats')
+    const d = res.data
+    // Normalizar campos para compatibilidad con el dashboard
+    return {
+      ...d,
+      clientes:  d.totalClientes   ?? 0,
+      membresias: d.membresiasActivas ?? 0,
+      ingresos:  Number(d.ingresosMensuales ?? 0),
+    }
   },
 }
 
-// ─── Clientes ─────────────────────────────────────────────────────────────────
+// ─── API Clientes ─────────────────────────────────────────────────────────────
 
 export const clientesApi = {
   async getAll(): Promise<Cliente[]> {
-    await delay()
-    return clientesState
+    const res = await httpClient.get<any>('/clientes')
+    return res.data
   },
 
   async getByCedula(cedula: string): Promise<Cliente | null> {
-    await delay(400)
-    return clientesState.find(c => c.cedula === cedula) ?? null
+    try {
+      const res = await httpClient.get<any>(`/clientes/cedula/${cedula}`)
+      return res.data
+    } catch {
+      // Fallback a buscar query
+      try {
+        const res = await httpClient.get<any>(`/clientes/buscar?cedula=${cedula}`)
+        return res.data
+      } catch {
+        return null
+      }
+    }
   },
 
   async getTiposMembresia(): Promise<TipoMembresia[]> {
-    await delay()
-    return membresDB.tipos as TipoMembresia[]
+    const res = await httpClient.get<any>('/tipos-membresia')
+    return res.data
   },
 
   async getMembresiasPorCliente(clienteId: number): Promise<MembresiaCliente[]> {
-    await delay()
-    const map = membresDB.porCliente as Record<string, MembresiaCliente[]>
-    return map[String(clienteId)] ?? []
+    try {
+      const res = await httpClient.get<any>(`/membresias/cliente/${clienteId}`)
+      return res.data
+    } catch {
+      try {
+        const res = await httpClient.get<any>(`/clientes/${clienteId}/membresias`)
+        return res.data
+      } catch {
+        return []
+      }
+    }
   },
 }
 
-// ─── Membresías ───────────────────────────────────────────────────────────────
+// ─── API Membresías ───────────────────────────────────────────────────────────
 
 export const membresiasApi = {
   async getAll(): Promise<Membresia[]> {
-    await delay()
-    return membresiasState
+    const res = await httpClient.get<any>('/membresias')
+    return res.data
   },
 
   async getClientesSinMembresia(): Promise<ClienteSinMembresia[]> {
-    await delay()
-    return clientesDB.sinMembresia as ClienteSinMembresia[]
+    try {
+      const res = await httpClient.get<any>('/clientes/sin-membresia')
+      return res.data
+    } catch {
+      try {
+        const res = await httpClient.get<any>('/membresias/sin-membresia')
+        return res.data
+      } catch {
+        return []
+      }
+    }
   },
 }
 
-// ─── Pagos ────────────────────────────────────────────────────────────────────
+// ─── API Pagos ────────────────────────────────────────────────────────────────
 
 export const pagosApi = {
   async getAll(): Promise<Pago[]> {
-    await delay(350)
-    return pagosState
+    const res = await httpClient.get<any>('/pagos')
+    return res.data
   },
 
   async registrar(pago: Omit<Pago, 'id'>): Promise<Pago> {
-    await delay(500)
-    const nuevo = { id: Math.floor(Math.random() * 9000) + 1000, ...pago }
-    pagosState.unshift(nuevo)
-    return nuevo
+    const res = await httpClient.post<any>('/pagos', pago)
+    return res.data
   },
 }
 
-// ─── Auditorías ───────────────────────────────────────────────────────────────
+// ─── API Auditorías ───────────────────────────────────────────────────────────
 
 export const auditoriasApi = {
   async getAll(): Promise<Auditoria[]> {
-    await delay()
-    return auditDB as Auditoria[]
+    const res = await httpClient.get<any>('/auditorias')
+    return res.data
   },
 }
 
@@ -135,21 +365,35 @@ export const auditoriasApi = {
 
 export const clienteApi = {
   async getByUsuario(usuario: string): Promise<ClienteSession | null> {
-    await delay()
-    const map = clientesDB.porUsuario as Record<string, ClienteSession>
-    return map[usuario] ?? null
+    try {
+      const res = await httpClient.get<any>(`/clientes/usuario/${usuario}`)
+      return res.data
+    } catch {
+      try {
+        const res = await httpClient.get<any>(`/clientes/perfil?usuario=${usuario}`)
+        return res.data
+      } catch {
+        return null
+      }
+    }
   },
 
   async getMembresia(clienteId: number): Promise<MembresiaActiva | null> {
-    await delay()
-    const map = membresDB.porClienteDetalle as Record<string, MembresiaActiva | null>
-    return map[String(clienteId)] ?? null
+    try {
+      const res = await httpClient.get<any>(`/membresias/cliente/${clienteId}/activa`)
+      return res.data
+    } catch {
+      return null
+    }
   },
 
   async getHistorialPagos(clienteId: number): Promise<HistorialPago[]> {
-    await delay()
-    const map = pagosDB.historialPorCliente as Record<string, HistorialPago[]>
-    return map[String(clienteId)] ?? []
+    try {
+      const res = await httpClient.get<any>(`/pagos/cliente/${clienteId}`)
+      return res.data
+    } catch {
+      return []
+    }
   },
 }
 
@@ -157,26 +401,35 @@ export const clienteApi = {
 
 export const entrenadorApi = {
   async getByUsuario(usuario: string): Promise<EntrenadorSession | null> {
-    await delay()
-    const map = entreDB.porUsuario as Record<string, EntrenadorSession>
-    return map[usuario] ?? null
+    try {
+      const res = await httpClient.get<any>(`/entrenadores/usuario/${usuario}`)
+      return res.data
+    } catch {
+      return null
+    }
   },
 
   async getClientesAsignados(entrenadorId: number): Promise<ClienteAsignado[]> {
-    await delay()
-    const map = entreDB.clientesAsignados as Record<string, ClienteAsignado[]>
-    return map[String(entrenadorId)] ?? []
+    try {
+      const res = await httpClient.get<any>(`/entrenadores/${entrenadorId}/clientes`)
+      return res.data
+    } catch {
+      return []
+    }
   },
 
   async getSesiones(entrenadorId: number): Promise<Sesion[]> {
-    await delay()
-    const map = entreDB.sesiones as Record<string, Sesion[]>
-    return map[String(entrenadorId)] ?? []
+    try {
+      const res = await httpClient.get<any>(`/sesiones/entrenador/${entrenadorId}`)
+      return res.data
+    } catch {
+      return []
+    }
   },
 
   async getTodos(): Promise<EntrenadorResumen[]> {
-    await delay()
-    return entreDB.todos as EntrenadorResumen[]
+    const res = await httpClient.get<any>('/entrenadores')
+    return res.data
   },
 }
 
@@ -184,7 +437,7 @@ export const entrenadorApi = {
 
 export const equiposApi = {
   async getAll(): Promise<Equipo[]> {
-    await delay()
-    return equiposState
+    const res = await httpClient.get<any>('/equipos')
+    return res.data
   },
 }

@@ -1,16 +1,15 @@
-<script setup>
-import { ref, computed, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { useAuditoriasStore } from '@/stores/auditoriasStore'
 import Navbar         from '@/components/admin/AdminNavbar.vue'
 import Footer         from '@/components/shared/Footer.vue'
 import AccionBadge    from '@/components/auditoria/AccionBadge.vue'
 import DatosAuditoria from '@/components/auditoria/DatosAuditoria.vue'
+import PaginatedTable from '@/components/shared/PaginatedTable.vue'
 
 const router = useRouter()
 const auth   = useAuthStore()
-const store  = useAuditoriasStore()
 
 function logout() { auth.logout(); router.push('/login') }
 
@@ -20,25 +19,21 @@ const filtroAccion  = ref('')
 
 const columnas = ['Tabla', 'Acción', 'Usuario', 'Fecha y Hora', 'Datos Anteriores', 'Datos Nuevos']
 
-const tablasUnicas = computed(() => [...new Set(store.auditorias.map(a => a.tabla_afectada))].sort())
+// Tablas comunes para filtrar
+const tablasUnicas = ['cliente', 'membresia', 'pago', 'usuario', 'entrenador', 'equipo', 'sesion']
 
-const registrosFiltrados = computed(() =>
-  store.auditorias.filter(row => {
-    const matchU = !filtroUsuario.value || row.usuario.toLowerCase().includes(filtroUsuario.value.toLowerCase())
-    const matchT = !filtroTabla.value  || row.tabla_afectada === filtroTabla.value
-    const matchA = !filtroAccion.value || row.accion.toUpperCase() === filtroAccion.value
-    return matchU && matchT && matchA
-  }),
-)
+const filtrosExternos = computed(() => ({
+  usuario: filtroUsuario.value.trim() || undefined,
+  tabla: filtroTabla.value || undefined,
+  accion: filtroAccion.value || undefined,
+}))
 
-function formatFecha(str) {
+function formatFecha(str: string) {
   if (!str) return '—'
   return new Date(str).toLocaleString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 function limpiarFiltros() { filtroUsuario.value = ''; filtroTabla.value = ''; filtroAccion.value = '' }
-
-onMounted(() => store.fetchAuditorias())
 </script>
 
 <template>
@@ -86,51 +81,29 @@ onMounted(() => store.fetchAuditorias())
         </div>
       </div>
 
-      <p class="text-sm text-slate-400 font-medium mb-3 px-1">
-        Mostrando <strong class="text-slate-600">{{ registrosFiltrados.length }}</strong>
-        de {{ store.auditorias.length }} registros
-      </p>
-
-      <!-- Tabla -->
-      <div class="w-full max-w-full mb-8">
-        <p class="text-xs text-slate-400 text-right mb-1 sm:hidden">← desliza para ver más →</p>
-        <div class="overflow-x-auto bg-white rounded-2xl shadow-sm">
-          <table class="w-full border-collapse" style="min-width: 680px">
-            <thead class="bg-gradient-to-r from-blue-500 to-blue-700">
-              <tr>
-                <th v-for="col in columnas" :key="col"
-                  class="px-4 py-3 text-left text-white font-bold text-xs uppercase tracking-wider whitespace-nowrap">
-                  {{ col }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="store.loading">
-                <td :colspan="columnas.length" class="text-center py-14 text-slate-400 text-sm">
-                  <span class="animate-pulse">Cargando auditorías…</span>
-                </td>
-              </tr>
-              <tr v-else-if="registrosFiltrados.length === 0">
-                <td :colspan="columnas.length" class="text-center py-14 text-slate-400 text-sm font-medium">
-                  No se encontraron registros de auditoría.
-                </td>
-              </tr>
-              <tr
-                v-else
-                v-for="(row, i) in registrosFiltrados" :key="i"
-                class="border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50"
-                :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
-              >
-                <td class="px-4 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap">{{ row.tabla_afectada }}</td>
-                <td class="px-4 py-3 whitespace-nowrap"><AccionBadge :accion="row.accion" /></td>
-                <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{{ row.usuario }}</td>
-                <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(row.fecha_hora) }}</td>
-                <td class="px-4 py-3 align-top"><DatosAuditoria :datos="row.datos_anteriores" /></td>
-                <td class="px-4 py-3 align-top"><DatosAuditoria :datos="row.datos_nuevos" /></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <!-- Tabla Paginada -->
+      <div class="mb-8">
+        <PaginatedTable
+          endpoint="/auditorias"
+          :filtros="filtrosExternos"
+          :columns="columnas"
+          endpoint-key="auditorias"
+        >
+          <template #default="{ items }">
+            <tr
+              v-for="(row, i) in items" :key="i"
+              class="border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50 bg-white"
+              :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
+            >
+              <td class="px-4 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap">{{ row.tabla_afectada }}</td>
+              <td class="px-4 py-3 whitespace-nowrap"><AccionBadge :accion="row.accion" /></td>
+              <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{{ row.usuario }}</td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(row.fecha_hora) }}</td>
+              <td class="px-4 py-3 align-top"><DatosAuditoria :datos="row.datos_anteriores" /></td>
+              <td class="px-4 py-3 align-top"><DatosAuditoria :datos="row.datos_nuevos" /></td>
+            </tr>
+          </template>
+        </PaginatedTable>
       </div>
 
     </main>
@@ -138,3 +111,4 @@ onMounted(() => store.fetchAuditorias())
     <Footer />
   </div>
 </template>
+

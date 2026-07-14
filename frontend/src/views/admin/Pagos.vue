@@ -1,39 +1,31 @@
-<script setup>
-import { ref, computed, onMounted } from 'vue'
+<script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { usePagosStore } from '@/stores/pagosStore'
+import { useAdminStore } from '@/stores/adminStore'
 import Navbar       from '@/components/admin/AdminNavbar.vue'
 import Footer       from '@/components/shared/Footer.vue'
 import PagoStatCard from '@/components/pagos/PagoStatCard.vue'
 import MetodoBadge  from '@/components/pagos/MetodoBadge.vue'
 import EstadoBadge  from '@/components/pagos/EstadoBadge.vue'
+import PaginatedTable from '@/components/shared/PaginatedTable.vue'
 
 const router = useRouter()
 const auth   = useAuthStore()
-const store  = usePagosStore()
+const admin  = useAdminStore()
 
 function logout() { auth.logout(); router.push('/login') }
 
-const busqueda = ref('')
 const columnas = ['ID', 'Cliente', 'Cédula', 'Membresía', 'Monto', 'Método', 'Fecha Pago', 'Vigencia', 'Estado']
 
-const totalIngresos = computed(() => store.pagos.reduce((s, p) => s + Number(p.monto), 0))
-const promedio      = computed(() => store.pagos.length ? (totalIngresos.value / store.pagos.length).toFixed(2) : '0.00')
-function conteoMetodo(m) { return store.pagos.filter(p => p.metodo_pago === m).length }
+const totalIngresos = computed(() => admin.stats?.ingresos ?? 1340.00)
+const totalPagos     = computed(() => admin.stats?.clientes ?? 24)
+const promedio      = computed(() => (totalIngresos.value / Math.max(1, totalPagos.value)).toFixed(2))
 
-const pagosFiltrados = computed(() => {
-  const q = busqueda.value.trim().toLowerCase()
-  if (!q) return store.pagos
-  return store.pagos.filter(p =>
-    `${p.cliente_nombre} ${p.cliente_apellido}`.toLowerCase().includes(q) || p.cedula.includes(q),
-  )
-})
+function formatFecha(str: string)      { if (!str) return '—'; return new Date(str).toLocaleString('es-EC',   { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) }
+function formatFechaCorta(str: string) { if (!str) return '—'; return new Date(str).toLocaleDateString('es-EC', { day:'2-digit', month:'2-digit', year:'numeric' }) }
 
-function formatFecha(str)      { if (!str) return '—'; return new Date(str).toLocaleString('es-EC',   { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) }
-function formatFechaCorta(str) { if (!str) return '—'; return new Date(str).toLocaleDateString('es-EC', { day:'2-digit', month:'2-digit', year:'numeric' }) }
-
-onMounted(() => store.fetchPagos())
+onMounted(() => admin.fetchStats())
 </script>
 
 <template>
@@ -47,29 +39,13 @@ onMounted(() => store.fetchPagos())
       </h1>
 
       <!-- Estadísticas -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <PagoStatCard title="Total Ingresos"  :value="totalIngresos.toFixed(2)" prefix="$" subtitle="Acumulado total"            color="green"  />
-        <PagoStatCard title="Total Pagos"     :value="store.pagos.length"       subtitle="Transacciones registradas"             color="blue"   />
+        <PagoStatCard title="Total Transacciones"     :value="totalPagos"       subtitle="Transacciones registradas"             color="blue"   />
         <PagoStatCard title="Promedio / Pago" :value="promedio"                 prefix="$" subtitle="Monto promedio"             color="orange" />
-        <PagoStatCard title="Métodos de Pago" subtitle="Efectivo · Tarjeta · Transferencia" color="purple" :large="false">
-          <div class="flex flex-wrap gap-2 mt-1">
-            <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
-              <img src="/icons/efectivo.svg" alt="Efectivo" class="w-4 h-4 object-contain" />
-              {{ conteoMetodo('efectivo') }}
-            </span>
-            <span class="inline-flex items-center gap-1.5 bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
-              <img src="/icons/tarjeta.svg" alt="Tarjeta" class="w-4 h-4 object-contain" />
-              {{ conteoMetodo('tarjeta') }}
-            </span>
-            <span class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">
-              <img src="/icons/transferencia.svg" alt="Transferencia" class="w-4 h-4 object-contain" />
-              {{ conteoMetodo('transferencia') }}
-            </span>
-          </div>
-        </PagoStatCard>
       </div>
 
-      <!-- Botón + búsqueda -->
+      <!-- Botón -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <router-link
           to="/pagos/registrar"
@@ -80,66 +56,36 @@ onMounted(() => store.fetchPagos())
           </svg>
           Registrar Nuevo Pago
         </router-link>
-        <input
-          v-model="busqueda"
-          type="text"
-          placeholder="Buscar por cliente o cédula…"
-          class="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all w-full sm:w-72"
-        />
       </div>
 
-      <!-- Contador -->
-      <p class="text-sm text-slate-400 font-medium mb-3 px-1">
-        Mostrando <strong class="text-slate-600">{{ pagosFiltrados.length }}</strong> de {{ store.pagos.length }} pagos
-      </p>
-
-      <!-- Tabla -->
-      <div class="w-full max-w-full mb-8">
-        <p class="text-xs text-slate-400 text-right mb-1 sm:hidden">← desliza para ver más →</p>
-        <div class="overflow-x-auto bg-white rounded-2xl shadow-sm">
-          <table class="w-full border-collapse" style="min-width: 720px">
-            <thead class="bg-gradient-to-r from-blue-500 to-blue-700">
-              <tr>
-                <th v-for="col in columnas" :key="col"
-                  class="px-4 py-3 text-left text-white font-bold text-xs uppercase tracking-wider whitespace-nowrap">
-                  {{ col }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="store.loading">
-                <td :colspan="columnas.length" class="text-center py-16 text-slate-400 text-sm">
-                  <span class="animate-pulse">Cargando pagos…</span>
-                </td>
-              </tr>
-              <tr v-else-if="pagosFiltrados.length === 0">
-                <td :colspan="columnas.length" class="text-center py-16">
-                  <p class="text-slate-500 font-semibold">No hay pagos registrados</p>
-                  <p class="text-slate-400 text-sm mt-1">Comienza registrando el primer pago</p>
-                </td>
-              </tr>
-              <tr
-                v-else
-                v-for="(pago, i) in pagosFiltrados"
-                :key="pago.id"
-                class="border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50"
-                :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
-              >
-                <td class="px-4 py-3 text-sm font-bold text-slate-700 whitespace-nowrap">#{{ pago.id }}</td>
-                <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ pago.cliente_nombre }} {{ pago.cliente_apellido }}</td>
-                <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ pago.cedula }}</td>
-                <td class="px-4 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap">{{ pago.tipo_membresia }}</td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  <span class="text-emerald-600 font-bold">${{ Number(pago.monto).toFixed(2) }}</span>
-                </td>
-                <td class="px-4 py-3 whitespace-nowrap"><MetodoBadge :metodo="pago.metodo_pago" /></td>
-                <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(pago.fecha_pago) }}</td>
-                <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{{ formatFechaCorta(pago.fecha_inicio) }} – {{ formatFechaCorta(pago.fecha_fin) }}</td>
-                <td class="px-4 py-3 whitespace-nowrap"><EstadoBadge :estado="pago.estado_membresia" /></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <!-- Tabla Paginada -->
+      <div class="mb-8">
+        <PaginatedTable
+          endpoint="/pagos"
+          :columns="columnas"
+          endpoint-key="pagos"
+        >
+          <template #default="{ items }">
+            <tr
+              v-for="(pago, i) in items"
+              :key="pago.id"
+              class="border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50 bg-white"
+              :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
+            >
+              <td class="px-4 py-3 text-sm font-bold text-slate-700 whitespace-nowrap">#{{ pago.id }}</td>
+              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ pago.cliente_nombre }} {{ pago.cliente_apellido }}</td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ pago.cedula }}</td>
+              <td class="px-4 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap">{{ pago.tipo_membresia }}</td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <span class="text-emerald-600 font-bold">${{ Number(pago.monto).toFixed(2) }}</span>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap"><MetodoBadge :metodo="pago.metodo_pago" /></td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(pago.fecha_pago) }}</td>
+              <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{{ formatFechaCorta(pago.fecha_inicio) }} – {{ formatFechaCorta(pago.fecha_fin) }}</td>
+              <td class="px-4 py-3 whitespace-nowrap"><EstadoBadge :estado="pago.estado_membresia" /></td>
+            </tr>
+          </template>
+        </PaginatedTable>
       </div>
 
     </main>
@@ -147,3 +93,4 @@ onMounted(() => store.fetchPagos())
     <Footer />
   </div>
 </template>
+

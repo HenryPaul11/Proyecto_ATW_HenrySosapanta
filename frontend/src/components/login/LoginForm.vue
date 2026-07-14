@@ -23,8 +23,8 @@ async function handleLogin() {
       entrenador: '/entrenador/dashboard',
       cliente:    '/cliente/dashboard',
     }
-    // Si venía de una URL protegida, redirige ahí; si no, al dashboard del rol
-    const destino = route.query.redirect || destinos[match.rol] || '/login'
+    const redirectQuery = route.query.redirect
+    const destino = (Array.isArray(redirectQuery) ? redirectQuery[0] : redirectQuery) || destinos[match.rol] || '/login'
     router.push(destino)
   } else {
     errorMessage.value = 'Usuario o contraseña incorrectos.'

@@ -1,44 +1,43 @@
-<script setup>
-import { ref, computed, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { useClientesStore } from '@/stores/clientesStore'
 import Navbar from '@/components/admin/AdminNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
+import PaginatedTable from '@/components/shared/PaginatedTable.vue'
+import { httpClient, type Cliente } from '@/services/api'
 
 const router = useRouter()
 const auth   = useAuthStore()
-const store  = useClientesStore()
 
 function logout() { auth.logout(); router.push('/login') }
 
-const busqueda         = ref('')
 const message          = ref('')
 const messageType      = ref('')
-const clienteAEliminar = ref(null)
+const clienteAEliminar = ref<Cliente | null>(null)
+const tablaPaginada    = ref<{ reload: () => void } | null>(null)
 
 const columnas = ['Nombre', 'Cédula', 'Teléfono', 'Email', 'Acciones']
 
-const clientesFiltrados = computed(() => {
-  const q = busqueda.value.trim().toLowerCase()
-  if (!q) return store.clientes
-  return store.clientes.filter(c =>
-    `${c.nombre} ${c.apellido}`.toLowerCase().includes(q) || c.cedula.includes(q),
-  )
-})
+function confirmarEliminar(c: Cliente) { clienteAEliminar.value = c }
 
-function confirmarEliminar(c) { clienteAEliminar.value = c }
-
-function eliminarCliente() {
+async function eliminarCliente() {
   const c = clienteAEliminar.value
-  store.clientes.splice(store.clientes.findIndex(x => x.id === c.id), 1)
-  message.value     = `Cliente ${c.nombre} ${c.apellido} eliminado correctamente.`
-  messageType.value = 'success'
+  if (!c) return
+  try {
+    await httpClient.delete(`/clientes/${c.id}`)
+    message.value     = `Cliente ${c.nombre} ${c.apellido} eliminado correctamente.`
+    messageType.value = 'success'
+  } catch (err) {
+    message.value     = err.error || 'No se pudo eliminar el cliente.'
+    messageType.value = 'error'
+  }
   clienteAEliminar.value = null
+  if (tablaPaginada.value) {
+    tablaPaginada.value.reload()
+  }
   setTimeout(() => { message.value = '' }, 4000)
 }
-
-onMounted(() => store.fetchClientes())
 </script>
 
 <template>
@@ -65,7 +64,7 @@ onMounted(() => store.fetchClientes())
         </div>
       </Transition>
 
-      <!-- Acciones + búsqueda -->
+      <!-- Acciones -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <router-link
           to="/clientes/registrar"
@@ -76,74 +75,46 @@ onMounted(() => store.fetchClientes())
           </svg>
           Registrar Cliente
         </router-link>
-        <input
-          v-model="busqueda"
-          type="text"
-          placeholder="Buscar por nombre o cédula…"
-          class="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all w-full sm:w-72"
-        />
       </div>
 
-      <p class="text-sm text-slate-400 font-medium mb-3 px-1">
-        Mostrando <strong class="text-slate-600">{{ clientesFiltrados.length }}</strong> de {{ store.clientes.length }} clientes
-      </p>
-
-      <!-- Tabla -->
-      <div class="w-full max-w-full mb-8">
-        <p class="text-xs text-slate-400 text-right mb-1 sm:hidden">← desliza para ver más →</p>
-        <div class="overflow-x-auto bg-white rounded-2xl shadow-sm">
-          <table class="w-full border-collapse" style="min-width: 640px">
-            <thead class="bg-gradient-to-r from-blue-500 to-blue-700">
-              <tr>
-                <th v-for="col in columnas" :key="col"
-                  class="px-4 py-3 text-left text-white font-bold text-xs uppercase tracking-wider whitespace-nowrap">
-                  {{ col }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="store.loading">
-                <td :colspan="columnas.length" class="text-center py-16 text-slate-400 text-sm">
-                  <span class="animate-pulse">Cargando clientes…</span>
-                </td>
-              </tr>
-              <tr v-else-if="clientesFiltrados.length === 0">
-                <td :colspan="columnas.length" class="text-center py-16">
-                  <p class="text-slate-500 font-semibold">No hay clientes registrados</p>
-                  <p class="text-slate-400 text-sm mt-1">Comienza registrando el primer cliente</p>
-                </td>
-              </tr>
-              <tr
-                v-else
-                v-for="(c, i) in clientesFiltrados"
-                :key="c.id"
-                class="border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50"
-                :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
-              >
-                <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ c.nombre }} {{ c.apellido }}</td>
-                <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.cedula }}</td>
-                <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.telefono }}</td>
-                <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.email }}</td>
-                <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="flex items-center gap-2">
-                    <router-link
-                      :to="{ name: 'EditarCliente', params: { id: c.id } }"
-                      class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm"
-                    >
-                      Editar
-                    </router-link>
-                    <button
-                      @click="confirmarEliminar(c)"
-                      class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm cursor-pointer"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <!-- Tabla Paginada -->
+      <div class="mb-8">
+        <PaginatedTable
+          ref="tablaPaginada"
+          endpoint="/clientes/paginado"
+          :columns="columnas"
+          endpoint-key="clientes"
+        >
+          <template #default="{ items }">
+            <tr
+              v-for="(c, i) in items"
+              :key="c.id"
+              class="border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50"
+              :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
+            >
+              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ c.nombre }} {{ c.apellido }}</td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.cedula }}</td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.telefono }}</td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.email }}</td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <div class="flex items-center gap-2">
+                  <router-link
+                    :to="{ name: 'EditarCliente', params: { id: c.id } }"
+                    class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm"
+                  >
+                    Editar
+                  </router-link>
+                  <button
+                    @click="confirmarEliminar(c)"
+                    class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm cursor-pointer"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </PaginatedTable>
       </div>
 
     </main>
@@ -182,3 +153,4 @@ onMounted(() => store.fetchClientes())
 .fade-enter-active, .fade-leave-active { transition: opacity 0.25s ease; }
 .fade-enter-from,  .fade-leave-to      { opacity: 0; }
 </style>
+

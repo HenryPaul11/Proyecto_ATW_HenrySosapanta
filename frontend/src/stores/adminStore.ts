@@ -9,8 +9,13 @@ export const useAdminStore = defineStore('admin', () => {
 
   async function fetchStats() {
     loading.value = true
-    stats.value = await adminApi.getStats()
-    loading.value = false
+    try {
+      stats.value = await adminApi.getStats()
+    } catch (e) {
+      console.error('Error cargando stats:', e)
+    } finally {
+      loading.value = false
+    }
   }
 
   return { stats, loading, fetchStats }
