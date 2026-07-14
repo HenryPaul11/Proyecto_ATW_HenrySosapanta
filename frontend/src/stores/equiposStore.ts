@@ -50,6 +50,10 @@ export const useEquiposStore = defineStore('equipos', () => {
       const nuevo = normalizarEquipo(res.data)
       equipos.value.unshift(nuevo)
       return nuevo
+    } catch (err: unknown) {
+      const apiErr = err as { error?: string; message?: string }
+      const msg = apiErr?.error || apiErr?.message || 'No se pudo registrar el equipo.'
+      throw new Error(msg)
     } finally {
       loading.value = false
     }

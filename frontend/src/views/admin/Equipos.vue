@@ -18,6 +18,7 @@ const categoria = ref('')
 const mostrarForm = ref(false)
 const loading   = ref(false)
 const message   = ref('')
+const errorMsg  = ref('')
 
 // ── Formulario nuevo equipo ────────────────────────────────────
 const form = ref({ nombre: '', categoria: 'Cardio', descripcion: '', imagen: '', estado: 'disponible' })
@@ -60,21 +61,30 @@ function validar(): boolean {
 async function registrar() {
   if (!validar()) return
   loading.value = true
+  errorMsg.value = ''
 
-  await store.registrarEquipo({
-    nombre:      form.value.nombre.trim(),
-    categoria:   form.value.categoria,
-    descripcion: form.value.descripcion.trim(),
-    estado:      form.value.estado,
-    imagen:      form.value.imagen.trim() || IMAGEN_EQUIPO_DEFAULT,
-  })
+  try {
+    await store.registrarEquipo({
+      nombre:      form.value.nombre.trim(),
+      categoria:   form.value.categoria,
+      descripcion: form.value.descripcion.trim(),
+      estado:      form.value.estado,
+      imagen:      form.value.imagen.trim() || IMAGEN_EQUIPO_DEFAULT,
+    })
 
-  form.value    = { nombre: '', categoria: 'Cardio', descripcion: '', imagen: '', estado: 'disponible' }
-  errores.value = {}
-  loading.value = false
-  mostrarForm.value = false
-  message.value = '✅ Equipo registrado correctamente.'
-  setTimeout(() => message.value = '', 3000)
+    form.value    = { nombre: '', categoria: 'Cardio', descripcion: '', imagen: '', estado: 'disponible' }
+    errores.value = {}
+    mostrarForm.value = false
+    message.value = '✅ Equipo registrado correctamente.'
+    setTimeout(() => message.value = '', 3000)
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Error al registrar el equipo.'
+    errorMsg.value = msg.includes('character varying(255)')
+      ? 'La URL de la imagen es demasiado larga. Reinicia el backend para aplicar la actualización de base de datos, o usa una URL más corta (por ejemplo, de Unsplash).'
+      : msg
+  } finally {
+    loading.value = false
+  }
 }
 
 function imagenEquipo(e: { imagenUrl?: string; imagen?: string }) {
@@ -116,6 +126,11 @@ onMounted(() => store.fetchEquipos(true))
       <Transition name="fade">
         <div v-if="message" class="bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl px-4 py-3 mb-5 text-sm font-medium">
           {{ message }}
+        </div>
+      </Transition>
+      <Transition name="fade">
+        <div v-if="errorMsg" class="bg-red-50 text-red-800 border border-red-200 rounded-xl px-4 py-3 mb-5 text-sm font-medium">
+          {{ errorMsg }}
         </div>
       </Transition>
 
