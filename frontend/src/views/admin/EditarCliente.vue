@@ -2,14 +2,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { useClientesStore } from '@/stores/clientesStore'
+import { httpClient } from '@/services/api'
 import Navbar from '@/components/admin/AdminNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 
 const router = useRouter()
 const route  = useRoute()
 const auth   = useAuthStore()
-const store  = useClientesStore()
 
 function logout() { auth.logout(); router.push('/login') }
 
@@ -20,27 +19,35 @@ const message     = ref('')
 const messageType = ref('')
 
 onMounted(async () => {
-  if (!store.clientes.length) await store.fetchClientes()
-  const id    = Number(route.params.id)
-  const found = store.clientes.find(c => c.id === id)
-  if (found) { cliente.value = found; form.value = { ...found } }
+  try {
+    const res = await httpClient.get(`/clientes/${route.params.id}`)
+    cliente.value = res.data
+    form.value = {
+      nombre:   res.data.nombre   ?? '',
+      apellido: res.data.apellido ?? '',
+      cedula:   res.data.cedula   ?? '',
+      telefono: res.data.telefono ?? '',
+      email:    res.data.email    ?? '',
+    }
+  } catch {
+    router.push('/clientes')
+  }
 })
 
 async function guardar() {
   message.value = ''
   loading.value = true
-  await new Promise(r => setTimeout(r, 400))
-
-  const idx = store.clientes.findIndex(c => c.id === cliente.value.id)
-  if (idx !== -1) {
-    Object.assign(store.clientes[idx], { ...form.value })
-    cliente.value = { ...store.clientes[idx] }
+  try {
+    await httpClient.put(`/clientes/${cliente.value.id}`, form.value)
+    message.value     = '¡Los cambios se guardaron correctamente!'
+    messageType.value = 'success'
+    setTimeout(() => router.push('/clientes'), 1500)
+  } catch (err) {
+    message.value     = err?.error || 'No se pudieron guardar los cambios.'
+    messageType.value = 'error'
+  } finally {
+    loading.value = false
   }
-
-  loading.value     = false
-  message.value     = '¡Los cambios se guardaron correctamente!'
-  messageType.value = 'success'
-  setTimeout(() => router.push('/clientes'), 1500)
 }
 </script>
 

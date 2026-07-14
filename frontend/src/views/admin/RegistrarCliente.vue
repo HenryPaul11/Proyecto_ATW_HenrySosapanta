@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { useClientesStore } from '@/stores/clientesStore'
 import Navbar from '@/components/admin/AdminNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
+import { httpClient } from '@/services/api'
 
 const router = useRouter()
 const auth   = useAuthStore()
-const store  = useClientesStore()
 
 function logout() { auth.logout(); router.push('/login') }
 
@@ -18,8 +17,6 @@ const messageType = ref('')
 const errores     = ref<Record<string, string>>({})
 
 const form = ref({ nombre: '', apellido: '', cedula: '', telefono: '', email: '' })
-
-onMounted(() => { if (!store.clientes.length) store.fetchClientes() })
 
 // ── Validaciones ──────────────────────────────────────────────
 function validar(): boolean {
@@ -40,8 +37,6 @@ function validar(): boolean {
     errores.value.cedula = 'La cédula es obligatoria.'
   else if (!/^\d{10}$/.test(cedula.trim()))
     errores.value.cedula = 'La cédula debe tener exactamente 10 dígitos numéricos.'
-  else if (store.clientes.find(c => c.cedula === cedula.trim()))
-    errores.value.cedula = 'Esta cédula ya está registrada.'
 
   if (telefono.trim() && !/^\d{7,15}$/.test(telefono.trim()))
     errores.value.telefono = 'El teléfono debe tener entre 7 y 15 dígitos.'
@@ -61,25 +56,27 @@ async function registrar() {
   const { nombre, apellido, cedula, telefono, email } = form.value
 
   loading.value = true
-  await new Promise(r => setTimeout(r, 400))
+  try {
+    await httpClient.post('/clientes', {
+      nombre:   nombre.trim(),
+      apellido: apellido.trim(),
+      cedula:   cedula.trim(),
+      telefono: telefono.trim(),
+      email:    email.trim(),
+    })
 
-  const nuevoId = store.clientes.length ? Math.max(...store.clientes.map(c => c.id)) + 1 : 1
-  store.clientes.push({
-    id:       nuevoId,
-    nombre:   nombre.trim(),
-    apellido: apellido.trim(),
-    cedula:   cedula.trim(),
-    telefono: telefono.trim(),
-    email:    email.trim(),
-  })
+    message.value     = '¡Cliente registrado exitosamente!'
+    messageType.value = 'success'
+    form.value        = { nombre: '', apellido: '', cedula: '', telefono: '', email: '' }
+    errores.value     = {}
 
-  loading.value     = false
-  message.value     = '¡Cliente registrado exitosamente!'
-  messageType.value = 'success'
-  form.value        = { nombre: '', apellido: '', cedula: '', telefono: '', email: '' }
-  errores.value     = {}
-
-  setTimeout(() => router.push('/clientes'), 1500)
+    setTimeout(() => router.push('/clientes'), 1500)
+  } catch (err: any) {
+    message.value     = err?.error || err?.message || 'No se pudo registrar el cliente.'
+    messageType.value = 'error'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

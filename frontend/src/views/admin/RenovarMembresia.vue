@@ -2,14 +2,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { useClientesStore } from '@/stores/clientesStore'
+import { httpClient } from '@/services/api'
 import Navbar from '@/components/admin/AdminNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 
 const router = useRouter()
 const route  = useRoute()
 const auth   = useAuthStore()
-const store  = useClientesStore()
 
 function logout() { auth.logout(); router.push('/login') }
 
@@ -17,15 +16,11 @@ const tipoSeleccionado = ref(null)
 const loading          = ref(false)
 const message          = ref('')
 const messageType      = ref('')
+const cliente          = ref(null)
+const membresiaActual  = ref(null)
+const tiposMembresia   = ref([])
 
 const clienteId = computed(() => Number(route.params.clienteId))
-const cliente   = computed(() => store.clientes.find(c => c.id === clienteId.value) ?? null)
-
-const membresiaActual = computed(() => {
-  const lista = store.membresiasPorCliente[clienteId.value] ?? []
-  if (!lista.length) return null
-  return lista.sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin))[0]
-})
 
 const clienteRows = computed(() => {
   if (!cliente.value) return []
@@ -43,38 +38,41 @@ function formatFecha(d) {
 }
 
 onMounted(async () => {
-  if (!store.clientes.length) await store.fetchClientes()
-  if (!cliente.value) { router.push('/membresias'); return }
-  await Promise.all([
-    store.fetchTiposMembresia(),
-    store.fetchMembresiasPorCliente(clienteId.value),
-  ])
-  if (membresiaActual.value) {
-    const tipoActual = store.tiposMembresia.find(t => t.nombre === membresiaActual.value.tipo_membresia)
-    if (tipoActual) tipoSeleccionado.value = tipoActual.id
+  try {
+    const [clienteRes, tiposRes, membresiaRes] = await Promise.all([
+      httpClient.get(`/clientes/${clienteId.value}`),
+      httpClient.get('/tipos-membresia'),
+      httpClient.get(`/membresias/cliente/${clienteId.value}`).catch(() => ({ data: [] })),
+    ])
+    cliente.value       = clienteRes.data
+    tiposMembresia.value = tiposRes.data ?? []
+
+    const lista = membresiaRes.data ?? []
+    if (lista.length) {
+      membresiaActual.value = lista.sort((a, b) => new Date(b.fecha_fin) - new Date(a.fecha_fin))[0]
+      const tipoActual = tiposMembresia.value.find(t => t.nombre === membresiaActual.value.tipo_membresia)
+      if (tipoActual) tipoSeleccionado.value = tipoActual.id
+    }
+  } catch {
+    router.push('/membresias')
   }
 })
 
 async function renovar() {
   if (!tipoSeleccionado.value) return
   loading.value = true
-  await new Promise(r => setTimeout(r, 500))
-
-  const tipo = store.tiposMembresia.find(t => t.id === tipoSeleccionado.value)
-  const hoy  = new Date()
-
-  let fechaInicio = hoy
-  if (membresiaActual.value?.estado === 'activa') {
-    fechaInicio = new Date(membresiaActual.value.fecha_fin)
-    fechaInicio.setDate(fechaInicio.getDate() + 1)
-  }
-
-  const fechaFin = new Date(fechaInicio)
-  fechaFin.setDate(fechaFin.getDate() + tipo.duracion_dias)
-
-  loading.value     = false
-  message.value     = `✅ ¡Membresía renovada exitosamente!<br>Nueva vigencia: ${formatFecha(fechaInicio)} al ${formatFecha(fechaFin)}`
-  messageType.value = 'success'
+  try {
+    await httpClient.put(`/membresias/${membresiaActual.value?.id ?? clienteId.value}/renovar`, {
+      clienteId:       clienteId.value,
+      tipoMembresiaId: tipoSeleccionado.value,
+    })
+    const tipo = tiposMembresia.value.find(t => t.id === tipoSeleccionado.value)
+    message.value     = `¡Membresía renovada exitosamente! Tipo: ${tipo?.nombre ?? ''}`
+    messageType.value = 'success'
+  } catch (err) {
+    message.value     = err?.error || 'No se pudo renovar la membresía.'
+    messageType.value = 'error'
+  } finally { loading.value = false }
 }
 </script>
 
@@ -158,13 +156,13 @@ async function renovar() {
       <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5 sm:p-6">
         <h2 class="text-base font-bold text-slate-700 mb-4 flex items-center gap-2"><img src="/icons/boleto.svg" class="w-6 h-6 icon-slate inline-block mr-1" alt="" /> Seleccione el Tipo de Membresía</h2>
 
-        <div v-if="store.loading" class="text-center py-8 text-slate-400 text-sm animate-pulse">
+        <div v-if="!tiposMembresia.length" class="text-center py-8 text-slate-400 text-sm animate-pulse">
           Cargando tipos de membresía…
         </div>
 
         <div v-else class="flex flex-col gap-3 mb-5">
           <div
-            v-for="tipo in store.tiposMembresia" :key="tipo.id"
+            v-for="tipo in tiposMembresia" :key="tipo.id"
             @click="tipoSeleccionado = tipo.id"
             class="bg-white rounded-xl border-2 p-4 cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
             :class="tipoSeleccionado === tipo.id

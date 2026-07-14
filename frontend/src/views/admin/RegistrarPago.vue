@@ -2,17 +2,14 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { useClientesStore } from '@/stores/clientesStore'
-import { usePagosStore } from '@/stores/pagosStore'
+import { httpClient } from '@/services/api'
 import Navbar        from '@/components/admin/AdminNavbar.vue'
 import Footer        from '@/components/shared/Footer.vue'
 import StepIndicator from '@/components/pagos/StepIndicator.vue'
 import MembresiaCard from '@/components/pagos/MembresiaCard.vue'
 
-const router        = useRouter()
-const auth          = useAuthStore()
-const clientesStore = useClientesStore()
-const pagosStore    = usePagosStore()
+const router = useRouter()
+const auth   = useAuthStore()
 
 function logout() { auth.logout(); router.push('/login') }
 
@@ -29,6 +26,8 @@ const message               = ref('')
 const messageType           = ref('')
 const pagoIdConfirmado      = ref(null)
 const confirmacion          = ref({})
+const loadingBuscar         = ref(false)
+const loadingPago           = ref(false)
 
 const camposCliente = computed(() => {
   if (!clienteEncontrado.value) return []
@@ -59,25 +58,28 @@ const puedeRegistrar = computed(() =>
 async function buscarCliente() {
   message.value = ''
   const cedula = cedulaBusqueda.value.trim()
-  if (!cedula) { message.value = 'Por favor ingrese una cédula.'; messageType.value = 'error'; return }
+  if (!cedula) { message.value = 'Ingrese una cédula.'; messageType.value = 'error'; return }
+  loadingBuscar.value = true
+  try {
+    const clienteRes = await httpClient.get(`/clientes/cedula/${cedula}`)
+    clienteEncontrado.value = clienteRes.data
 
-  const cliente = await clientesStore.buscarPorCedula(cedula)
+    const membRes = await httpClient.get(`/membresias/cliente/${clienteEncontrado.value.id}`).catch(() => ({ data: [] }))
+    membresiasDisponibles.value = (membRes.data ?? []).filter(m => m.estado === 'activa')
+    membresiaSeleccionada.value = null
+    monto.value = ''
+    metodoPago.value = ''
+    message.value = ''
+    pasoActual.value = 1
 
-  if (!cliente) { message.value = 'Cliente no encontrado. Verifique la cédula.'; messageType.value = 'error'; return }
-
-  clienteEncontrado.value = cliente
-  await clientesStore.fetchMembresiasPorCliente(cliente.id)
-  membresiasDisponibles.value = clientesStore.membresiasPorCliente[cliente.id] ?? []
-  membresiaSeleccionada.value = null
-  monto.value = ''
-  metodoPago.value = ''
-  message.value = ''
-  pasoActual.value = 1
-
-  if (membresiasDisponibles.value.length === 0) {
-    message.value = 'El cliente no tiene membresías activas.'
-    messageType.value = 'warning'
-  }
+    if (membresiasDisponibles.value.length === 0) {
+      message.value = 'El cliente no tiene membresías activas.'
+      messageType.value = 'warning'
+    }
+  } catch {
+    message.value = 'Cliente no encontrado. Verifique la cédula.'
+    messageType.value = 'error'
+  } finally { loadingBuscar.value = false }
 }
 
 function seleccionarMembresia(id, precio) {
@@ -89,30 +91,28 @@ async function registrarPago() {
   if (!puedeRegistrar.value) return
   const c    = clienteEncontrado.value
   const memb = membresiasDisponibles.value.find(m => m.id === membresiaSeleccionada.value)
-  const ml   = { efectivo: '💵 Efectivo', tarjeta: '💳 Tarjeta', transferencia: '🏦 Transferencia' }
-
-  const nuevo = await pagosStore.registrarPago({
-    cliente_nombre:    c.nombre,
-    cliente_apellido:  c.apellido,
-    cedula:            c.cedula,
-    tipo_membresia:    memb?.tipo_membresia ?? '',
-    monto:             Number(monto.value),
-    metodo_pago:       metodoPago.value,
-    fecha_pago:        new Date().toISOString(),
-    fecha_inicio:      memb?.fecha_inicio ?? '',
-    fecha_fin:         memb?.fecha_fin ?? '',
-    estado_membresia:  memb?.estado ?? 'activa',
-  })
-
-  pagoIdConfirmado.value = nuevo.id
-  confirmacion.value = {
-    cliente:   `${c.nombre} ${c.apellido}`,
-    membresia: memb?.tipo_membresia ?? '—',
-    monto:     `$${Number(monto.value).toFixed(2)}`,
-    metodo:    ml[metodoPago.value] ?? metodoPago.value,
-    fecha:     new Date().toLocaleString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-  }
-  pasoActual.value = 2
+  loadingPago.value = true
+  try {
+    const res = await httpClient.post('/pagos', {
+      clienteId:     c.id,
+      membresiaId:   membresiaSeleccionada.value,
+      monto:         Number(monto.value),
+      metodoPago:    metodoPago.value,
+    })
+    const nuevo = res.data
+    pagoIdConfirmado.value = nuevo?.id ?? '—'
+    confirmacion.value = {
+      cliente:   `${c.nombre} ${c.apellido}`,
+      membresia: memb?.tipo_membresia ?? '—',
+      monto:     `$${Number(monto.value).toFixed(2)}`,
+      metodo:    metodoPago.value,
+      fecha:     new Date().toLocaleString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    }
+    pasoActual.value = 2
+  } catch (err) {
+    message.value = err?.error || 'No se pudo registrar el pago.'
+    messageType.value = 'error'
+  } finally { loadingPago.value = false }
 }
 
 function resetBusqueda() {
@@ -180,10 +180,10 @@ function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmac
             <div class="flex flex-col sm:flex-row gap-3">
               <button
                 @click="buscarCliente"
-                :disabled="clientesStore.loading"
+                :disabled="loadingBuscar"
                 class="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-semibold text-sm px-5 py-3 rounded-xl transition-all disabled:opacity-60 cursor-pointer"
               >
-                {{ clientesStore.loading ? 'Buscando…' : 'Buscar Cliente' }}
+                {{ loadingBuscar ? 'Buscando…' : 'Buscar Cliente' }}
               </button>
               <router-link
                 to="/clientes"
@@ -259,10 +259,10 @@ function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmac
             <div class="flex flex-col sm:flex-row gap-3">
               <button
                 @click="registrarPago"
-                :disabled="!puedeRegistrar || pagosStore.loading"
+                :disabled="!puedeRegistrar || loadingPago"
                 class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm px-5 py-3 rounded-xl transition-all disabled:opacity-60 cursor-pointer"
               >
-                {{ pagosStore.loading ? 'Registrando…' : 'Registrar Pago' }}
+                {{ loadingPago ? 'Registrando…' : 'Registrar Pago' }}
               </button>
               <button
                 @click="resetBusqueda"
