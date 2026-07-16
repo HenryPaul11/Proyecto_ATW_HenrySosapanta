@@ -70,9 +70,27 @@ const router = createRouter({
       meta: { requiresAuth: true, rol: 'admin' },
     },
     {
+      path: '/sucursales',
+      name: 'Sucursales',
+      component: () => import('@/views/admin/Sucursales.vue'),
+      meta: { requiresAuth: true, rol: 'admin' },
+    },
+    {
       path: '/equipos',
       name: 'Equipos',
       component: () => import('@/views/admin/Equipos.vue'),
+      meta: { requiresAuth: true, rol: 'admin' },
+    },
+    {
+      path: '/entrenadores',
+      name: 'Entrenadores',
+      component: () => import('@/views/admin/Entrenadores.vue'),
+      meta: { requiresAuth: true, rol: 'admin' },
+    },
+    {
+      path: '/entrenadores/registrar',
+      name: 'RegistrarEntrenador',
+      component: () => import('@/views/admin/RegistrarEntrenador.vue'),
       meta: { requiresAuth: true, rol: 'admin' },
     },
 

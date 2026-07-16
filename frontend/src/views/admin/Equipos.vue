@@ -96,6 +96,47 @@ function onImgError(ev: Event) {
   if (img.src !== IMAGEN_EQUIPO_DEFAULT) img.src = IMAGEN_EQUIPO_DEFAULT
 }
 
+// ── Editar equipo ──────────────────────────────────────────────
+const equipoEditar  = ref<any>(null)
+const formEditar    = ref({ nombre: '', categoria: 'Cardio', descripcion: '', imagen: '', estado: 'disponible' })
+const loadingEditar = ref(false)
+
+function abrirEditar(e: any) {
+  equipoEditar.value = e
+  formEditar.value   = { nombre: e.nombre, categoria: e.categoria, descripcion: e.descripcion, imagen: e.imagenUrl ?? e.imagen ?? '', estado: e.estado }
+}
+
+async function guardarEdicion() {
+  loadingEditar.value = true
+  try {
+    const res = await httpClient.put(`/equipos/${equipoEditar.value.id}`, {
+      nombre: formEditar.value.nombre, categoria: formEditar.value.categoria,
+      descripcion: formEditar.value.descripcion, estado: formEditar.value.estado,
+      imagenUrl: formEditar.value.imagen, imagen: formEditar.value.imagen,
+    })
+    const idx = store.equipos.findIndex((e: any) => e.id === equipoEditar.value.id)
+    if (idx !== -1) store.equipos[idx] = { ...store.equipos[idx], ...res.data }
+    equipoEditar.value = null
+    message.value = '✓ Equipo actualizado.'
+    setTimeout(() => message.value = '', 3000)
+  } catch (err: any) { message.value = err?.error || 'No se pudo actualizar.' }
+  finally { loadingEditar.value = false }
+}
+
+// ── Eliminar equipo ────────────────────────────────────────────
+const equipoEliminar = ref<any>(null)
+
+async function confirmarEliminar() {
+  if (!equipoEliminar.value) return
+  try {
+    await httpClient.delete(`/equipos/${equipoEliminar.value.id}`)
+    store.equipos = store.equipos.filter((e: any) => e.id !== equipoEliminar.value.id)
+    message.value = '✓ Equipo eliminado.'
+    setTimeout(() => message.value = '', 3000)
+  } catch (err: any) { message.value = err?.error || 'No se pudo eliminar.' }
+  finally { equipoEliminar.value = null }
+}
+
 onMounted(() => store.fetchEquipos(true))
 </script>
 
@@ -267,11 +308,82 @@ onMounted(() => store.fetchEquipos(true))
               {{ e.categoria }}
             </span>
             <p class="text-slate-500 text-sm leading-relaxed">{{ e.descripcion }}</p>
+            <!-- Botones editar/eliminar -->
+            <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+              <button @click.stop="abrirEditar(e)"
+                class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-xs py-2 rounded-lg transition-all cursor-pointer">
+                Editar
+              </button>
+              <button @click.stop="equipoEliminar = e"
+                class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs py-2 rounded-lg transition-all cursor-pointer">
+                Eliminar
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
     </main>
+
+    <!-- Modal Editar -->
+    <Transition name="fade">
+      <div v-if="equipoEditar" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center px-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+          <h3 class="text-lg font-bold text-slate-800 mb-4">Editar Equipo</h3>
+          <div class="flex flex-col gap-3">
+            <input v-model="formEditar.nombre" type="text" placeholder="Nombre"
+              class="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all" />
+            <select v-model="formEditar.categoria"
+              class="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all bg-white">
+              <option v-for="c in categorias" :key="c" :value="c">{{ c }}</option>
+            </select>
+            <textarea v-model="formEditar.descripcion" rows="2" placeholder="Descripción"
+              class="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all resize-none" />
+            <input v-model="formEditar.imagen" type="text" placeholder="URL de imagen (https://…)"
+              class="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all" />
+            <select v-model="formEditar.estado"
+              class="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all bg-white">
+              <option value="disponible">Disponible</option>
+              <option value="mantenimiento">En mantenimiento</option>
+              <option value="fuera_de_servicio">Fuera de servicio</option>
+            </select>
+          </div>
+          <div class="flex gap-3 mt-5">
+            <button @click="guardarEdicion" :disabled="loadingEditar"
+              class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm py-2.5 rounded-xl transition-all cursor-pointer disabled:opacity-60">
+              {{ loadingEditar ? 'Guardando…' : 'Guardar' }}
+            </button>
+            <button @click="equipoEditar = null"
+              class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm py-2.5 rounded-xl transition-all cursor-pointer">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Modal Eliminar -->
+    <Transition name="fade">
+      <div v-if="equipoEliminar" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center px-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+          <h3 class="text-lg font-bold text-slate-800 mb-2">¿Eliminar equipo?</h3>
+          <p class="text-sm text-slate-500 mb-5">
+            Se eliminará <strong>{{ equipoEliminar?.nombre }}</strong>. Esta acción no se puede deshacer.
+          </p>
+          <div class="flex gap-3">
+            <button @click="confirmarEliminar"
+              class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold text-sm py-2.5 rounded-xl transition-all cursor-pointer">
+              Sí, eliminar
+            </button>
+            <button @click="equipoEliminar = null"
+              class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm py-2.5 rounded-xl transition-all cursor-pointer">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <Footer />
   </div>
 </template>

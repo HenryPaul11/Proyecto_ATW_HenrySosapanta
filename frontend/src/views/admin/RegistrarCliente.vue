@@ -8,7 +8,6 @@ import { httpClient } from '@/services/api'
 
 const router = useRouter()
 const auth   = useAuthStore()
-
 function logout() { auth.logout(); router.push('/login') }
 
 const loading     = ref(false)
@@ -16,35 +15,35 @@ const message     = ref('')
 const messageType = ref('')
 const errores     = ref<Record<string, string>>({})
 
-const form = ref({ nombre: '', apellido: '', cedula: '', telefono: '', email: '' })
+const form = ref({
+  nombre: '', apellido: '', cedula: '', telefono: '', email: '',
+  usuario: '', contrasena: '',
+})
 
-// ── Validaciones ──────────────────────────────────────────────
 function validar(): boolean {
   errores.value = {}
-  const { nombre, apellido, cedula, telefono, email } = form.value
+  const { nombre, apellido, cedula, telefono, email, usuario, contrasena } = form.value
 
-  if (!nombre.trim())
-    errores.value.nombre = 'El nombre es obligatorio.'
-  else if (nombre.trim().length < 2)
-    errores.value.nombre = 'Mínimo 2 caracteres.'
+  if (!nombre.trim()) errores.value.nombre = 'El nombre es obligatorio.'
+  else if (nombre.trim().length < 2) errores.value.nombre = 'Mínimo 2 caracteres.'
 
-  if (!apellido.trim())
-    errores.value.apellido = 'El apellido es obligatorio.'
-  else if (apellido.trim().length < 2)
-    errores.value.apellido = 'Mínimo 2 caracteres.'
+  if (!apellido.trim()) errores.value.apellido = 'El apellido es obligatorio.'
+  else if (apellido.trim().length < 2) errores.value.apellido = 'Mínimo 2 caracteres.'
 
-  if (!cedula.trim())
-    errores.value.cedula = 'La cédula es obligatoria.'
-  else if (!/^\d{10}$/.test(cedula.trim()))
-    errores.value.cedula = 'La cédula debe tener exactamente 10 dígitos numéricos.'
+  if (!cedula.trim()) errores.value.cedula = 'La cédula es obligatoria.'
+  else if (!/^\d{10}$/.test(cedula.trim())) errores.value.cedula = 'Exactamente 10 dígitos numéricos.'
 
   if (telefono.trim() && !/^\d{7,15}$/.test(telefono.trim()))
-    errores.value.telefono = 'El teléfono debe tener entre 7 y 15 dígitos.'
+    errores.value.telefono = 'Entre 7 y 15 dígitos.'
 
-  if (!email.trim())
-    errores.value.email = 'El correo electrónico es obligatorio.'
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
-    errores.value.email = 'Ingresa un correo electrónico válido (ej: juan@mail.com).'
+  if (!email.trim()) errores.value.email = 'El correo es obligatorio.'
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errores.value.email = 'Correo inválido.'
+
+  if (!usuario.trim()) errores.value.usuario = 'El usuario es obligatorio.'
+  else if (usuario.trim().length < 3) errores.value.usuario = 'Mínimo 3 caracteres.'
+
+  if (!contrasena.trim()) errores.value.contrasena = 'La contraseña es obligatoria.'
+  else if (contrasena.length < 6) errores.value.contrasena = 'Mínimo 6 caracteres.'
 
   return Object.keys(errores.value).length === 0
 }
@@ -52,27 +51,36 @@ function validar(): boolean {
 async function registrar() {
   message.value = ''
   if (!validar()) return
-
-  const { nombre, apellido, cedula, telefono, email } = form.value
-
   loading.value = true
   try {
+    // 1. Crear usuario del sistema con rol cliente
+    const userRes = await httpClient.post('/usuarios', {
+      usuario:    form.value.usuario.trim(),
+      nombre:     `${form.value.nombre.trim()} ${form.value.apellido.trim()}`,
+      correo:     form.value.email.trim() || `${form.value.usuario.trim()}@powerfit.com`,
+      contrasena: form.value.contrasena,
+      rol:        'cliente',
+      activo:     true,
+    })
+    const usuarioId = userRes.data?.id
+
+    // 2. Crear cliente vinculado al usuario
     await httpClient.post('/clientes', {
-      nombre:   nombre.trim(),
-      apellido: apellido.trim(),
-      cedula:   cedula.trim(),
-      telefono: telefono.trim(),
-      email:    email.trim(),
+      nombre:    form.value.nombre.trim(),
+      apellido:  form.value.apellido.trim(),
+      cedula:    form.value.cedula.trim(),
+      telefono:  form.value.telefono.trim(),
+      email:     form.value.email.trim(),
+      usuarioId,
     })
 
-    message.value     = '¡Cliente registrado exitosamente!'
+    message.value     = '¡Cliente y usuario registrados exitosamente!'
     messageType.value = 'success'
-    form.value        = { nombre: '', apellido: '', cedula: '', telefono: '', email: '' }
-    errores.value     = {}
-
+    form.value = { nombre: '', apellido: '', cedula: '', telefono: '', email: '', usuario: '', contrasena: '' }
+    errores.value = {}
     setTimeout(() => router.push('/clientes'), 1500)
   } catch (err: any) {
-    message.value     = err?.error || err?.message || 'No se pudo registrar el cliente.'
+    message.value     = err?.error || 'No se pudo registrar. Verifica los datos.'
     messageType.value = 'error'
   } finally {
     loading.value = false
@@ -173,6 +181,31 @@ async function registrar() {
           </div>
 
           <p class="text-xs text-slate-400 -mt-1">Los campos marcados con <span class="text-red-500 font-bold">*</span> son obligatorios.</p>
+
+          <!-- Separador acceso -->
+          <div class="border-t border-slate-200 pt-4 mt-1">
+            <p class="text-sm font-bold text-slate-600 mb-3">Acceso al sistema</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="usuario" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                  Usuario <span class="text-red-500">*</span>
+                </label>
+                <input id="usuario" v-model="form.usuario" type="text" placeholder="Ej: juanperez"
+                  class="w-full px-4 py-3 border-2 rounded-xl text-sm focus:outline-none transition-all bg-slate-50 focus:bg-white"
+                  :class="errores.usuario ? 'border-red-400' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'" />
+                <p v-if="errores.usuario" class="text-red-500 text-xs mt-1">{{ errores.usuario }}</p>
+              </div>
+              <div>
+                <label for="contrasena" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                  Contraseña <span class="text-red-500">*</span>
+                </label>
+                <input id="contrasena" v-model="form.contrasena" type="password" placeholder="Mínimo 6 caracteres"
+                  class="w-full px-4 py-3 border-2 rounded-xl text-sm focus:outline-none transition-all bg-slate-50 focus:bg-white"
+                  :class="errores.contrasena ? 'border-red-400' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'" />
+                <p v-if="errores.contrasena" class="text-red-500 text-xs mt-1">{{ errores.contrasena }}</p>
+              </div>
+            </div>
+          </div>
 
           <div class="flex flex-col sm:flex-row gap-3 mt-2">
             <button type="submit" :disabled="loading"

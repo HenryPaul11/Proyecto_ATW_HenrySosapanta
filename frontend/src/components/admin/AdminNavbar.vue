@@ -165,12 +165,14 @@ const inicial = computed(() => props.usuario?.charAt(0).toUpperCase() ?? '?')
 const theme = useThemeStore()
 
 const navLinks = [
-  { to: '/dashboard',   label: 'Inicio',       icon: 'home'       },
-  { to: '/clientes',    label: 'Clientes',      icon: 'clientes'   },
-  { to: '/membresias',  label: 'Membresías',    icon: 'membresias' },
-  { to: '/equipos',     label: 'Equipos',       icon: 'equipos'    },
-  { to: '/pagos',       label: 'Pagos',         icon: 'pagos'      },
-  { to: '/auditorias',  label: 'Auditorías',    icon: 'auditorias' },
+  { to: '/dashboard',    label: 'Inicio',       icon: 'home'       },
+  { to: '/clientes',     label: 'Clientes',      icon: 'clientes'   },
+  { to: '/entrenadores', label: 'Entrenadores',  icon: 'clientes'   },
+  { to: '/membresias',   label: 'Membresías',    icon: 'membresias' },
+  { to: '/equipos',      label: 'Equipos',       icon: 'equipos'    },
+  { to: '/pagos',        label: 'Pagos',         icon: 'pagos'      },
+  { to: '/sucursales',   label: 'Sucursales',    icon: 'home'       },
+  { to: '/auditorias',   label: 'Auditorías',    icon: 'auditorias' },
 ]
 
 function handleLogout() { menuAbierto.value = false; emit('logout') }
