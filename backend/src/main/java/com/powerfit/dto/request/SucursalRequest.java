@@ -23,4 +23,15 @@ public class SucursalRequest {
 
     private LocalDate fechaApertura;
     private Boolean   activo;
+
+    // ── Credenciales del administrador de la sucursal ──────────────────────
+    /** Si se envía, se crea automáticamente el usuario y se vincula a la sucursal */
+    @Size(min = 3, max = 50, message = "El usuario debe tener entre 3 y 50 caracteres")
+    private String usuario;
+
+    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
+    private String contrasena;
+
+    /** Si ya existe el usuario, se puede pasar su ID directamente */
+    private Integer usuarioId;
 }

@@ -15,4 +15,6 @@ public class SucursalResponse {
     private String    ciudad;
     private LocalDate fechaApertura;
     private Boolean   activo;
+    private Integer   usuarioId;
+    private String    usuarioNombre;
 }

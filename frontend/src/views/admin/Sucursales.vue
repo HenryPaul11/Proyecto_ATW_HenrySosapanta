@@ -19,7 +19,7 @@ const sucursalEditar  = ref<any>(null)
 const sucursalEliminar = ref<any>(null)
 const loadingGuardar  = ref(false)
 
-const formVacio = () => ({ nombre: '', direccion: '', telefono: '', ciudad: '', fechaApertura: '' })
+const formVacio = () => ({ nombre: '', direccion: '', telefono: '', ciudad: '', fechaApertura: '', usuario: '', contrasena: '' })
 const form      = ref(formVacio())
 const errores   = ref<Record<string, string>>({})
 
@@ -50,6 +50,8 @@ async function guardar() {
       ciudad:        form.value.ciudad.trim() || null,
       fechaApertura: form.value.fechaApertura || null,
       activo:        true,
+      usuario:       form.value.usuario.trim() || null,
+      contrasena:    form.value.contrasena || null,
     }
     if (sucursalEditar.value) {
       const res = await httpClient.put(`/sucursales/${sucursalEditar.value.id}`, body)
@@ -81,6 +83,8 @@ function abrirEditar(s: any) {
     telefono:      s.telefono ?? '',
     ciudad:        s.ciudad ?? '',
     fechaApertura: s.fechaApertura ?? '',
+    usuario:       '',
+    contrasena:    '',
   }
   mostrarForm.value = true
 }
@@ -181,6 +185,24 @@ onMounted(fetchSucursales)
                 class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50 focus:bg-white" />
             </div>
 
+            <!-- Acceso del administrador de esta sucursal -->
+            <div class="sm:col-span-2 border-t border-slate-200 pt-4 mt-1">
+              <p class="text-sm font-bold text-slate-600 mb-3">Administrador de la sucursal</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-1.5">Usuario <span class="text-slate-400 font-normal text-xs">(opcional)</span></label>
+                  <input v-model="form.usuario" type="text" placeholder="Ej: admin_norte"
+                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50 focus:bg-white" />
+                  <p class="text-slate-400 text-xs mt-1">Se creará automáticamente con rol admin.</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 mb-1.5">Contraseña <span class="text-slate-400 font-normal text-xs">(opcional)</span></label>
+                  <input v-model="form.contrasena" type="password" placeholder="Mínimo 6 caracteres"
+                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50 focus:bg-white" />
+                </div>
+              </div>
+            </div>
+
             <div class="sm:col-span-2 flex justify-end gap-3">
               <button type="button" @click="mostrarForm = false; sucursalEditar = null"
                 class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl transition-all cursor-pointer">
@@ -228,6 +250,10 @@ onMounted(fetchSucursales)
           </p>
           <p v-if="s.telefono" class="text-slate-400 text-xs mb-3">{{ s.telefono }}</p>
           <p v-if="s.fechaApertura" class="text-slate-400 text-xs mb-3">Apertura: {{ s.fechaApertura }}</p>
+          <div v-if="s.usuarioNombre" class="bg-blue-50 rounded-lg px-3 py-2 mb-3 flex items-center gap-2">
+            <svg class="w-4 h-4 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="text-blue-700 text-xs font-semibold">{{ s.usuarioNombre }}</span>
+          </div>
           <div class="flex gap-2 pt-3 border-t border-slate-100">
             <button @click="abrirEditar(s)"
               class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-xs py-2 rounded-lg transition-all cursor-pointer">

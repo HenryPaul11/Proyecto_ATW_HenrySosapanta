@@ -34,6 +34,11 @@ public class Sucursal {
     @Column(nullable = false)
     private Boolean activo = true;
 
+    /** Usuario administrador asignado a esta sucursal */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    private UsuarioSistema usuarioSistema;
+
     @PrePersist
     public void prePersist() {
         if (activo == null) activo = true;
