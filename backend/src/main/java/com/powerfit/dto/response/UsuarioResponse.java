@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UsuarioResponse {
-    private Integer       id;
+    private Long          id;
     private String        usuario;
     private String        nombre;
     private String        correo;

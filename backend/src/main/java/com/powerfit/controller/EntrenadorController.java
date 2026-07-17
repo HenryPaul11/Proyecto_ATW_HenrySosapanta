@@ -1,77 +1,80 @@
 package com.powerfit.controller;
 
 import com.powerfit.dto.ApiResponse;
-import com.powerfit.dto.request.EntrenadorRequest;
-import com.powerfit.dto.response.ClienteResponse;
-import com.powerfit.dto.response.EntrenadorResponse;
-import com.powerfit.dto.response.SesionResponse;
-import com.powerfit.service.EntrenadorService;
-import io.swagger.v3.oas.annotations.Operation;
+import com.powerfit.entity.*;
+import com.powerfit.exception.BadRequestException;
+import com.powerfit.exception.ResourceNotFoundException;
+import com.powerfit.repository.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/entrenadores")
 @RequiredArgsConstructor
-@Tag(name = "Entrenadores", description = "Gestión de entrenadores")
+@Tag(name = "Entrenadores")
 public class EntrenadorController {
 
-    private final EntrenadorService entrenadorService;
+    private final EntrenadorRepository entrenadorRepo;
+    private final SucursalRepository   sucursalRepo;
 
     @GetMapping
-    @Operation(summary = "Listar todos los entrenadores")
-    public ResponseEntity<ApiResponse<List<EntrenadorResponse>>> listar() {
-        return ResponseEntity.ok(ApiResponse.ok(entrenadorService.listarTodos()));
+    public ResponseEntity<ApiResponse<List<Entrenador>>> listar(
+            @RequestParam(required = false) Long sucursalId) {
+        return ResponseEntity.ok(ApiResponse.ok(entrenadorRepo.findBySucursal(sucursalId)));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar entrenador por ID")
-    public ResponseEntity<ApiResponse<EntrenadorResponse>> buscarPorId(@PathVariable Integer id) {
-        return ResponseEntity.ok(ApiResponse.ok(entrenadorService.buscarPorId(id)));
-    }
-
-    @GetMapping("/usuario/{username}")
-    @Operation(summary = "Buscar entrenador por nombre de usuario")
-    public ResponseEntity<ApiResponse<EntrenadorResponse>> buscarPorUsername(@PathVariable String username) {
-        return ResponseEntity.ok(ApiResponse.ok(entrenadorService.buscarPorUsername(username)));
-    }
-
-    @GetMapping("/{id}/clientes")
-    @Operation(summary = "Clientes asignados a un entrenador")
-    public ResponseEntity<ApiResponse<List<ClienteResponse>>> clientes(@PathVariable Integer id) {
-        return ResponseEntity.ok(ApiResponse.ok(entrenadorService.clientesDeEntrenador(id)));
-    }
-
-    @GetMapping("/{id}/sesiones")
-    @Operation(summary = "Sesiones de un entrenador")
-    public ResponseEntity<ApiResponse<List<SesionResponse>>> sesiones(@PathVariable Integer id) {
-        return ResponseEntity.ok(ApiResponse.ok(entrenadorService.sesionesDeEntrenador(id)));
+    public ResponseEntity<ApiResponse<Entrenador>> porId(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(entrenadorRepo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Entrenador no encontrado: " + id))));
     }
 
     @PostMapping
-    @Operation(summary = "Registrar entrenador")
-    public ResponseEntity<ApiResponse<EntrenadorResponse>> crear(@Valid @RequestBody EntrenadorRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok(entrenadorService.crear(request), "Entrenador registrado correctamente"));
+    public ResponseEntity<ApiResponse<Entrenador>> crear(@RequestBody Map<String, Object> body) {
+        Long sucursalId = Long.valueOf(body.get("sucursalId").toString());
+        Sucursal sucursal = sucursalRepo.findById(sucursalId)
+            .orElseThrow(() -> new ResourceNotFoundException("Sucursal no encontrada"));
+
+        String doc = body.getOrDefault("documentoIdentidad", "").toString();
+        if (entrenadorRepo.existsByDocumentoIdentidad(doc))
+            throw new BadRequestException("Documento ya registrado: " + doc);
+
+        Entrenador e = Entrenador.builder()
+            .sucursal(sucursal)
+            .nombreCompleto(body.get("nombreCompleto").toString())
+            .documentoIdentidad(doc)
+            .especialidad(body.get("especialidad") != null ? body.get("especialidad").toString() : null)
+            .telefono(body.get("telefono") != null ? body.get("telefono").toString() : null)
+            .email(body.get("email") != null ? body.get("email").toString() : null)
+            .fechaContratacion(body.get("fechaContratacion") != null ? LocalDate.parse(body.get("fechaContratacion").toString()) : null)
+            .estado(Entrenador.EstadoGeneral.ACTIVO)
+            .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(entrenadorRepo.save(e), "Entrenador registrado"));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar entrenador")
-    public ResponseEntity<ApiResponse<EntrenadorResponse>> actualizar(
-            @PathVariable Integer id, @Valid @RequestBody EntrenadorRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok(entrenadorService.actualizar(id, request), "Entrenador actualizado"));
+    public ResponseEntity<ApiResponse<Entrenador>> actualizar(@PathVariable Long id,
+                                                               @RequestBody Map<String, Object> body) {
+        Entrenador e = entrenadorRepo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Entrenador no encontrado: " + id));
+        if (body.get("nombreCompleto") != null) e.setNombreCompleto(body.get("nombreCompleto").toString());
+        if (body.get("especialidad")   != null) e.setEspecialidad(body.get("especialidad").toString());
+        if (body.get("telefono")       != null) e.setTelefono(body.get("telefono").toString());
+        return ResponseEntity.ok(ApiResponse.ok(entrenadorRepo.save(e), "Entrenador actualizado"));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar entrenador")
-    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer id) {
-        entrenadorService.eliminar(id);
-        return ResponseEntity.ok(ApiResponse.ok(null, "Entrenador eliminado"));
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        Entrenador e = entrenadorRepo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Entrenador no encontrado: " + id));
+        e.setEstado(Entrenador.EstadoGeneral.INACTIVO);
+        entrenadorRepo.save(e);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Entrenador desactivado"));
     }
 }

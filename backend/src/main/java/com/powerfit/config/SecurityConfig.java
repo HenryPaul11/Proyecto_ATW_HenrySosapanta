@@ -25,80 +25,44 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
-    /**
-     * BCryptPasswordEncoder: transforma la contraseña en un hash irreversible.
-     * Se usa al registrar usuarios y al verificar credenciales en el login.
-     */
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-
         http
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-            // 401 – No autenticado
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, e) -> {
-                    res.setStatus(401);
-                    res.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    res.getWriter().write(
-                        mapper.writeValueAsString(
-                            ApiResponse.error("Token inválido o no proporcionado", 401)));
+                    res.setStatus(401); res.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    res.getWriter().write(mapper.writeValueAsString(ApiResponse.error("Token inválido o no proporcionado", 401)));
                 })
-                // 403 – Sin permisos
                 .accessDeniedHandler((req, res, e) -> {
-                    res.setStatus(403);
-                    res.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    res.getWriter().write(
-                        mapper.writeValueAsString(
-                            ApiResponse.error("No tienes permisos para realizar esta operación", 403)));
+                    res.setStatus(403); res.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    res.getWriter().write(mapper.writeValueAsString(ApiResponse.error("Sin permisos", 403)));
                 })
             )
             .authorizeHttpRequests(auth -> auth
-
-                // ── Público ────────────────────────────────────────────────
-                .requestMatchers(
-                    "/api/auth/**",
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/api-docs/**",
-                    "/v3/api-docs/**"
-                ).permitAll()
-
-                // ── Solo ADMIN ─────────────────────────────────────────────
-                .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/auditorias/**").hasRole("ADMIN")
-                .requestMatchers("/api/sucursales/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/**").hasRole("ADMIN")
-
-                // ── ADMIN y ENTRENADOR ─────────────────────────────────────
-                .requestMatchers("/api/sesiones/**").hasAnyRole("ADMIN","ENTRENADOR")
-                .requestMatchers("/api/entrenadores/**").hasAnyRole("ADMIN","ENTRENADOR")
-                .requestMatchers(HttpMethod.POST, "/api/clientes/**").hasAnyRole("ADMIN","ENTRENADOR")
-                .requestMatchers(HttpMethod.PUT,  "/api/clientes/**").hasAnyRole("ADMIN","ENTRENADOR")
-                .requestMatchers(HttpMethod.POST, "/api/membresias/**").hasAnyRole("ADMIN","ENTRENADOR")
-                .requestMatchers(HttpMethod.PUT,  "/api/membresias/**").hasAnyRole("ADMIN","ENTRENADOR")
-                .requestMatchers(HttpMethod.POST, "/api/pagos/**").hasAnyRole("ADMIN","ENTRENADOR")
-
-                // ── Todos los roles autenticados (USER = cliente) ──────────
-                .requestMatchers(HttpMethod.GET, "/api/clientes/**").hasAnyRole("ADMIN","ENTRENADOR","CLIENTE")
-                .requestMatchers(HttpMethod.GET, "/api/membresias/**").hasAnyRole("ADMIN","ENTRENADOR","CLIENTE")
-                .requestMatchers(HttpMethod.GET, "/api/pagos/**").hasAnyRole("ADMIN","ENTRENADOR","CLIENTE")
-                .requestMatchers(HttpMethod.GET, "/api/equipos/**").hasAnyRole("ADMIN","ENTRENADOR","CLIENTE")
-                .requestMatchers(HttpMethod.GET, "/api/tipos-membresia/**").hasAnyRole("ADMIN","ENTRENADOR","CLIENTE")
-
-                // ── Resto requiere autenticación ───────────────────────────
+                .requestMatchers("/api/auth/**","/swagger-ui.html","/swagger-ui/**","/api-docs/**","/v3/api-docs/**").permitAll()
+                // Roles: ADMIN_MATRIZ, ADMIN_SUCURSAL, RECEPCIONISTA, ENTRENADOR, CLIENTE
+                .requestMatchers("/api/sucursales/**").hasRole("ADMIN_MATRIZ")
+                .requestMatchers("/api/admin/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                .requestMatchers("/api/usuarios/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                .requestMatchers("/api/auditorias/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                .requestMatchers("/api/sesiones/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA","ENTRENADOR")
+                .requestMatchers("/api/entrenadores/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA","ENTRENADOR")
+                .requestMatchers(HttpMethod.POST, "/api/clientes/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA")
+                .requestMatchers(HttpMethod.PUT,  "/api/clientes/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA")
+                .requestMatchers(HttpMethod.POST, "/api/membresias/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA")
+                .requestMatchers(HttpMethod.PUT,  "/api/membresias/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA")
+                .requestMatchers(HttpMethod.POST, "/api/pagos/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA")
+                .requestMatchers(HttpMethod.GET,  "/api/**").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 }

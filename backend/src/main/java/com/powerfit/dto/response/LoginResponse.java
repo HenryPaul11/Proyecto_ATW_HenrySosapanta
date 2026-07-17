@@ -1,21 +1,14 @@
 package com.powerfit.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class LoginResponse {
-    private Integer id;
-    private String  usuario;
-    private String  nombre;
-    private String  correo;
+    private Long    id;
+    private String  email;
+    private String  nombreCompleto;
     private String  rol;
     private String  token;
-    private Integer sucursalId;    // null = admin matriz, valor = admin de esa sucursal
+    private Long    sucursalId;
     private String  sucursalNombre;
 }

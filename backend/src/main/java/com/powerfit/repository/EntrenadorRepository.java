@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface EntrenadorRepository extends JpaRepository<Entrenador, Integer> {
-    Optional<Entrenador> findByCedula(String cedula);
-    boolean existsByCedula(String cedula);
-    boolean existsByCedulaAndIdNot(String cedula, Integer id);
-    Optional<Entrenador> findByUsuarioSistemaUsuario(String username);
+public interface EntrenadorRepository extends JpaRepository<Entrenador, Long> {
+    Optional<Entrenador> findByDocumentoIdentidad(String doc);
+    boolean existsByDocumentoIdentidad(String doc);
+    boolean existsByDocumentoIdentidadAndIdNot(String doc, Long id);
+    Optional<Entrenador> findByUsuario_Email(String email);
 
     @Query("SELECT e FROM Entrenador e WHERE :sucursalId IS NULL OR e.sucursal.id = :sucursalId")
-    List<Entrenador> findBySucursal(@Param("sucursalId") Integer sucursalId);
+    List<Entrenador> findBySucursal(@Param("sucursalId") Long sucursalId);
 }

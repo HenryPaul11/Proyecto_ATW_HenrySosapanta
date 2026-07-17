@@ -27,4 +27,6 @@ public class UsuarioRequest {
     private String rol;
 
     private Boolean activo;
+
+    private Long sucursalId;
 }

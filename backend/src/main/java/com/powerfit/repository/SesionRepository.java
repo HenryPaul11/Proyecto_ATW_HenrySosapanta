@@ -10,21 +10,13 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SesionRepository extends JpaRepository<Sesion, Integer> {
-    List<Sesion> findByEntrenadorId(Integer entrenadorId);
-    List<Sesion> findByClienteId(Integer clienteId);
+public interface SesionRepository extends JpaRepository<Sesion, Long> {
 
-    // Paginación FÍSICA con filtro LÓGICO opcional por estado
-    @Query("SELECT s FROM Sesion s WHERE (:estado IS NULL OR s.estado = :estado)")
-    Page<Sesion> findByEstadoOptional(
-            @Param("estado") Sesion.EstadoSesion estado, Pageable pageable);
+    @Query("SELECT s FROM Sesion s WHERE :sucursalId IS NULL OR s.sucursal.id = :sucursalId")
+    List<Sesion> findBySucursal(@Param("sucursalId") Long sucursalId);
 
-    @Query("SELECT COUNT(s) FROM Sesion s WHERE s.estado = 'completada'")
-    Long countCompletadas();
+    List<Sesion> findByEntrenadorId(Long entrenadorId);
 
-    @Query("SELECT COUNT(s) FROM Sesion s WHERE s.estado = 'pendiente'")
-    Long countPendientes();
-
-    @Query("SELECT COUNT(s) FROM Sesion s WHERE s.estado = 'cancelada'")
-    Long countCanceladas();
+    @Query("SELECT s FROM Sesion s WHERE :estado IS NULL OR s.estado = :estado")
+    Page<Sesion> findByEstadoOptional(@Param("estado") Sesion.EstadoGeneral estado, Pageable pageable);
 }

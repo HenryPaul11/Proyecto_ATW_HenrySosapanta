@@ -1,87 +1,110 @@
 package com.powerfit.controller;
 
 import com.powerfit.dto.ApiResponse;
-import com.powerfit.dto.request.ClienteRequest;
-import com.powerfit.dto.response.ClienteResponse;
-import com.powerfit.service.ClienteService;
+import com.powerfit.entity.Cliente;
+import com.powerfit.entity.Sucursal;
+import com.powerfit.exception.BadRequestException;
+import com.powerfit.exception.ResourceNotFoundException;
+import com.powerfit.repository.ClienteRepository;
+import com.powerfit.repository.SucursalRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/clientes")
 @RequiredArgsConstructor
-@Tag(name = "Clientes", description = "Gestión de clientes")
+@Tag(name = "Clientes")
 public class ClienteController {
 
-    private final ClienteService clienteService;
+    private final ClienteRepository clienteRepo;
+    private final SucursalRepository sucursalRepo;
 
     @GetMapping
-    @Operation(summary = "Listar todos los clientes activos")
-    public ResponseEntity<ApiResponse<List<ClienteResponse>>> listar() {
-        return ResponseEntity.ok(ApiResponse.ok(clienteService.listarTodos()));
+    public ResponseEntity<ApiResponse<List<Cliente>>> listar(
+            @RequestParam(required = false) Long sucursalId) {
+        List<Cliente> lista = (sucursalId != null)
+            ? clienteRepo.buscar(null, sucursalId, Pageable.unpaged()).getContent()
+            : clienteRepo.findAll();
+        return ResponseEntity.ok(ApiResponse.ok(lista));
     }
 
     @GetMapping("/paginado")
-    @Operation(summary = "Listar clientes con paginación, búsqueda y filtro por sucursal")
-    public ResponseEntity<ApiResponse<Page<ClienteResponse>>> listarPaginado(
-            @RequestParam(defaultValue = "0")   int     page,
-            @RequestParam(defaultValue = "10")  int     size,
-            @RequestParam(required = false)     String  busqueda,
-            @RequestParam(required = false)     Integer sucursalId) {
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("apellido").ascending());
-        Page<ClienteResponse> resultado = clienteService.listarPaginado(busqueda, sucursalId, pageable);
-        return ResponseEntity.ok(ApiResponse.ok(resultado));
+    public ResponseEntity<ApiResponse<Page<Cliente>>> paginado(
+            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false)    String q,
+            @RequestParam(required = false)    Long sucursalId) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nombreCompleto").ascending());
+        return ResponseEntity.ok(ApiResponse.ok(clienteRepo.buscar(q, sucursalId, pageable)));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar cliente por ID")
-    public ResponseEntity<ApiResponse<ClienteResponse>> buscarPorId(@PathVariable Integer id) {
-        return ResponseEntity.ok(ApiResponse.ok(clienteService.buscarPorId(id)));
+    public ResponseEntity<ApiResponse<Cliente>> porId(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(clienteRepo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + id))));
     }
 
-    @GetMapping("/cedula/{cedula}")
-    @Operation(summary = "Buscar cliente por cédula")
-    public ResponseEntity<ApiResponse<ClienteResponse>> buscarPorCedula(@PathVariable String cedula) {
-        return ResponseEntity.ok(ApiResponse.ok(clienteService.buscarPorCedula(cedula)));
+    @GetMapping("/documento/{doc}")
+    public ResponseEntity<ApiResponse<Cliente>> porDocumento(@PathVariable String doc) {
+        return ResponseEntity.ok(ApiResponse.ok(
+            clienteRepo.findByDocumentoIdentidadAndEstado(doc, Cliente.EstadoGeneral.ACTIVO)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + doc))));
     }
 
     @GetMapping("/sin-membresia")
-    @Operation(summary = "Clientes sin membresía vigente")
-    public ResponseEntity<ApiResponse<List<ClienteResponse>>> sinMembresia(
-            @RequestParam(required = false) Integer sucursalId) {
-        return ResponseEntity.ok(ApiResponse.ok(clienteService.sinMembresia(sucursalId)));
+    public ResponseEntity<ApiResponse<List<Cliente>>> sinMembresia(
+            @RequestParam(required = false) Long sucursalId) {
+        return ResponseEntity.ok(ApiResponse.ok(clienteRepo.sinMembresia(sucursalId)));
     }
 
     @PostMapping
-    @Operation(summary = "Registrar cliente")
-    public ResponseEntity<ApiResponse<ClienteResponse>> crear(@Valid @RequestBody ClienteRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok(clienteService.crear(request), "Cliente registrado correctamente"));
+    public ResponseEntity<ApiResponse<Cliente>> crear(@RequestBody Map<String, Object> body) {
+        Long sucursalId = body.get("sucursalId") != null ? Long.valueOf(body.get("sucursalId").toString()) : null;
+        if (sucursalId == null) throw new BadRequestException("sucursalId es obligatorio");
+        Sucursal sucursal = sucursalRepo.findById(sucursalId)
+            .orElseThrow(() -> new ResourceNotFoundException("Sucursal no encontrada: " + sucursalId));
+
+        String doc = body.getOrDefault("documentoIdentidad", "").toString();
+        if (clienteRepo.existsByDocumentoIdentidad(doc))
+            throw new BadRequestException("Documento ya registrado: " + doc);
+
+        Cliente c = Cliente.builder()
+            .sucursal(sucursal)
+            .nombreCompleto(body.getOrDefault("nombreCompleto", "").toString())
+            .documentoIdentidad(doc)
+            .email(body.get("email") != null ? body.get("email").toString() : null)
+            .telefono(body.get("telefono") != null ? body.get("telefono").toString() : null)
+            .genero(body.get("genero") != null ? body.get("genero").toString() : null)
+            .estado(Cliente.EstadoGeneral.ACTIVO)
+            .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(clienteRepo.save(c), "Cliente registrado"));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar cliente")
-    public ResponseEntity<ApiResponse<ClienteResponse>> actualizar(
-            @PathVariable Integer id, @Valid @RequestBody ClienteRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok(clienteService.actualizar(id, request), "Cliente actualizado"));
+    public ResponseEntity<ApiResponse<Cliente>> actualizar(@PathVariable Long id,
+                                                            @RequestBody Map<String, Object> body) {
+        Cliente c = clienteRepo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + id));
+        if (body.get("nombreCompleto") != null) c.setNombreCompleto(body.get("nombreCompleto").toString());
+        if (body.get("email")          != null) c.setEmail(body.get("email").toString());
+        if (body.get("telefono")       != null) c.setTelefono(body.get("telefono").toString());
+        return ResponseEntity.ok(ApiResponse.ok(clienteRepo.save(c), "Cliente actualizado"));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminación lógica del cliente (activo = false)")
-    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer id) {
-        clienteService.eliminar(id);
-        return ResponseEntity.ok(ApiResponse.ok(null, "Cliente desactivado correctamente"));
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        Cliente c = clienteRepo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + id));
+        c.setEstado(Cliente.EstadoGeneral.INACTIVO);
+        clienteRepo.save(c);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Cliente desactivado"));
     }
 }

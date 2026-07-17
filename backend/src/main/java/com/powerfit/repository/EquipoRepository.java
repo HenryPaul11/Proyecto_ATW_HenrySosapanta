@@ -8,16 +8,12 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface EquipoRepository extends JpaRepository<Equipo, Integer> {
-
-    List<Equipo> findByCategoria(Equipo.Categoria categoria);
+public interface EquipoRepository extends JpaRepository<Equipo, Long> {
+    boolean existsByNumeroSerie(String serie);
 
     @Query("SELECT e FROM Equipo e WHERE :sucursalId IS NULL OR e.sucursal.id = :sucursalId")
-    List<Equipo> findBySucursal(@Param("sucursalId") Integer sucursalId);
+    List<Equipo> findBySucursal(@Param("sucursalId") Long sucursalId);
 
-    @Query("SELECT COUNT(e) FROM Equipo e WHERE e.estado = 'disponible'")
-    Long countDisponibles();
-
-    @Query("SELECT COUNT(e) FROM Equipo e WHERE e.estado = 'mantenimiento'")
-    Long countMantenimiento();
+    @Query("SELECT COUNT(e) FROM Equipo e WHERE e.estado = 'OPERATIVO'")
+    Long countOperativos();
 }

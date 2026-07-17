@@ -58,6 +58,8 @@ export interface User {
   password?: string
   rol: 'admin' | 'cliente' | 'entrenador'
   token?: string // Token JWT opcional recibido al loguear
+  sucursalId?: number | null // null = admin matriz, número = admin de esa sucursal
+  sucursalNombre?: string | null // Nombre de la sucursal asignada
 }
 
 export interface AdminStats {
@@ -244,7 +246,18 @@ export const authApi = {
       })) as any
       if (res && res.success && res.data) {
         const u = res.data
-        if (u.rol) u.rol = u.rol.toLowerCase()
+        const rolBackend = String(u.rol || '').toLowerCase()
+        const rolNormalizado =
+          rolBackend.includes('admin') || rolBackend === 'recepcionista'
+            ? 'admin'
+            : rolBackend === 'entrenador'
+              ? 'entrenador'
+              : 'cliente'
+
+        u.usuario = u.usuario || usuario
+        u.nombre = u.nombre || u.nombreCompleto || ''
+        u.correo = u.correo || u.email || ''
+        u.rol = rolNormalizado
         // Guardar el token JWT si viene en la respuesta
         if (u.token) {
           sessionStorage.setItem('auth_token', u.token)

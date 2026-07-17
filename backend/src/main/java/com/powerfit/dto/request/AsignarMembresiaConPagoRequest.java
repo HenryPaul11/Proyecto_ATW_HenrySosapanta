@@ -1,13 +1,12 @@
 package com.powerfit.dto.request;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
+
 import java.math.BigDecimal;
 
-/**
- * Request para el proceso transaccional de asignar membresía y registrar pago
- * en una sola operación atómica (@Transactional).
- */
 @Data
 public class AsignarMembresiaConPagoRequest {
 
@@ -17,16 +16,14 @@ public class AsignarMembresiaConPagoRequest {
     @NotNull(message = "El tipoMembresiaId es obligatorio")
     private Integer tipoMembresiaId;
 
-    @NotBlank(message = "El método de pago es obligatorio")
-    @Pattern(regexp = "efectivo|tarjeta|transferencia",
-             message = "Método de pago: efectivo, tarjeta o transferencia")
+    @NotBlank(message = "El metodo de pago es obligatorio")
+    @Pattern(regexp = "efectivo|tarjeta|transferencia|pago_movil",
+            message = "Metodo de pago: efectivo, tarjeta, transferencia o pago_movil")
     private String metodoPago;
 
     @NotNull(message = "El sucursalId es obligatorio")
     private Integer sucursalId;
 
-    // Opcional: si no se envía, se usa el precio del tipo de membresía
     private BigDecimal montoPersonalizado;
-
     private Integer registradoPorId;
 }

@@ -2,41 +2,45 @@ package com.powerfit.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "membresias")
+@Table(name = "usuarios")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
-public class Membresia {
+public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "membresia_id")
+    @Column(name = "usuario_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cliente_id", nullable = false)
-    private Cliente cliente;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id", nullable = false)
-    private Plan plan;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sucursal_id", nullable = false)
+    @JoinColumn(name = "sucursal_id")
     private Sucursal sucursal;
 
-    @Column(name = "fecha_inicio", nullable = false)
-    private LocalDate fechaInicio;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rol_id", nullable = false)
+    private Rol rol;
 
-    @Column(name = "fecha_fin", nullable = false)
-    private LocalDate fechaFin;
+    @Column(name = "nombre_completo", nullable = false, length = 150)
+    private String nombreCompleto;
+
+    @Column(nullable = false, unique = true, length = 150)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
+
+    @Column(length = 20)
+    private String telefono;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private EstadoMembresia estado = EstadoMembresia.ACTIVA;
+    private EstadoGeneral estado = EstadoGeneral.ACTIVO;
+
+    @Column(name = "ultimo_acceso")
+    private LocalDateTime ultimoAcceso;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
@@ -48,11 +52,11 @@ public class Membresia {
     public void prePersist() {
         fechaCreacion = LocalDateTime.now();
         fechaActualizacion = LocalDateTime.now();
-        if (estado == null) estado = EstadoMembresia.ACTIVA;
+        if (estado == null) estado = EstadoGeneral.ACTIVO;
     }
 
     @PreUpdate
     public void preUpdate() { fechaActualizacion = LocalDateTime.now(); }
 
-    public enum EstadoMembresia { ACTIVA, VENCIDA, CANCELADA, SUSPENDIDA }
+    public enum EstadoGeneral { ACTIVO, INACTIVO }
 }

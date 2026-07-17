@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "Autenticación", description = "Login y logout")
+@Tag(name = "Autenticación")
 public class AuthController {
 
     private final AuthService authService;
@@ -22,13 +22,12 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "Iniciar sesión")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
-        LoginResponse response = authService.login(request);
-        return ResponseEntity.ok(ApiResponse.ok(response, "Login exitoso"));
+        return ResponseEntity.ok(ApiResponse.ok(authService.login(request), "Login exitoso"));
     }
 
     @PostMapping("/logout")
     @Operation(summary = "Cerrar sesión")
     public ResponseEntity<ApiResponse<Void>> logout() {
-        return ResponseEntity.ok(ApiResponse.ok(null, "Sesión cerrada correctamente"));
+        return ResponseEntity.ok(ApiResponse.ok(null, "Sesión cerrada"));
     }
 }

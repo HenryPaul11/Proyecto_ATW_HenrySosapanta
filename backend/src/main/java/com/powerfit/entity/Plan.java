@@ -3,49 +3,38 @@ package com.powerfit.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "equipos")
+@Table(name = "planes")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
-public class Equipo {
+public class Plan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "equipo_id")
+    @Column(name = "plan_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sucursal_id", nullable = false)
     private Sucursal sucursal;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "categoria_id", nullable = false)
-    private CategoriaEquipo categoria;
+    @Column(name = "nombre_plan", nullable = false, length = 100)
+    private String nombrePlan;
 
-    @Column(nullable = false, length = 120)
-    private String nombre;
+    @Column(length = 255)
+    private String descripcion;
 
-    @Column(length = 80)
-    private String marca;
+    @Column(name = "duracion_dias", nullable = false)
+    private Integer duracionDias;
 
-    @Column(length = 80)
-    private String modelo;
-
-    @Column(name = "numero_serie", nullable = false, unique = true, length = 80)
-    private String numeroSerie;
-
-    @Column(name = "fecha_adquisicion")
-    private LocalDate fechaAdquisicion;
-
-    @Column(name = "valor_adquisicion", precision = 10, scale = 2)
-    private BigDecimal valorAdquisicion;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal precio;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private EstadoEquipo estado = EstadoEquipo.OPERATIVO;
+    private EstadoGeneral estado = EstadoGeneral.ACTIVO;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
@@ -57,11 +46,11 @@ public class Equipo {
     public void prePersist() {
         fechaCreacion = LocalDateTime.now();
         fechaActualizacion = LocalDateTime.now();
-        if (estado == null) estado = EstadoEquipo.OPERATIVO;
+        if (estado == null) estado = EstadoGeneral.ACTIVO;
     }
 
     @PreUpdate
     public void preUpdate() { fechaActualizacion = LocalDateTime.now(); }
 
-    public enum EstadoEquipo { OPERATIVO, MANTENIMIENTO, DADO_DE_BAJA }
+    public enum EstadoGeneral { ACTIVO, INACTIVO }
 }

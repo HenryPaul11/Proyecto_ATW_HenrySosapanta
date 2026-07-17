@@ -3,6 +3,7 @@ package com.powerfit.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "sucursales")
@@ -14,35 +15,52 @@ public class Sucursal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "sucursal_id")
+    private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, unique = true, length = 120)
     private String nombre;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, unique = true, length = 20)
+    private String codigo;
+
+    @Column(nullable = false, length = 255)
     private String direccion;
 
-    @Column(length = 15)
+    @Column(nullable = false, length = 80)
+    private String ciudad;
+
+    @Column(length = 20)
     private String telefono;
 
-    @Column(length = 100)
-    private String ciudad;
+    @Column(name = "email_contacto", length = 150)
+    private String emailContacto;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private EstadoGeneral estado = EstadoGeneral.ACTIVO;
 
     @Column(name = "fecha_apertura")
     private LocalDate fechaApertura;
 
-    @Builder.Default
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean activo = true;
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
 
-    /** Usuario administrador asignado a esta sucursal */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id")
-    private UsuarioSistema usuarioSistema;
+    @Column(name = "fecha_actualizacion", nullable = false)
+    private LocalDateTime fechaActualizacion;
 
     @PrePersist
     public void prePersist() {
-        if (activo == null) activo = true;
+        fechaCreacion     = LocalDateTime.now();
+        fechaActualizacion = LocalDateTime.now();
+        if (estado == null) estado = EstadoGeneral.ACTIVO;
     }
+
+    @PreUpdate
+    public void preUpdate() {
+        fechaActualizacion = LocalDateTime.now();
+    }
+
+    public enum EstadoGeneral { ACTIVO, INACTIVO }
 }

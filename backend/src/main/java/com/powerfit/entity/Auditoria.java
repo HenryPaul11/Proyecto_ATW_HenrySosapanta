@@ -6,44 +6,48 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "auditoria")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class Auditoria {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "auditoria_id")
+    private Long id;
 
-    @Column(name = "tabla_afectada", nullable = false, length = 50)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sucursal_id")
+    private Sucursal sucursal;
+
+    @Column(name = "tabla_afectada", nullable = false, length = 80)
     private String tablaAfectada;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AccionAuditoria accion;
 
-    @Column(nullable = false, length = 50)
-    private String usuario;
+    @Column(name = "registro_id")
+    private Long registroId;
+
+    @Column(name = "datos_anteriores", columnDefinition = "jsonb")
+    private String datosAnteriores;
+
+    @Column(name = "datos_nuevos", columnDefinition = "jsonb")
+    private String datosNuevos;
+
+    @Column(name = "ip_origen", length = 45)
+    private String ipOrigen;
 
     @Column(name = "fecha_hora", nullable = false)
     private LocalDateTime fechaHora;
-
-    @Column(name = "datos_anteriores", columnDefinition = "TEXT")
-    private String datosAnteriores;
-
-    @Column(name = "datos_nuevos", columnDefinition = "TEXT")
-    private String datosNuevos;
-
-    @Column(name = "ip_address", length = 45)
-    private String ipAddress;
 
     @PrePersist
     public void prePersist() {
         if (fechaHora == null) fechaHora = LocalDateTime.now();
     }
 
-    public enum AccionAuditoria {
-        INSERT, UPDATE, DELETE
-    }
+    public enum AccionAuditoria { INSERT, UPDATE, DELETE }
 }

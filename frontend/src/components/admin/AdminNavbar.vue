@@ -57,7 +57,7 @@
           </div>
           <span class="text-blue-700 font-semibold text-sm">{{ usuario }}</span>
           <span class="text-xs bg-blue-200 text-blue-800 font-bold px-1.5 py-0.5 rounded-full">
-            {{ auth.esSucursal ? auth.sucursalNombre : 'Matriz' }}
+            {{ auth.esSucursal.value ? auth.sucursalNombre.value : 'Matriz' }}
           </span>
         </div>
         <button
@@ -180,7 +180,7 @@ const navLinks = computed(() => {
     { to: '/auditorias',   label: 'Auditorías',    icon: 'auditorias' },
   ]
   // Solo el admin Matriz puede gestionar sucursales
-  if (!auth.esSucursal) {
+  if (!auth.esSucursal.value) {
     links.splice(6, 0, { to: '/sucursales', label: 'Sucursales', icon: 'home' })
   }
   return links

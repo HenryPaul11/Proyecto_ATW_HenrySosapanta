@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class AsignarMembresiaConPagoResponse {
     // Datos de la membresía
-    private Integer   membresiaId;
-    private Integer   clienteId;
+    private Long      membresiaId;
+    private Long      clienteId;
     private String    clienteNombre;
     private String    tipoMembresia;
     private LocalDate fechaInicio;
@@ -24,7 +24,7 @@ public class AsignarMembresiaConPagoResponse {
     private String    estadoMembresia;
 
     // Datos del pago
-    private Integer       pagoId;
+    private Long          pagoId;
     private BigDecimal    monto;
     private String        metodoPago;
     private LocalDateTime fechaPago;

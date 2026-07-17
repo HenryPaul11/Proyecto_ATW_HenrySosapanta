@@ -1,93 +1,99 @@
 package com.powerfit.controller;
 
 import com.powerfit.dto.ApiResponse;
-import com.powerfit.dto.request.MembresiaRequest;
-import com.powerfit.dto.response.MembresiaResponse;
-import com.powerfit.dto.response.PagedResponse;
-import com.powerfit.service.MembresiaService;
-import io.swagger.v3.oas.annotations.Operation;
+import com.powerfit.entity.*;
+import com.powerfit.exception.BadRequestException;
+import com.powerfit.exception.ResourceNotFoundException;
+import com.powerfit.repository.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/membresias")
 @RequiredArgsConstructor
-@Tag(name = "Membresías", description = "Gestión de membresías de clientes")
+@Tag(name = "Membresías")
 public class MembresiaController {
 
-    private final MembresiaService membresiaService;
-
-    // ── Sin paginación ───────────────────────────────────────────────────────
+    private final MembresiaRepository membresiaRepo;
+    private final ClienteRepository   clienteRepo;
+    private final PlanRepository      planRepo;
+    private final SucursalRepository  sucursalRepo;
 
     @GetMapping
-    @Operation(summary = "Listar todas las membresías (sin paginar)")
-    public ResponseEntity<ApiResponse<List<MembresiaResponse>>> listar() {
-        return ResponseEntity.ok(ApiResponse.ok(membresiaService.listarTodas()));
+    public ResponseEntity<ApiResponse<Page<Membresia>>> listar(
+            @RequestParam(defaultValue = "0")  int    page,
+            @RequestParam(defaultValue = "10") int    size,
+            @RequestParam(required = false)    Long   sucursalId,
+            @RequestParam(required = false)    String estado) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(ApiResponse.ok(membresiaRepo.findFiltered(sucursalId, estado, pageable)));
     }
 
-    // ── Con paginación FÍSICA (Spring Data Page) ─────────────────────────────
-
     @GetMapping("/activas")
-    @Operation(summary = "Membresías activas — paginación FÍSICA",
-               description = "Trae solo los registros de la página solicitada desde la BD. " +
-                             "Parámetros: page (0-based), size")
-    public ResponseEntity<ApiResponse<PagedResponse<MembresiaResponse>>> activas(
-            @RequestParam(defaultValue = "0")  int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<ApiResponse<Page<Membresia>>> activas(
+            @RequestParam(defaultValue = "0")  int  page,
+            @RequestParam(defaultValue = "10") int  size,
+            @RequestParam(required = false)    Long sucursalId) {
         return ResponseEntity.ok(ApiResponse.ok(
-                membresiaService.listarActivasPaginado(page, size),
-                "Membresías activas — página " + page));
+            membresiaRepo.findFiltered(sucursalId, "ACTIVA", PageRequest.of(page, size))));
     }
 
     @GetMapping("/vencidas")
-    @Operation(summary = "Membresías vencidas — paginación FÍSICA",
-               description = "Trae solo los registros de la página solicitada desde la BD.")
-    public ResponseEntity<ApiResponse<PagedResponse<MembresiaResponse>>> vencidas(
-            @RequestParam(defaultValue = "0")  int page,
-            @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<ApiResponse<Page<Membresia>>> vencidas(
+            @RequestParam(defaultValue = "0")  int  page,
+            @RequestParam(defaultValue = "10") int  size,
+            @RequestParam(required = false)    Long sucursalId) {
         return ResponseEntity.ok(ApiResponse.ok(
-                membresiaService.listarVencidasPaginado(page, size),
-                "Membresías vencidas — página " + page));
+            membresiaRepo.findFiltered(sucursalId, "VENCIDA", PageRequest.of(page, size))));
     }
-
-    // ── Paginación LÓGICA (filtro por cliente) ────────────────────────────────
 
     @GetMapping("/cliente/{clienteId}")
-    @Operation(summary = "Membresías de un cliente — paginación LÓGICA",
-               description = "Filtra lógicamente por cliente. Incluye activas y vencidas.")
-    public ResponseEntity<ApiResponse<List<MembresiaResponse>>> porCliente(
-            @PathVariable Integer clienteId) {
-        return ResponseEntity.ok(ApiResponse.ok(membresiaService.listarPorCliente(clienteId)));
+    public ResponseEntity<ApiResponse<List<Membresia>>> porCliente(@PathVariable Long clienteId) {
+        return ResponseEntity.ok(ApiResponse.ok(membresiaRepo.findByClienteId(clienteId)));
     }
 
-    // ── Operaciones CRUD ──────────────────────────────────────────────────────
-
     @PostMapping("/asignar")
-    @Operation(summary = "Asignar membresía (calcula fechas automáticamente)")
-    public ResponseEntity<ApiResponse<MembresiaResponse>> asignar(
-            @Valid @RequestBody MembresiaRequest request) {
+    public ResponseEntity<ApiResponse<Membresia>> asignar(@RequestBody Map<String, Object> body) {
+        Long clienteId = Long.valueOf(body.get("clienteId").toString());
+        Long planId    = Long.valueOf(body.get("planId").toString());
+
+        Cliente cliente = clienteRepo.findById(clienteId)
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
+        Plan plan = planRepo.findById(planId)
+            .orElseThrow(() -> new ResourceNotFoundException("Plan no encontrado"));
+
+        LocalDate inicio = LocalDate.now();
+        LocalDate fin    = inicio.plusDays(plan.getDuracionDias());
+
+        Membresia m = Membresia.builder()
+            .cliente(cliente).plan(plan)
+            .sucursal(cliente.getSucursal())
+            .fechaInicio(inicio).fechaFin(fin)
+            .estado(Membresia.EstadoMembresia.ACTIVA)
+            .build();
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok(membresiaService.asignar(request),
-                        "Membresía asignada correctamente"));
+            .body(ApiResponse.ok(membresiaRepo.save(m), "Membresía asignada"));
     }
 
     @PutMapping("/{id}/renovar")
-    @Operation(summary = "Renovar membresía — extiende fecha_fin")
-    public ResponseEntity<ApiResponse<MembresiaResponse>> renovar(@PathVariable Integer id) {
-        return ResponseEntity.ok(ApiResponse.ok(
-                membresiaService.renovar(id), "Membresía renovada correctamente"));
-    }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar membresía (eliminación FÍSICA)")
-    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer id) {
-        membresiaService.eliminar(id);
-        return ResponseEntity.ok(ApiResponse.ok(null, "Membresía eliminada"));
+    public ResponseEntity<ApiResponse<Membresia>> renovar(@PathVariable Long id,
+                                                           @RequestBody Map<String, Object> body) {
+        Membresia m = membresiaRepo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Membresía no encontrada: " + id));
+        Long planId = body.get("planId") != null ? Long.valueOf(body.get("planId").toString()) : m.getPlan().getId();
+        Plan plan   = planRepo.findById(planId).orElse(m.getPlan());
+        LocalDate inicio = LocalDate.now().isAfter(m.getFechaFin()) ? LocalDate.now() : m.getFechaFin().plusDays(1);
+        m.setPlan(plan);
+        m.setFechaInicio(inicio);
+        m.setFechaFin(inicio.plusDays(plan.getDuracionDias()));
+        m.setEstado(Membresia.EstadoMembresia.ACTIVA);
+        return ResponseEntity.ok(ApiResponse.ok(membresiaRepo.save(m), "Membresía renovada"));
     }
 }

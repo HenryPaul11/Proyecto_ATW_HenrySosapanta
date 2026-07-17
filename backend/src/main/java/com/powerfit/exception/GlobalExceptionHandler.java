@@ -40,6 +40,22 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage(), 409));
     }
 
+    // 401 – No autenticado
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse<?>> handleUnauthorizedCustom(UnauthorizedException ex) {
+        log.warn("No autenticado: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ex.getMessage(), 401));
+    }
+
+    // 403 – Sin permisos / Acceso denegado
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiResponse<?>> handleForbiddenCustom(ForbiddenException ex) {
+        log.warn("Acceso denegado: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage(), 403));
+    }
+
     // 400 – Errores de validación Bean Validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidation(MethodArgumentNotValidException ex) {

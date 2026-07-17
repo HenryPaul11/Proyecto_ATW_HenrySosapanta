@@ -2,41 +2,33 @@ package com.powerfit.service.impl;
 
 import com.powerfit.dto.request.UsuarioRequest;
 import com.powerfit.dto.response.UsuarioResponse;
-import com.powerfit.entity.UsuarioSistema;
+import com.powerfit.entity.Rol;
+import com.powerfit.entity.Sucursal;
+import com.powerfit.entity.Usuario;
 import com.powerfit.exception.BadRequestException;
 import com.powerfit.exception.ResourceNotFoundException;
-import com.powerfit.repository.UsuarioSistemaRepository;
-import com.powerfit.service.AuditoriaService;
+import com.powerfit.repository.RolRepository;
+import com.powerfit.repository.SucursalRepository;
+import com.powerfit.repository.UsuarioRepository;
 import com.powerfit.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService {
 
-    private final UsuarioSistemaRepository usuarioRepository;
-    private final AuditoriaService auditoriaService;
+    private final UsuarioRepository usuarioRepository;
+    private final RolRepository rolRepository;
+    private final SucursalRepository sucursalRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public Page<UsuarioResponse> listarPaginado(Pageable pageable) {
         return usuarioRepository.findAll(pageable).map(this::toResponse);
-    }
-
-    @Override
-    public List<UsuarioResponse> listarTodos() {
-        return usuarioRepository.findAll().stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
     }
 
     @Override
@@ -46,83 +38,103 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public UsuarioResponse crear(UsuarioRequest request) {
-        if (usuarioRepository.existsByUsuario(request.getUsuario()))
-            throw new BadRequestException("El nombre de usuario '" + request.getUsuario() + "' ya está en uso");
-        if (usuarioRepository.existsByCorreo(request.getCorreo()))
-            throw new BadRequestException("El correo '" + request.getCorreo() + "' ya está registrado");
+        if (usuarioRepository.existsByEmail(request.getCorreo())) {
+            throw new BadRequestException("Ya existe un usuario con ese correo");
+        }
 
-        UsuarioSistema u = UsuarioSistema.builder()
-                .usuario(request.getUsuario())
-                .nombre(request.getNombre())
-                .correo(request.getCorreo())
-                // BCrypt: la contraseña se almacena como hash irreversible
-                .contrasena(passwordEncoder.encode(request.getContrasena()))
-                .rol(UsuarioSistema.Rol.valueOf(request.getRol()))
-                .activo(request.getActivo() != null ? request.getActivo() : true)
-                .build();
+        Rol rol = findRol(request.getRol());
 
-        UsuarioSistema saved = usuarioRepository.save(u);
-        log.info("Usuario creado: id={}, usuario={}, rol={}", saved.getId(), saved.getUsuario(), saved.getRol());
-        auditoriaService.registrar("usuarios_sistema", "INSERT", saved.getUsuario(),
-                null, "id=" + saved.getId(), null);
-        return toResponse(saved);
+        Usuario.UsuarioBuilder builder = Usuario.builder()
+                .nombreCompleto(request.getNombre())
+                .email(request.getCorreo())
+                .passwordHash(passwordEncoder.encode(request.getContrasena()))
+                .rol(rol)
+                .estado(toEstado(request.getActivo()));
+
+        if (rol.getAmbito() == Rol.AmbitoRol.SUCURSAL) {
+            Sucursal sucursal = resolverSucursal(request.getSucursalId(), rol);
+            builder.sucursal(sucursal);
+        }
+
+        return toResponse(usuarioRepository.save(builder.build()));
     }
 
     @Override
     public UsuarioResponse actualizar(Integer id, UsuarioRequest request) {
-        UsuarioSistema u = findOrThrow(id);
-
-        if (!u.getUsuario().equals(request.getUsuario()) &&
-                usuarioRepository.existsByUsuario(request.getUsuario()))
-            throw new BadRequestException("El nombre de usuario '" + request.getUsuario() + "' ya está en uso");
-
-        if (!u.getCorreo().equals(request.getCorreo()) &&
-                usuarioRepository.existsByCorreo(request.getCorreo()))
-            throw new BadRequestException("El correo '" + request.getCorreo() + "' ya está registrado");
-
-        String datosAnt = "usuario=" + u.getUsuario();
-        u.setUsuario(request.getUsuario());
-        u.setNombre(request.getNombre());
-        u.setCorreo(request.getCorreo());
-        // Si se envía nueva contraseña, se hashea nuevamente
-        if (request.getContrasena() != null && !request.getContrasena().isBlank()) {
-            u.setContrasena(passwordEncoder.encode(request.getContrasena()));
+        Usuario usuario = findOrThrow(id);
+        if (usuarioRepository.existsByEmailAndIdNot(request.getCorreo(), id.longValue())) {
+            throw new BadRequestException("Ya existe un usuario con ese correo");
         }
-        u.setRol(UsuarioSistema.Rol.valueOf(request.getRol()));
-        if (request.getActivo() != null)
-            u.setActivo(request.getActivo());
 
-        UsuarioSistema saved = usuarioRepository.save(u);
-        log.info("Usuario actualizado: id={}, usuario={}", saved.getId(), saved.getUsuario());
-        auditoriaService.registrar("usuarios_sistema", "UPDATE", saved.getUsuario(),
-                datosAnt, "usuario=" + saved.getUsuario(), null);
-        return toResponse(saved);
+        Rol rol = findRol(request.getRol());
+
+        usuario.setNombreCompleto(request.getNombre());
+        usuario.setEmail(request.getCorreo());
+        usuario.setRol(rol);
+        usuario.setEstado(toEstado(request.getActivo()));
+        if (request.getContrasena() != null && !request.getContrasena().isBlank()) {
+            usuario.setPasswordHash(passwordEncoder.encode(request.getContrasena()));
+        }
+
+        if (rol.getAmbito() == Rol.AmbitoRol.SUCURSAL) {
+            usuario.setSucursal(resolverSucursal(request.getSucursalId(), rol));
+        } else {
+            usuario.setSucursal(null);
+        }
+
+        return toResponse(usuarioRepository.save(usuario));
     }
 
     @Override
     public void eliminar(Integer id) {
-        UsuarioSistema u = findOrThrow(id);
-        log.info("Usuario eliminado: id={}, usuario={}", id, u.getUsuario());
-        auditoriaService.registrar("usuarios_sistema", "DELETE", u.getUsuario(),
-                "id=" + id, null, null);
-        usuarioRepository.deleteById(id);
+        Usuario usuario = findOrThrow(id);
+        usuario.setEstado(Usuario.EstadoGeneral.INACTIVO);
+        usuarioRepository.save(usuario);
     }
 
-    private UsuarioSistema findOrThrow(Integer id) {
-        return usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + id));
+    private Sucursal resolverSucursal(Long sucursalId, Rol rol) {
+        if (sucursalId == null) {
+            throw new BadRequestException("sucursalId es obligatorio para el rol " + rol.getNombreRol());
+        }
+        return sucursalRepository.findById(sucursalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sucursal no encontrada: " + sucursalId));
     }
 
-    private UsuarioResponse toResponse(UsuarioSistema u) {
+    private Usuario findOrThrow(Integer id) {
+        return usuarioRepository.findById(id.longValue())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + id));
+    }
+
+    private Rol findRol(String rol) {
+        return rolRepository.findByNombreRol(mapRolName(rol))
+                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado: " + rol));
+    }
+
+    private String mapRolName(String rol) {
+        if (rol == null) return "CLIENTE";
+        return switch (rol.toLowerCase()) {
+            case "admin", "admin_matriz"   -> "ADMIN_MATRIZ";
+            case "admin_sucursal"          -> "ADMIN_SUCURSAL";
+            case "entrenador"              -> "ENTRENADOR";
+            case "recepcionista"           -> "RECEPCIONISTA";
+            case "cliente"                 -> "CLIENTE";
+            default                        -> rol.toUpperCase();
+        };
+    }
+
+    private Usuario.EstadoGeneral toEstado(Boolean activo) {
+        return Boolean.FALSE.equals(activo) ? Usuario.EstadoGeneral.INACTIVO : Usuario.EstadoGeneral.ACTIVO;
+    }
+
+    private UsuarioResponse toResponse(Usuario usuario) {
         return UsuarioResponse.builder()
-                .id(u.getId())
-                .usuario(u.getUsuario())
-                .nombre(u.getNombre())
-                .correo(u.getCorreo())
-                // NUNCA se devuelve la contraseña en la respuesta
-                .rol(u.getRol().name())
-                .activo(u.getActivo())
-                .createdAt(u.getCreatedAt())
+                .id(usuario.getId())
+                .usuario(usuario.getEmail())
+                .nombre(usuario.getNombreCompleto())
+                .correo(usuario.getEmail())
+                .rol(usuario.getRol().getNombreRol())
+                .activo(usuario.getEstado() == Usuario.EstadoGeneral.ACTIVO)
+                .createdAt(usuario.getFechaCreacion())
                 .build();
     }
 }

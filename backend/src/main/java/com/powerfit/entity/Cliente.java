@@ -3,51 +3,60 @@ package com.powerfit.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "clientes")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class Cliente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @Column(nullable = false, length = 100)
-    private String nombre;
-
-    @Column(nullable = false, length = 100)
-    private String apellido;
-
-    @Column(nullable = false, unique = true, length = 10)
-    private String cedula;
-
-    @Column(length = 15)
-    private String telefono;
-
-    @Column(unique = true, length = 100)
-    private String email;
-
-    @Column(name = "fecha_registro")
-    private LocalDate fechaRegistro;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id")
-    private UsuarioSistema usuarioSistema;
+    @Column(name = "cliente_id")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sucursal_id")
+    @JoinColumn(name = "sucursal_id", nullable = false)
     private Sucursal sucursal;
 
-    /** Eliminación lógica: false = eliminado */
+    @Column(name = "nombre_completo", nullable = false, length = 150)
+    private String nombreCompleto;
+
+    @Column(name = "documento_identidad", nullable = false, unique = true, length = 20)
+    private String documentoIdentidad;
+
+    @Column(length = 150)
+    private String email;
+
+    @Column(length = 20)
+    private String telefono;
+
+    @Column(name = "fecha_nacimiento")
+    private LocalDate fechaNacimiento;
+
+    @Column(length = 20)
+    private String genero;
+
+    @Column(name = "fecha_registro", nullable = false, updatable = false)
+    private LocalDateTime fechaRegistro;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Boolean activo = true;
+    @Builder.Default
+    private EstadoGeneral estado = EstadoGeneral.ACTIVO;
+
+    @Column(name = "fecha_actualizacion", nullable = false)
+    private LocalDateTime fechaActualizacion;
 
     @PrePersist
     public void prePersist() {
-        if (fechaRegistro == null) fechaRegistro = LocalDate.now();
-        if (activo == null) activo = true;
+        fechaRegistro = LocalDateTime.now();
+        fechaActualizacion = LocalDateTime.now();
+        if (estado == null) estado = EstadoGeneral.ACTIVO;
     }
+
+    @PreUpdate
+    public void preUpdate() { fechaActualizacion = LocalDateTime.now(); }
+
+    public enum EstadoGeneral { ACTIVO, INACTIVO }
 }

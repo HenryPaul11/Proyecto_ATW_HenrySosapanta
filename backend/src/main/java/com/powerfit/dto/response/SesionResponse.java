@@ -9,10 +9,10 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SesionResponse {
-    private Integer   id;
-    private Integer   entrenadorId;
+    private Long      id;
+    private Long      entrenadorId;
     private String    entrenadorNombre;
-    private Integer   clienteId;
+    private Long      clienteId;
     private String    clienteNombre;
     private LocalDate fecha;
     private LocalTime hora;

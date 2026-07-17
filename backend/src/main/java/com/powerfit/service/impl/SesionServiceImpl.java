@@ -2,9 +2,11 @@ package com.powerfit.service.impl;
 
 import com.powerfit.dto.request.SesionRequest;
 import com.powerfit.dto.response.SesionResponse;
-import com.powerfit.entity.*;
+import com.powerfit.entity.Entrenador;
+import com.powerfit.entity.Sesion;
 import com.powerfit.exception.ResourceNotFoundException;
-import com.powerfit.repository.*;
+import com.powerfit.repository.EntrenadorRepository;
+import com.powerfit.repository.SesionRepository;
 import com.powerfit.service.AuditoriaService;
 import com.powerfit.service.SesionService;
 import lombok.RequiredArgsConstructor;
@@ -13,31 +15,26 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class SesionServiceImpl implements SesionService {
 
-    private final SesionRepository     sesionRepository;
+    private final SesionRepository sesionRepository;
     private final EntrenadorRepository entrenadorRepository;
-    private final ClienteRepository    clienteRepository;
-    private final AuditoriaService     auditoriaService;
+    private final AuditoriaService auditoriaService;
 
-    // Paginación FÍSICA + filtro LÓGICO por estado (híbrida)
     @Override
     public Page<SesionResponse> listarPaginado(String estado, Pageable pageable) {
-        Sesion.EstadoSesion estadoEnum = (estado != null && !estado.isBlank())
-                ? Sesion.EstadoSesion.valueOf(estado)
+        Sesion.EstadoGeneral estadoEnum = estado != null && !estado.isBlank()
+                ? Sesion.EstadoGeneral.valueOf(estado.toUpperCase())
                 : null;
-        return sesionRepository.findByEstadoOptional(estadoEnum, pageable)
-                .map(this::toResponse);
+        return sesionRepository.findByEstadoOptional(estadoEnum, pageable).map(this::toResponse);
     }
 
     @Override
     public List<SesionResponse> listarTodas() {
-        return sesionRepository.findAll().stream()
-                .map(this::toResponse).collect(Collectors.toList());
+        return sesionRepository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Override
@@ -47,80 +44,88 @@ public class SesionServiceImpl implements SesionService {
 
     @Override
     public List<SesionResponse> listarPorEntrenador(Integer entrenadorId) {
-        return sesionRepository.findByEntrenadorId(entrenadorId).stream()
-                .map(this::toResponse).collect(Collectors.toList());
+        return sesionRepository.findByEntrenadorId(entrenadorId.longValue()).stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Override
     public List<SesionResponse> listarPorCliente(Integer clienteId) {
-        return sesionRepository.findByClienteId(clienteId).stream()
-                .map(this::toResponse).collect(Collectors.toList());
+        return List.of();
     }
 
     @Override
     public SesionResponse crear(SesionRequest request) {
-        Sesion s = buildFromRequest(new Sesion(), request);
-        Sesion saved = sesionRepository.save(s);
-        auditoriaService.registrar("sesiones", "INSERT", "system",
-                null, "id=" + saved.getId(), null);
+        Sesion sesion = buildFromRequest(new Sesion(), request);
+        Sesion saved = sesionRepository.save(sesion);
+        auditoriaService.registrar("sesiones", "INSERT", "system", null, "{\"id\":" + saved.getId() + "}", null);
         return toResponse(saved);
     }
 
     @Override
     public SesionResponse actualizar(Integer id, SesionRequest request) {
-        Sesion s = findOrThrow(id);
-        String datosAnt = "estado=" + s.getEstado();
-        buildFromRequest(s, request);
-        Sesion saved = sesionRepository.save(s);
-        auditoriaService.registrar("sesiones", "UPDATE", "system",
-                datosAnt, "estado=" + saved.getEstado(), null);
+        Sesion sesion = findOrThrow(id);
+        String datosAnteriores = "{\"estado\":\"" + sesion.getEstado() + "\"}";
+        Sesion saved = sesionRepository.save(buildFromRequest(sesion, request));
+        auditoriaService.registrar("sesiones", "UPDATE", "system", datosAnteriores, "{\"estado\":\"" + saved.getEstado() + "\"}", null);
         return toResponse(saved);
     }
 
     @Override
     public void eliminar(Integer id) {
-        findOrThrow(id);
-        auditoriaService.registrar("sesiones", "DELETE", "system", "id=" + id, null, null);
-        sesionRepository.deleteById(id);
+        Sesion sesion = findOrThrow(id);
+        sesion.setEstado(Sesion.EstadoGeneral.INACTIVO);
+        sesionRepository.save(sesion);
+        auditoriaService.registrar("sesiones", "DELETE", "system", "{\"id\":" + id + "}", null, null);
     }
 
     private Sesion findOrThrow(Integer id) {
-        return sesionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sesión no encontrada con id: " + id));
+        return sesionRepository.findById(id.longValue())
+                .orElseThrow(() -> new ResourceNotFoundException("Sesion no encontrada con id: " + id));
     }
 
-    private Sesion buildFromRequest(Sesion s, SesionRequest req) {
-        Entrenador entrenador = entrenadorRepository.findById(req.getEntrenadorId())
-                .orElseThrow(() -> new ResourceNotFoundException("Entrenador no encontrado: " + req.getEntrenadorId()));
-        Cliente cliente = clienteRepository.findById(req.getClienteId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + req.getClienteId()));
+    private Sesion buildFromRequest(Sesion sesion, SesionRequest request) {
+        Entrenador entrenador = entrenadorRepository.findById(request.getEntrenadorId().longValue())
+                .orElseThrow(() -> new ResourceNotFoundException("Entrenador no encontrado: " + request.getEntrenadorId()));
 
-        s.setEntrenador(entrenador);
-        s.setCliente(cliente);
-        s.setFecha(req.getFecha());
-        s.setHora(req.getHora());
-        s.setTipo(req.getTipo());
-        s.setNotas(req.getNotas());
-        if (req.getEstado() != null) {
-            s.setEstado(Sesion.EstadoSesion.valueOf(req.getEstado()));
-        } else if (s.getEstado() == null) {
-            s.setEstado(Sesion.EstadoSesion.pendiente);
+        sesion.setEntrenador(entrenador);
+        sesion.setSucursal(entrenador.getSucursal());
+        sesion.setNombre(request.getTipo() != null && !request.getTipo().isBlank() ? request.getTipo() : "Sesion");
+        sesion.setTipo(toTipo(request.getTipo()));
+        sesion.setFecha(request.getFecha());
+        sesion.setHoraInicio(request.getHora());
+        sesion.setHoraFin(request.getHora().plusHours(1));
+        if (request.getEstado() != null && !request.getEstado().isBlank()) {
+            sesion.setEstado(toEstado(request.getEstado()));
+        } else if (sesion.getEstado() == null) {
+            sesion.setEstado(Sesion.EstadoGeneral.ACTIVO);
         }
-        return s;
+        return sesion;
     }
 
-    private SesionResponse toResponse(Sesion s) {
+    private Sesion.TipoSesion toTipo(String tipo) {
+        if (tipo == null || tipo.isBlank()) {
+            return Sesion.TipoSesion.CLASE_GRUPAL;
+        }
+        return Sesion.TipoSesion.valueOf(tipo.toUpperCase());
+    }
+
+    private Sesion.EstadoGeneral toEstado(String estado) {
+        return switch (estado.toLowerCase()) {
+            case "cancelada", "inactivo", "inactiva" -> Sesion.EstadoGeneral.INACTIVO;
+            default -> Sesion.EstadoGeneral.ACTIVO;
+        };
+    }
+
+    private SesionResponse toResponse(Sesion sesion) {
         return SesionResponse.builder()
-                .id(s.getId())
-                .entrenadorId(s.getEntrenador().getId())
-                .entrenadorNombre(s.getEntrenador().getNombre() + " " + s.getEntrenador().getApellido())
-                .clienteId(s.getCliente().getId())
-                .clienteNombre(s.getCliente().getNombre() + " " + s.getCliente().getApellido())
-                .fecha(s.getFecha())
-                .hora(s.getHora())
-                .tipo(s.getTipo())
-                .estado(s.getEstado().name())
-                .notas(s.getNotas())
+                .id(sesion.getId())
+                .entrenadorId(sesion.getEntrenador().getId())
+                .entrenadorNombre(sesion.getEntrenador().getNombreCompleto())
+                .fecha(sesion.getFecha())
+                .hora(sesion.getHoraInicio())
+                .tipo(sesion.getTipo().name())
+                .estado(sesion.getEstado().name())
                 .build();
     }
 }

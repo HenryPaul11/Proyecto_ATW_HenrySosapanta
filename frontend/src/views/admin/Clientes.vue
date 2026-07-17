@@ -16,18 +16,12 @@ const message          = ref('')
 const messageType      = ref('')
 const clienteAEliminar = ref<Cliente | null>(null)
 const tablaPaginada    = ref<{ reload: () => void } | null>(null)
+const columnas         = ['Nombre', 'Cédula', 'Teléfono', 'Email', 'Acciones']
 
-const columnas = ['Nombre', 'Cédula', 'Teléfono', 'Email', 'Acciones']
-
-// Filtra por sucursal automáticamente — null = admin matriz ve todos
+// Filtra por sucursal — null = admin matriz ve todos
 const filtroSucursal = computed(() =>
   auth.esSucursal ? { sucursalId: auth.sucursalId } : {}
 )
-const messageType      = ref('')
-const clienteAEliminar = ref<Cliente | null>(null)
-const tablaPaginada    = ref<{ reload: () => void } | null>(null)
-
-const columnas = ['Nombre', 'Cédula', 'Teléfono', 'Email', 'Acciones']
 
 function confirmarEliminar(c: Cliente) { clienteAEliminar.value = c }
 
@@ -39,13 +33,11 @@ async function eliminarCliente() {
     message.value     = `Cliente ${c.nombre} ${c.apellido} eliminado correctamente.`
     messageType.value = 'success'
   } catch (err: any) {
-    message.value     = err.error || 'No se pudo eliminar el cliente.'
+    message.value     = err?.error || 'No se pudo eliminar el cliente.'
     messageType.value = 'error'
   }
   clienteAEliminar.value = null
-  if (tablaPaginada.value) {
-    tablaPaginada.value.reload()
-  }
+  tablaPaginada.value?.reload()
   setTimeout(() => { message.value = '' }, 4000)
 }
 </script>
@@ -62,27 +54,20 @@ async function eliminarCliente() {
 
       <!-- Feedback -->
       <Transition name="fade">
-        <div
-          v-if="message"
+        <div v-if="message"
           class="flex items-center gap-3 px-4 py-3 rounded-xl mb-6 text-sm font-medium border"
-          :class="messageType === 'success'
-            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-            : 'bg-red-50 text-red-800 border-red-200'"
-        >
-          <span>{{ messageType === 'success' ? '✅' : '❌' }}</span>
-          <span>{{ message }}</span>
+          :class="messageType === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-800 border-red-200'">
+          <svg v-if="messageType === 'success'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg v-else class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          {{ message }}
         </div>
       </Transition>
 
-      <!-- Acciones -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-        <router-link
-          to="/clientes/registrar"
-          class="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm px-5 py-3 rounded-xl shadow-sm transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto"
-        >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
+      <!-- Botón registrar -->
+      <div class="flex mb-4">
+        <router-link to="/clientes/registrar"
+          class="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm px-5 py-3 rounded-xl shadow-sm transition-all hover:-translate-y-0.5">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Registrar Cliente
         </router-link>
       </div>
@@ -97,28 +82,21 @@ async function eliminarCliente() {
           endpoint-key="clientes"
         >
           <template #default="{ items }">
-            <tr
-              v-for="(c, i) in items"
-              :key="c.id"
-              class="border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50"
-              :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
-            >
+            <tr v-for="(c, i) in items" :key="c.id"
+              class="border-b border-slate-100 hover:bg-blue-50 transition-colors"
+              :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'">
               <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ c.nombre }} {{ c.apellido }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.cedula }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.telefono }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.email }}</td>
               <td class="px-4 py-3 whitespace-nowrap">
                 <div class="flex items-center gap-2">
-                  <router-link
-                    :to="{ name: 'EditarCliente', params: { id: c.id } }"
-                    class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm"
-                  >
+                  <router-link :to="{ name: 'EditarCliente', params: { id: c.id } }"
+                    class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all">
                     Editar
                   </router-link>
-                  <button
-                    @click="confirmarEliminar(c)"
-                    class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm cursor-pointer"
-                  >
+                  <button @click="confirmarEliminar(c)"
+                    class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer">
                     Eliminar
                   </button>
                 </div>
@@ -130,25 +108,21 @@ async function eliminarCliente() {
 
     </main>
 
-    <!-- Modal confirmación eliminar -->
+    <!-- Modal eliminar -->
     <Transition name="fade">
       <div v-if="clienteAEliminar" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center px-4">
         <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
           <h3 class="text-lg font-bold text-slate-800 mb-2">¿Eliminar cliente?</h3>
           <p class="text-sm text-slate-500 mb-5">
-            Se eliminará a <strong>{{ clienteAEliminar.nombre }} {{ clienteAEliminar.apellido }}</strong> y todas sus membresías. Esta acción no se puede deshacer.
+            Se eliminará a <strong>{{ clienteAEliminar.nombre }} {{ clienteAEliminar.apellido }}</strong>. Esta acción no se puede deshacer.
           </p>
           <div class="flex gap-3">
-            <button
-              @click="eliminarCliente"
-              class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold text-sm py-2.5 rounded-xl transition-all cursor-pointer"
-            >
+            <button @click="eliminarCliente"
+              class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold text-sm py-2.5 rounded-xl transition-all cursor-pointer">
               Sí, eliminar
             </button>
-            <button
-              @click="clienteAEliminar = null"
-              class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm py-2.5 rounded-xl transition-all cursor-pointer"
-            >
+            <button @click="clienteAEliminar = null"
+              class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm py-2.5 rounded-xl transition-all cursor-pointer">
               Cancelar
             </button>
           </div>
@@ -164,4 +138,3 @@ async function eliminarCliente() {
 .fade-enter-active, .fade-leave-active { transition: opacity 0.25s ease; }
 .fade-enter-from,  .fade-leave-to      { opacity: 0; }
 </style>
-

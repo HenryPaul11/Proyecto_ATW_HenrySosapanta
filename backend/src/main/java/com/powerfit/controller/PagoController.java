@@ -1,82 +1,84 @@
 package com.powerfit.controller;
 
 import com.powerfit.dto.ApiResponse;
-import com.powerfit.dto.request.PagoRequest;
-import com.powerfit.dto.response.PagoEstadisticasResponse;
-import com.powerfit.dto.response.PagoResponse;
-import com.powerfit.service.PagoService;
-import io.swagger.v3.oas.annotations.Operation;
+import com.powerfit.entity.*;
+import com.powerfit.exception.ResourceNotFoundException;
+import com.powerfit.repository.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/pagos")
 @RequiredArgsConstructor
-@Tag(name = "Pagos", description = "Gestión de pagos")
+@Tag(name = "Pagos")
 public class PagoController {
 
-    private final PagoService pagoService;
-
-    // ── Paginación FÍSICA ────────────────────────────────────────────────────
+    private final PagoRepository      pagoRepo;
+    private final MembresiaRepository membresiaRepo;
+    private final ClienteRepository   clienteRepo;
 
     @GetMapping
-    @Operation(summary = "Listar pagos — paginación FÍSICA",
-               description = "Trae solo los registros de la página desde la BD. " +
-                             "Parámetros: page (0-based), size, ordenado por fecha_pago DESC")
-    public ResponseEntity<ApiResponse<Page<PagoResponse>>> listar(
-            @RequestParam(defaultValue = "0")  int page,
-            @RequestParam(defaultValue = "20") int size) {
-        Page<PagoResponse> resultado = pagoService.listarPaginado(
-                PageRequest.of(page, size, Sort.by("fechaPago").descending()));
-        return ResponseEntity.ok(ApiResponse.ok(resultado));
+    public ResponseEntity<ApiResponse<Page<Pago>>> listar(
+            @RequestParam(defaultValue = "0")  int  page,
+            @RequestParam(defaultValue = "20") int  size,
+            @RequestParam(required = false)    Long sucursalId) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fechaPago").descending());
+        return ResponseEntity.ok(ApiResponse.ok(pagoRepo.findBySucursal(sucursalId, pageable)));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar pago por ID")
-    public ResponseEntity<ApiResponse<PagoResponse>> buscarPorId(@PathVariable Integer id) {
-        return ResponseEntity.ok(ApiResponse.ok(pagoService.buscarPorId(id)));
+    public ResponseEntity<ApiResponse<Pago>> porId(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(pagoRepo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Pago no encontrado: " + id))));
     }
 
-    // ── Paginación LÓGICA (filtro por cliente) ────────────────────────────────
-
     @GetMapping("/cliente/{clienteId}")
-    @Operation(summary = "Pagos de un cliente — paginación LÓGICA",
-               description = "Filtra lógicamente todos los pagos de un cliente específico")
-    public ResponseEntity<ApiResponse<List<PagoResponse>>> porCliente(
-            @PathVariable Integer clienteId) {
-        return ResponseEntity.ok(ApiResponse.ok(pagoService.listarPorCliente(clienteId)));
+    public ResponseEntity<ApiResponse<List<Pago>>> porCliente(@PathVariable Long clienteId) {
+        return ResponseEntity.ok(ApiResponse.ok(pagoRepo.findByClienteId(clienteId)));
     }
 
     @GetMapping("/estadisticas")
-    @Operation(summary = "Estadísticas de pagos (totales, promedios, por método)")
-    public ResponseEntity<ApiResponse<PagoEstadisticasResponse>> estadisticas() {
-        return ResponseEntity.ok(ApiResponse.ok(pagoService.estadisticas()));
+    public ResponseEntity<ApiResponse<Map<String, Object>>> estadisticas(
+            @RequestParam(required = false) Long sucursalId) {
+        BigDecimal total = pagoRepo.sumIngresos(sucursalId);
+        BigDecimal prom  = pagoRepo.avgMonto();
+        long count       = pagoRepo.count();
+        return ResponseEntity.ok(ApiResponse.ok(Map.of(
+            "totalIngresos", total != null ? total : BigDecimal.ZERO,
+            "totalPagos",    count,
+            "promedio",      prom  != null ? prom  : BigDecimal.ZERO
+        )));
     }
 
-    // ── CRUD ─────────────────────────────────────────────────────────────────
-
     @PostMapping
-    @Operation(summary = "Registrar pago")
-    public ResponseEntity<ApiResponse<PagoResponse>> registrar(
-            @Valid @RequestBody PagoRequest request) {
+    public ResponseEntity<ApiResponse<Pago>> registrar(@RequestBody Map<String, Object> body) {
+        Long membresiaId = Long.valueOf(body.get("membresiaId").toString());
+        Membresia memb   = membresiaRepo.findById(membresiaId)
+            .orElseThrow(() -> new ResourceNotFoundException("Membresía no encontrada"));
+
+        Pago p = Pago.builder()
+            .membresia(memb)
+            .cliente(memb.getCliente())
+            .sucursal(memb.getSucursal())
+            .monto(new BigDecimal(body.get("monto").toString()))
+            .metodoPago(Pago.MetodoPago.valueOf(body.get("metodoPago").toString().toUpperCase()))
+            .estado(Pago.EstadoPago.COMPLETADO)
+            .build();
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok(pagoService.registrar(request),
-                        "Pago registrado correctamente"));
+            .body(ApiResponse.ok(pagoRepo.save(p), "Pago registrado"));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar pago (eliminación FÍSICA)")
-    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer id) {
-        pagoService.eliminar(id);
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        pagoRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pago no encontrado: " + id));
+        pagoRepo.deleteById(id);
         return ResponseEntity.ok(ApiResponse.ok(null, "Pago eliminado"));
     }
 }
