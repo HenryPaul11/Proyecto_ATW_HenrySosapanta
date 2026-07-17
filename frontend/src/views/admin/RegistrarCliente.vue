@@ -53,24 +53,29 @@ async function registrar() {
   if (!validar()) return
   loading.value = true
   try {
+    // sucursalId del admin que registra
+    // Si es admin matriz (sin sucursal asignada), usar la sucursal seleccionada o la default
+    const sucursalId = auth.sucursalId ?? auth.sucursalMatrizId ?? 1
+
     // 1. Crear usuario del sistema con rol cliente
     const userRes = await httpClient.post('/usuarios', {
       usuario:    form.value.usuario.trim(),
       nombre:     `${form.value.nombre.trim()} ${form.value.apellido.trim()}`,
-      correo:     form.value.email.trim() || `${form.value.usuario.trim()}@powerfit.com`,
+      correo:     form.value.email.trim(),
       contrasena: form.value.contrasena,
       rol:        'cliente',
+      sucursalId,
       activo:     true,
     })
     const usuarioId = userRes.data?.id
 
-    // 2. Crear cliente vinculado al usuario
+    // 2. Crear cliente vinculado al usuario y la sucursal
     await httpClient.post('/clientes', {
-      nombre:    form.value.nombre.trim(),
-      apellido:  form.value.apellido.trim(),
-      cedula:    form.value.cedula.trim(),
-      telefono:  form.value.telefono.trim(),
-      email:     form.value.email.trim(),
+      nombreCompleto:     `${form.value.nombre.trim()} ${form.value.apellido.trim()}`,
+      documentoIdentidad: form.value.cedula.trim(),
+      email:              form.value.email.trim(),
+      telefono:           form.value.telefono.trim() || null,
+      sucursalId,
       usuarioId,
     })
 

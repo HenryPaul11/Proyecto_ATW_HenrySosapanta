@@ -57,7 +57,7 @@
           </div>
           <span class="text-blue-700 font-semibold text-sm">{{ usuario }}</span>
           <span class="text-xs bg-blue-200 text-blue-800 font-bold px-1.5 py-0.5 rounded-full">
-            {{ auth.esSucursal.value ? auth.sucursalNombre.value : 'Matriz' }}
+            {{ auth.esSucursal ? auth.sucursalNombre : 'Matriz' }}
           </span>
         </div>
         <button

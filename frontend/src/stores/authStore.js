@@ -11,30 +11,38 @@ export const useAuthStore = defineStore('auth', () => {
   const sucursalId     = ref(sessionStorage.getItem('auth_sucursal_id')
                              ? Number(sessionStorage.getItem('auth_sucursal_id')) : null)
   const sucursalNombre = ref(sessionStorage.getItem('auth_sucursal_nombre') || '')
+  // Sucursal activa seleccionada por admin matriz al registrar (null = sin filtro)
+  const sucursalActivaId = ref(sessionStorage.getItem('auth_sucursal_activa')
+                               ? Number(sessionStorage.getItem('auth_sucursal_activa')) : null)
 
-  // true = admin de sucursal específica, false = admin matriz (ve todo)
+  // true = admin de sucursal específica, false = admin matriz
   const esSucursal = computed(() => !!sucursalId.value)
+  // ID efectivo para filtros y registros
+  const sucursalEfectiva = computed(() => sucursalId.value ?? sucursalActivaId.value ?? null)
+
+  function setSucursalActiva(id) {
+    sucursalActivaId.value = id ?? null
+    sessionStorage.setItem('auth_sucursal_activa', id ?? '')
+  }
 
   async function login(emailParam, password) {
     try {
       const res = await httpClient.post('/auth/login', { email: emailParam, password })
       const m   = res?.data ?? res
-
       if (!m) return null
 
-      // Mapear rol del nuevo esquema a clave simple para el frontend
-      const rolRaw  = (m.rol || '').toLowerCase()
-      const rolFront = rolRaw.includes('admin')     ? 'admin'
-                     : rolRaw === 'entrenador'       ? 'entrenador'
+      const rolRaw   = (m.rol || '').toLowerCase()
+      const rolFront = rolRaw.includes('admin') ? 'admin'
+                     : rolRaw === 'entrenador'   ? 'entrenador'
                      : 'recepcionista'
 
-      usuario.value        = m.email        || m.nombreCompleto || ''
+      usuario.value        = m.email           || m.nombreCompleto || ''
       rol.value            = rolFront
-      nombre.value         = m.nombreCompleto || ''
-      correo.value         = m.email          || ''
+      nombre.value         = m.nombreCompleto  || ''
+      correo.value         = m.email           || ''
       userId.value         = String(m.id ?? '')
-      sucursalId.value     = m.sucursalId     ?? null
-      sucursalNombre.value = m.sucursalNombre ?? ''
+      sucursalId.value     = m.sucursalId      ?? null
+      sucursalNombre.value = m.sucursalNombre  ?? ''
 
       sessionStorage.setItem('auth_usuario',         usuario.value)
       sessionStorage.setItem('auth_rol',             rolFront)
@@ -55,10 +63,16 @@ export const useAuthStore = defineStore('auth', () => {
     usuario.value = rol.value = nombre.value = correo.value = userId.value = ''
     sucursalId.value = null
     sucursalNombre.value = ''
+    sucursalActivaId.value = null
     sessionStorage.clear()
   }
 
   const isLoggedIn = () => !!usuario.value
 
-  return { usuario, rol, nombre, correo, userId, sucursalId, sucursalNombre, esSucursal, login, logout, isLoggedIn }
+  return {
+    usuario, rol, nombre, correo, userId,
+    sucursalId, sucursalNombre, sucursalActivaId, sucursalEfectiva,
+    esSucursal, setSucursalActiva,
+    login, logout, isLoggedIn
+  }
 })
