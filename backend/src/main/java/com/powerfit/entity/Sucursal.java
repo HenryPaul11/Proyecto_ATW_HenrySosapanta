@@ -31,7 +31,9 @@ public class Sucursal {
     @Column(name = "fecha_apertura")
     private LocalDate fechaApertura;
 
+    @Builder.Default
     @Column(nullable = false)
+    @Builder.Default
     private Boolean activo = true;
 
     /** Usuario administrador asignado a esta sucursal */

@@ -23,9 +23,10 @@ public class EquipoController {
     private final EquipoService equipoService;
 
     @GetMapping
-    @Operation(summary = "Listar todos los equipos")
-    public ResponseEntity<ApiResponse<List<EquipoResponse>>> listar() {
-        return ResponseEntity.ok(ApiResponse.ok(equipoService.listarTodos()));
+    @Operation(summary = "Listar todos los equipos filtrados por sucursal")
+    public ResponseEntity<ApiResponse<List<EquipoResponse>>> listar(
+            @RequestParam(required = false) Integer sucursalId) {
+        return ResponseEntity.ok(ApiResponse.ok(equipoService.listarTodos(sucursalId)));
     }
 
     @GetMapping("/{id}")

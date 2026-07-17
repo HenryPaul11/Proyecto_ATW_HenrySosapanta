@@ -27,6 +27,7 @@ public class ClienteEntrenador {
     @Column(name = "fecha_asignacion")
     private LocalDate fechaAsignacion;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean activo = true;
 

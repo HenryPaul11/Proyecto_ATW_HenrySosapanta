@@ -7,18 +7,12 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface ClienteService {
-    // Con paginación
-    Page<ClienteResponse> listarPaginado(String busqueda, Pageable pageable);
-
-    // Sin paginación (compatibilidad)
+    Page<ClienteResponse> listarPaginado(String busqueda, Integer sucursalId, Pageable pageable);
     List<ClienteResponse> listarTodos();
-
     ClienteResponse buscarPorId(Integer id);
     ClienteResponse buscarPorCedula(String cedula);
-    List<ClienteResponse> sinMembresia();
+    List<ClienteResponse> sinMembresia(Integer sucursalId);
     ClienteResponse crear(ClienteRequest request);
     ClienteResponse actualizar(Integer id, ClienteRequest request);
-
-    // Eliminación lógica (activo = false)
     void eliminar(Integer id);
 }

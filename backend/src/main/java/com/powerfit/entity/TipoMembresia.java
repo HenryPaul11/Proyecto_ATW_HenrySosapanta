@@ -27,6 +27,7 @@ public class TipoMembresia {
     @Column(nullable = false, precision = 8, scale = 2)
     private java.math.BigDecimal precio;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean activo = true;
 

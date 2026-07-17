@@ -18,9 +18,13 @@ function logout() { auth.logout(); router.push('/login') }
 
 const columnas = ['ID', 'Cliente', 'Cédula', 'Membresía', 'Monto', 'Método', 'Fecha Pago', 'Vigencia', 'Estado']
 
-const totalIngresos = computed(() => admin.stats?.ingresos ?? 1340.00)
-const totalPagos     = computed(() => admin.stats?.clientes ?? 24)
+const totalIngresos = computed(() => admin.stats?.ingresos ?? 0)
+const totalPagos    = computed(() => admin.stats?.pagosTotales ?? 0)
 const promedio      = computed(() => (totalIngresos.value / Math.max(1, totalPagos.value)).toFixed(2))
+
+const filtroSucursal = computed(() =>
+  auth.esSucursal ? { sucursalId: auth.sucursalId } : {}
+)
 
 function formatFecha(str: string)      { if (!str) return '—'; return new Date(str).toLocaleString('es-EC',   { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) }
 function formatFechaCorta(str: string) { if (!str) return '—'; return new Date(str).toLocaleDateString('es-EC', { day:'2-digit', month:'2-digit', year:'numeric' }) }
@@ -62,6 +66,7 @@ onMounted(() => admin.fetchStats())
       <div class="mb-8">
         <PaginatedTable
           endpoint="/pagos"
+          :filtros="filtroSucursal"
           :columns="columnas"
           endpoint-key="pagos"
         >

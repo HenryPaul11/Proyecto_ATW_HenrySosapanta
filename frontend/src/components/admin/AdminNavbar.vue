@@ -56,7 +56,9 @@
             {{ inicial }}
           </div>
           <span class="text-blue-700 font-semibold text-sm">{{ usuario }}</span>
-          <span class="text-xs bg-blue-200 text-blue-800 font-bold px-1.5 py-0.5 rounded-full">Admin</span>
+          <span class="text-xs bg-blue-200 text-blue-800 font-bold px-1.5 py-0.5 rounded-full">
+            {{ auth.esSucursal ? auth.sucursalNombre : 'Matriz' }}
+          </span>
         </div>
         <button
           @click="theme.toggle()"
@@ -156,24 +158,33 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useThemeStore } from '@/stores/themeStore'
+import { useAuthStore } from '@/stores/authStore'
 
 const props = defineProps({ usuario: String })
 const emit  = defineEmits(['logout'])
 
 const menuAbierto = ref(false)
-const inicial = computed(() => props.usuario?.charAt(0).toUpperCase() ?? '?')
-const theme = useThemeStore()
+const inicial     = computed(() => props.usuario?.charAt(0).toUpperCase() ?? '?')
+const theme       = useThemeStore()
+const auth        = useAuthStore()
 
-const navLinks = [
-  { to: '/dashboard',    label: 'Inicio',       icon: 'home'       },
-  { to: '/clientes',     label: 'Clientes',      icon: 'clientes'   },
-  { to: '/entrenadores', label: 'Entrenadores',  icon: 'clientes'   },
-  { to: '/membresias',   label: 'Membresías',    icon: 'membresias' },
-  { to: '/equipos',      label: 'Equipos',       icon: 'equipos'    },
-  { to: '/pagos',        label: 'Pagos',         icon: 'pagos'      },
-  { to: '/sucursales',   label: 'Sucursales',    icon: 'home'       },
-  { to: '/auditorias',   label: 'Auditorías',    icon: 'auditorias' },
-]
+// Ocultar Sucursales si el usuario es admin de sucursal (no matriz)
+const navLinks = computed(() => {
+  const links = [
+    { to: '/dashboard',    label: 'Inicio',       icon: 'home'       },
+    { to: '/clientes',     label: 'Clientes',      icon: 'clientes'   },
+    { to: '/entrenadores', label: 'Entrenadores',  icon: 'clientes'   },
+    { to: '/membresias',   label: 'Membresías',    icon: 'membresias' },
+    { to: '/equipos',      label: 'Equipos',       icon: 'equipos'    },
+    { to: '/pagos',        label: 'Pagos',         icon: 'pagos'      },
+    { to: '/auditorias',   label: 'Auditorías',    icon: 'auditorias' },
+  ]
+  // Solo el admin Matriz puede gestionar sucursales
+  if (!auth.esSucursal) {
+    links.splice(6, 0, { to: '/sucursales', label: 'Sucursales', icon: 'home' })
+  }
+  return links
+})
 
 function handleLogout() { menuAbierto.value = false; emit('logout') }
 </script>

@@ -5,7 +5,7 @@ import com.powerfit.dto.response.EquipoResponse;
 import java.util.List;
 
 public interface EquipoService {
-    List<EquipoResponse> listarTodos();
+    List<EquipoResponse> listarTodos(Integer sucursalId);
     EquipoResponse buscarPorId(Integer id);
     List<EquipoResponse> listarPorCategoria(String categoria);
     EquipoResponse crear(EquipoRequest request);

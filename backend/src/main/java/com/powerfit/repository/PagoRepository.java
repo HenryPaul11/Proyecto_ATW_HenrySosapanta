@@ -17,6 +17,9 @@ public interface PagoRepository extends JpaRepository<Pago, Integer> {
     Page<Pago> findAll(Pageable pageable);
     Page<Pago> findByClienteId(Integer clienteId, Pageable pageable);
 
+    @Query("SELECT p FROM Pago p WHERE :sucursalId IS NULL OR p.sucursal.id = :sucursalId ORDER BY p.fechaPago DESC")
+    Page<Pago> findBySucursal(@org.springframework.data.repository.query.Param("sucursalId") Integer sucursalId, Pageable pageable);
+
     @Query("SELECT SUM(p.monto) FROM Pago p")
     BigDecimal sumTotalIngresos();
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import Navbar from '@/components/admin/AdminNavbar.vue'
@@ -19,6 +20,10 @@ function formatDate(d: string)      { if (!d) return '—'; return new Date(d).t
 const colSinMembresia = ['Nombre', 'Cédula', 'Teléfono', 'Email', 'Acciones']
 const colActivas      = ['Cliente', 'Cédula', 'Tipo', 'F. Inicio', 'F. Fin', 'Días', 'Estado']
 const colVencidas     = ['Cliente', 'Cédula', 'Tipo', 'F. Inicio', 'F. Fin', 'Estado', 'Acción']
+
+const filtroSucursal = computed(() =>
+  auth.esSucursal ? { sucursalId: auth.sucursalId } : {}
+)
 </script>
 
 <template>
@@ -45,6 +50,7 @@ const colVencidas     = ['Cliente', 'Cédula', 'Tipo', 'F. Inicio', 'F. Fin', 'E
         </h2>
         <PaginatedTable
           endpoint="/clientes/sin-membresia"
+          :filtros="filtroSucursal"
           :columns="colSinMembresia"
           endpoint-key="clientes"
         >
@@ -81,7 +87,7 @@ const colVencidas     = ['Cliente', 'Cédula', 'Tipo', 'F. Inicio', 'F. Fin', 'E
         </h2>
         <PaginatedTable
           endpoint="/membresias"
-          :filtros="{ estado: 'activa' }"
+          :filtros="{ estado: 'activa', ...filtroSucursal }"
           :columns="colActivas"
           endpoint-key="membresias"
         >
@@ -124,7 +130,7 @@ const colVencidas     = ['Cliente', 'Cédula', 'Tipo', 'F. Inicio', 'F. Fin', 'E
         </h2>
         <PaginatedTable
           endpoint="/membresias"
-          :filtros="{ estado: 'vencida' }"
+          :filtros="{ estado: 'vencida', ...filtroSucursal }"
           :columns="colVencidas"
           endpoint-key="membresias"
         >

@@ -29,23 +29,27 @@ public interface ClienteRepository extends JpaRepository<Cliente, Integer> {
     @Query("""
         SELECT c FROM Cliente c
         WHERE c.activo = true
+          AND (:sucursalId IS NULL OR c.sucursal.id = :sucursalId)
           AND (:busqueda IS NULL
                OR LOWER(c.nombre)   LIKE LOWER(CONCAT('%', CAST(:busqueda AS string), '%'))
                OR LOWER(c.apellido) LIKE LOWER(CONCAT('%', CAST(:busqueda AS string), '%'))
                OR c.cedula          LIKE CONCAT('%', CAST(:busqueda AS string), '%'))
     """)
-    Page<Cliente> buscarActivos(@Param("busqueda") String busqueda, Pageable pageable);
+    Page<Cliente> buscarActivos(@Param("busqueda") String busqueda,
+                                @Param("sucursalId") Integer sucursalId,
+                                Pageable pageable);
 
     // ── Sin membresía vigente ────────────────────────────────────────────────
     @Query("""
         SELECT c FROM Cliente c
         WHERE c.activo = true
+          AND (:sucursalId IS NULL OR c.sucursal.id = :sucursalId)
           AND c.id NOT IN (
               SELECT m.cliente.id FROM Membresia m
               WHERE m.fechaFin >= CURRENT_DATE
           )
     """)
-    List<Cliente> findClientesSinMembresia();
+    List<Cliente> findClientesSinMembresia(@Param("sucursalId") Integer sucursalId);
 
     // ── Conteo de activos ────────────────────────────────────────────────────
     long countByActivoTrue();

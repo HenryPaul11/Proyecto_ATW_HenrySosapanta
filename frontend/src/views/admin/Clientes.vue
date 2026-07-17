@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import Navbar from '@/components/admin/AdminNavbar.vue'
@@ -13,6 +13,16 @@ const auth   = useAuthStore()
 function logout() { auth.logout(); router.push('/login') }
 
 const message          = ref('')
+const messageType      = ref('')
+const clienteAEliminar = ref<Cliente | null>(null)
+const tablaPaginada    = ref<{ reload: () => void } | null>(null)
+
+const columnas = ['Nombre', 'Cédula', 'Teléfono', 'Email', 'Acciones']
+
+// Filtra por sucursal automáticamente — null = admin matriz ve todos
+const filtroSucursal = computed(() =>
+  auth.esSucursal ? { sucursalId: auth.sucursalId } : {}
+)
 const messageType      = ref('')
 const clienteAEliminar = ref<Cliente | null>(null)
 const tablaPaginada    = ref<{ reload: () => void } | null>(null)
@@ -82,6 +92,7 @@ async function eliminarCliente() {
         <PaginatedTable
           ref="tablaPaginada"
           endpoint="/clientes/paginado"
+          :filtros="filtroSucursal"
           :columns="columnas"
           endpoint-key="clientes"
         >

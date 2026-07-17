@@ -15,5 +15,7 @@ public class LoginResponse {
     private String  nombre;
     private String  correo;
     private String  rol;
-    private String  token;   // simple session token (usuario_id en base64 para el demo)
+    private String  token;
+    private Integer sucursalId;    // null = admin matriz, valor = admin de esa sucursal
+    private String  sucursalNombre;
 }

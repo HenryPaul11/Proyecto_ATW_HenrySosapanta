@@ -21,9 +21,11 @@ public class EquipoServiceImpl implements EquipoService {
     private final AuditoriaService  auditoriaService;
 
     @Override
-    public List<EquipoResponse> listarTodos() {
-        return equipoRepository.findAll().stream()
-                .map(this::toResponse).collect(Collectors.toList());
+    public List<EquipoResponse> listarTodos(Integer sucursalId) {
+        List<Equipo> lista = sucursalId != null
+                ? equipoRepository.findBySucursal(sucursalId)
+                : equipoRepository.findAll();
+        return lista.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Override

@@ -28,7 +28,7 @@ public class Equipo {
     @Column(nullable = false)
     private EstadoEquipo estado = EstadoEquipo.disponible;
 
-    @Column(name = "imagen_url", length = 500)
+    @Column(name = "imagen_url", columnDefinition = "TEXT")
     private String imagenUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)

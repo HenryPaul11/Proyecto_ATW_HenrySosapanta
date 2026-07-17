@@ -33,15 +33,15 @@ public class ClienteController {
     }
 
     @GetMapping("/paginado")
-    @Operation(summary = "Listar clientes con paginación y búsqueda opcional",
-               description = "Parámetros: page (0-based), size, busqueda (nombre/apellido/cédula)")
+    @Operation(summary = "Listar clientes con paginación, búsqueda y filtro por sucursal")
     public ResponseEntity<ApiResponse<Page<ClienteResponse>>> listarPaginado(
-            @RequestParam(defaultValue = "0")   int    page,
-            @RequestParam(defaultValue = "10")  int    size,
-            @RequestParam(required = false)     String busqueda) {
+            @RequestParam(defaultValue = "0")   int     page,
+            @RequestParam(defaultValue = "10")  int     size,
+            @RequestParam(required = false)     String  busqueda,
+            @RequestParam(required = false)     Integer sucursalId) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("apellido").ascending());
-        Page<ClienteResponse> resultado = clienteService.listarPaginado(busqueda, pageable);
+        Page<ClienteResponse> resultado = clienteService.listarPaginado(busqueda, sucursalId, pageable);
         return ResponseEntity.ok(ApiResponse.ok(resultado));
     }
 
@@ -59,8 +59,9 @@ public class ClienteController {
 
     @GetMapping("/sin-membresia")
     @Operation(summary = "Clientes sin membresía vigente")
-    public ResponseEntity<ApiResponse<List<ClienteResponse>>> sinMembresia() {
-        return ResponseEntity.ok(ApiResponse.ok(clienteService.sinMembresia()));
+    public ResponseEntity<ApiResponse<List<ClienteResponse>>> sinMembresia(
+            @RequestParam(required = false) Integer sucursalId) {
+        return ResponseEntity.ok(ApiResponse.ok(clienteService.sinMembresia(sucursalId)));
     }
 
     @PostMapping

@@ -28,8 +28,8 @@ public class ClienteServiceImpl implements ClienteService {
 
     // ── Paginación ───────────────────────────────────────────────────────────
     @Override
-    public Page<ClienteResponse> listarPaginado(String busqueda, Pageable pageable) {
-        return clienteRepository.buscarActivos(busqueda, pageable)
+    public Page<ClienteResponse> listarPaginado(String busqueda, Integer sucursalId, Pageable pageable) {
+        return clienteRepository.buscarActivos(busqueda, sucursalId, pageable)
                 .map(this::toResponse);
     }
 
@@ -52,8 +52,8 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
-    public List<ClienteResponse> sinMembresia() {
-        return clienteRepository.findClientesSinMembresia()
+    public List<ClienteResponse> sinMembresia(Integer sucursalId) {
+        return clienteRepository.findClientesSinMembresia(sucursalId)
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
