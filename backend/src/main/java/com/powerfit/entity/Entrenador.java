@@ -1,10 +1,12 @@
 package com.powerfit.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "fieldHandler"})
 @Entity
 @Table(name = "entrenadores")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
@@ -37,6 +39,9 @@ public class Entrenador {
 
     @Column(length = 150)
     private String email;
+
+    @Column(length = 100)
+    private String horario;
 
     @Column(name = "fecha_contratacion")
     private LocalDate fechaContratacion;

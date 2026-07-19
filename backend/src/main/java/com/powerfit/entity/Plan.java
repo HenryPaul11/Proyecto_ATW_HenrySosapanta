@@ -1,10 +1,12 @@
 package com.powerfit.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "fieldHandler"})
 @Entity
 @Table(name = "planes")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder

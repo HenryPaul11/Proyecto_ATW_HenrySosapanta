@@ -6,12 +6,11 @@ import lombok.Data;
 @Data
 public class UsuarioRequest {
 
-    @NotBlank(message = "El nombre de usuario es obligatorio")
-    @Size(min = 3, max = 50, message = "El usuario debe tener entre 3 y 50 caracteres")
+    // Campo usuario — opcional, se usa el correo si no viene
     private String usuario;
 
     @NotBlank(message = "El nombre es obligatorio")
-    @Size(max = 100)
+    @Size(max = 150)
     private String nombre;
 
     @NotBlank(message = "El correo es obligatorio")
@@ -22,11 +21,9 @@ public class UsuarioRequest {
     @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String contrasena;
 
-    @NotBlank(message = "El rol es obligatorio")
-    @Pattern(regexp = "admin|cliente|entrenador", message = "Rol debe ser: admin, cliente o entrenador")
+    // Acepta cualquier rol — validación en el servicio
     private String rol;
 
     private Boolean activo;
-
-    private Long sucursalId;
+    private Long    sucursalId;
 }

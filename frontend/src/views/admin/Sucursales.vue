@@ -50,7 +50,7 @@ async function guardar() {
       ciudad:        form.value.ciudad.trim() || null,
       fechaApertura: form.value.fechaApertura || null,
       activo:        true,
-      usuario:       form.value.usuario.trim() || null,
+      email:         form.value.usuario.trim() || null,
       contrasena:    form.value.contrasena || null,
     }
     if (sucursalEditar.value) {
@@ -190,10 +190,10 @@ onMounted(fetchSucursales)
               <p class="text-sm font-bold text-slate-600 mb-3">Administrador de la sucursal</p>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-1.5">Usuario <span class="text-slate-400 font-normal text-xs">(opcional)</span></label>
-                  <input v-model="form.usuario" type="text" placeholder="Ej: admin_norte"
+                  <label class="block text-sm font-semibold text-slate-700 mb-1.5">Email <span class="text-slate-400 font-normal text-xs">(opcional)</span></label>
+                  <input v-model="form.usuario" type="email" placeholder="Ej: admin_norte@powerfit.com"
                     class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50 focus:bg-white" />
-                  <p class="text-slate-400 text-xs mt-1">Se creará automáticamente con rol admin.</p>
+                  <p class="text-slate-400 text-xs mt-1">Se creará automáticamente con rol admin de sucursal.</p>
                 </div>
                 <div>
                   <label class="block text-sm font-semibold text-slate-700 mb-1.5">Contraseña <span class="text-slate-400 font-normal text-xs">(opcional)</span></label>

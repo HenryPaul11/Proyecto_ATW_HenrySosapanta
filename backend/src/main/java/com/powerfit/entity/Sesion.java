@@ -1,10 +1,12 @@
 package com.powerfit.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "fieldHandler"})
 @Entity
 @Table(name = "sesiones")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
@@ -22,6 +24,10 @@ public class Sesion {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "entrenador_id", nullable = false)
     private Entrenador entrenador;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
 
     @Column(nullable = false, length = 120)
     private String nombre;

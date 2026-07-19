@@ -4,6 +4,7 @@ import com.powerfit.entity.Rol;
 import com.powerfit.entity.Sucursal;
 import com.powerfit.entity.Usuario;
 import com.powerfit.exception.UnauthorizedException;
+import com.powerfit.repository.SucursalRepository;
 import com.powerfit.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,7 @@ import java.util.Optional;
 public class SecurityUtil {
 
     private final UsuarioRepository usuarioRepository;
+    private final SucursalRepository sucursalRepository;
 
     /**
      * Obtiene el usuario actualmente autenticado.
@@ -80,6 +82,14 @@ public class SecurityUtil {
      */
     public boolean isAdminMatriz() {
         return getUsuarioActual().getSucursal() == null;
+    }
+
+    public Long getSucursalIdEfectiva() {
+        Long id = getSucursalIdActual();
+        if (id != null) return id;
+        return sucursalRepository.findByCodigo("MATRIZ")
+            .map(Sucursal::getId)
+            .orElse(null);
     }
 
 }

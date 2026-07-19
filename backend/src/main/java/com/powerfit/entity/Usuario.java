@@ -1,9 +1,11 @@
 package com.powerfit.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import java.time.LocalDateTime;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "fieldHandler"})
 @Entity
 @Table(name = "usuarios")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder

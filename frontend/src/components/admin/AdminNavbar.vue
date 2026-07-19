@@ -180,7 +180,7 @@ const navLinks = computed(() => {
     { to: '/auditorias',   label: 'Auditorías',    icon: 'auditorias' },
   ]
   // Solo el admin Matriz puede gestionar sucursales
-  if (!auth.esSucursal.value) {
+  if (!auth.esSucursal) {
     links.splice(6, 0, { to: '/sucursales', label: 'Sucursales', icon: 'home' })
   }
   return links

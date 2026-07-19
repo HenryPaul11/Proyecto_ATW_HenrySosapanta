@@ -3,6 +3,7 @@ package com.powerfit.repository;
 import com.powerfit.entity.Cliente;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,10 +14,13 @@ import java.util.Optional;
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
+    @EntityGraph(attributePaths = {"sucursal"})
     Optional<Cliente> findByDocumentoIdentidadAndEstado(String doc, Cliente.EstadoGeneral estado);
+
     boolean existsByDocumentoIdentidad(String doc);
     boolean existsByDocumentoIdentidadAndIdNot(String doc, Long id);
 
+    @EntityGraph(attributePaths = {"sucursal"})
     @Query("""
         SELECT c FROM Cliente c
         WHERE c.estado = 'ACTIVO'
@@ -29,6 +33,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
                          @Param("sucursalId") Long sucursalId,
                          Pageable pageable);
 
+    @EntityGraph(attributePaths = {"sucursal"})
     @Query("""
         SELECT c FROM Cliente c
         WHERE c.estado = 'ACTIVO'
@@ -39,6 +44,13 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
           )
     """)
     List<Cliente> sinMembresia(@Param("sucursalId") Long sucursalId);
+
+    @EntityGraph(attributePaths = {"sucursal"})
+    @Query("SELECT c FROM Cliente c WHERE LOWER(c.email) = LOWER(:email)")
+    Optional<Cliente> findByEmail(@Param("email") String email);
+
+    @EntityGraph(attributePaths = {"sucursal"})
+    List<Cliente> findBySucursalId(Long sucursalId);
 
     long countByEstado(Cliente.EstadoGeneral estado);
 }

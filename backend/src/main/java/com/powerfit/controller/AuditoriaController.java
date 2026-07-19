@@ -6,6 +6,7 @@ import com.powerfit.repository.AuditoriaRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,12 +20,17 @@ public class AuditoriaController {
     private final AuditoriaRepository auditoriaRepo;
 
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<Auditoria>>> listar(
             @RequestParam(required = false) Long   sucursalId,
             @RequestParam(required = false) String tabla,
             @RequestParam(required = false) String accion,
             @RequestParam(required = false) String usuario) {
-        return ResponseEntity.ok(ApiResponse.ok(
-            auditoriaRepo.findFiltered(sucursalId, tabla, accion, usuario)));
+        List<Auditoria> lista = auditoriaRepo.findFiltered(sucursalId, tabla, accion, usuario);
+        for (Auditoria a : lista) {
+            if (a.getUsuario() != null) a.getUsuario().getNombreCompleto();
+            if (a.getSucursal() != null) a.getSucursal().getNombre();
+        }
+        return ResponseEntity.ok(ApiResponse.ok(lista));
     }
 }

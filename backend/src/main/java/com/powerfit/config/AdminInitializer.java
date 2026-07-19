@@ -41,7 +41,6 @@ public class AdminInitializer implements ApplicationRunner {
         // ── 1. Roles ─────────────────────────────────────────────────────────
         Rol rolMatriz = upsertRol("ADMIN_MATRIZ",   Rol.AmbitoRol.MATRIZ,   "Administrador general");
         upsertRol("ADMIN_SUCURSAL",  Rol.AmbitoRol.SUCURSAL, "Administrador de sucursal");
-        upsertRol("RECEPCIONISTA",   Rol.AmbitoRol.SUCURSAL, "Recepcionista de sucursal");
         upsertRol("ENTRENADOR",      Rol.AmbitoRol.SUCURSAL, "Entrenador de sucursal");
         upsertRol("CLIENTE",         Rol.AmbitoRol.SUCURSAL, "Cliente del gimnasio");
 

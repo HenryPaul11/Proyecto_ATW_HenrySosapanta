@@ -78,16 +78,16 @@ onMounted(() => admin.fetchStats())
               :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
             >
               <td class="px-4 py-3 text-sm font-bold text-slate-700 whitespace-nowrap">#{{ pago.id }}</td>
-              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ pago.clienteNombre }} {{ pago.clienteApellido }}</td>
-              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ pago.cedula }}</td>
-              <td class="px-4 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap">{{ pago.tipoMembresia }}</td>
+              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ pago.cliente?.nombreCompleto || pago.clienteNombre || '' }}</td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ pago.cliente?.documentoIdentidad || pago.cedula || '' }}</td>
+              <td class="px-4 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap">{{ pago.membresia?.plan?.nombrePlan || pago.tipoMembresia || '' }}</td>
               <td class="px-4 py-3 whitespace-nowrap">
                 <span class="text-emerald-600 font-bold">${{ Number(pago.monto).toFixed(2) }}</span>
               </td>
               <td class="px-4 py-3 whitespace-nowrap"><MetodoBadge :metodo="pago.metodoPago" /></td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(pago.fechaPago) }}</td>
-              <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{{ formatFechaCorta(pago.fechaInicio) }} – {{ formatFechaCorta(pago.fechaFin) }}</td>
-              <td class="px-4 py-3 whitespace-nowrap"><EstadoBadge :estado="pago.estadoMembresia" /></td>
+              <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{{ formatFechaCorta(pago.membresia?.fechaInicio || pago.fechaInicio) }} – {{ formatFechaCorta(pago.membresia?.fechaFin || pago.fechaFin) }}</td>
+              <td class="px-4 py-3 whitespace-nowrap"><EstadoBadge :estado="pago.membresia?.estado || pago.estadoMembresia" /></td>
             </tr>
           </template>
         </PaginatedTable>

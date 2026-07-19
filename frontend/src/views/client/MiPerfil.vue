@@ -15,9 +15,9 @@ function logout() { auth.logout(); router.push('/login') }
 const loading     = ref(false)
 const message     = ref('')
 const messageType = ref('')
-const form        = ref({ nombre: '', apellido: '', cedula: '', telefono: '', email: '' })
+const form        = ref({ nombreCompleto: '', documentoIdentidad: '', telefono: '', email: '' })
 
-const inicial = computed(() => store.cliente?.nombre?.charAt(0).toUpperCase() ?? '?')
+const inicial = computed(() => store.cliente?.nombreCompleto?.charAt(0).toUpperCase() ?? '?')
 
 function formatFecha(d) {
   return new Date(d).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -34,8 +34,7 @@ async function guardar() {
   await new Promise(r => setTimeout(r, 400))
 
   if (store.cliente) {
-    store.cliente.nombre   = form.value.nombre
-    store.cliente.apellido = form.value.apellido
+    store.cliente.nombreCompleto    = form.value.nombreCompleto
     store.cliente.telefono = form.value.telefono
     store.cliente.email    = form.value.email
   }
@@ -60,7 +59,7 @@ async function guardar() {
             {{ inicial }}
           </div>
           <div>
-            <h1 class="text-xl font-black text-slate-800">{{ store.cliente?.nombre }} {{ store.cliente?.apellido }}</h1>
+            <h1 class="text-xl font-black text-slate-800">{{ store.cliente?.nombreCompleto }}</h1>
             <p class="text-sm text-slate-400 font-medium mt-0.5">{{ store.cliente?.email }}</p>
             <span class="inline-block mt-1.5 bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full">
               Cliente
@@ -91,22 +90,15 @@ async function guardar() {
             <h2 class="text-base font-bold text-slate-700 mb-5">Editar información personal</h2>
 
             <form @submit.prevent="guardar" class="flex flex-col gap-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nombre</label>
-                  <input v-model="form.nombre" type="text" required
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50 focus:bg-white" />
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-1.5">Apellido</label>
-                  <input v-model="form.apellido" type="text" required
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50 focus:bg-white" />
-                </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nombre completo</label>
+                <input v-model="form.nombreCompleto" type="text" required
+                  class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-slate-50 focus:bg-white" />
               </div>
 
               <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1.5">Cédula</label>
-                <input v-model="form.cedula" type="text" disabled
+                <input v-model="form.documentoIdentidad" type="text" disabled
                   class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm bg-slate-100 text-slate-400 cursor-not-allowed" />
                 <p class="text-xs text-slate-400 mt-1">La cédula no puede modificarse. Contacta administración si hay un error.</p>
               </div>
@@ -136,7 +128,7 @@ async function guardar() {
             <div class="space-y-3 text-sm">
               <div class="flex justify-between py-2 border-b border-slate-100">
                 <span class="font-semibold text-slate-500">Registrado desde</span>
-                <span class="text-slate-800 font-medium">{{ formatFecha(store.cliente.fecha_registro) }}</span>
+                <span class="text-slate-800 font-medium">{{ formatFecha(store.cliente.fechaRegistro) }}</span>
               </div>
               <div class="flex justify-between py-2">
                 <span class="font-semibold text-slate-500">Rol</span>

@@ -21,12 +21,23 @@ const message           = ref('')
 const messageType       = ref('')
 const loadingBuscar     = ref(false)
 const loadingAsignar    = ref(false)
+const loadingTipos      = ref(false)
 
-onMounted(async () => {
+async function fetchTiposMembresia() {
+  if (tiposMembresia.value.length > 0) return
+  loadingTipos.value = true
   try {
     const res = await httpClient.get('/tipos-membresia')
     tiposMembresia.value = res.data ?? []
-  } catch { tiposMembresia.value = [] }
+  } catch {
+    tiposMembresia.value = []
+  } finally {
+    loadingTipos.value = false
+  }
+}
+
+onMounted(async () => {
+  await fetchTiposMembresia()
 })
 
 async function buscarCliente() {
@@ -38,6 +49,7 @@ async function buscarCliente() {
     const res = await httpClient.get(`/clientes/cedula/${cedula}`)
     clienteEncontrado.value = res.data
     tipoSeleccionado.value = null
+    await fetchTiposMembresia()
   } catch {
     message.value = 'Cliente no encontrado. Verifique la cédula.'
     messageType.value = 'error'
@@ -125,8 +137,11 @@ function resetBusqueda() {
           <div class="bg-slate-50 rounded-xl p-5">
             <h2 class="text-base font-bold text-slate-700 mb-4">Paso 2: Seleccionar Tipo de Membresía</h2>
 
-            <div v-if="!tiposMembresia.length" class="text-center py-6 text-slate-400 text-sm animate-pulse">
+            <div v-if="loadingTipos" class="text-center py-6 text-slate-400 text-sm animate-pulse">
               Cargando tipos de membresía…
+            </div>
+            <div v-else-if="!tiposMembresia.length" class="text-center py-6 text-slate-400 text-sm">
+              No hay planes de membresía disponibles.
             </div>
             <div v-else class="flex flex-col gap-3 mb-5">
               <MembresiaOption

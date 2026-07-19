@@ -1,0 +1,1325 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.powerfit:powerfit-backend >--------------------
+[INFO] Building powerfit-backend 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ war ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.5:run (default-cli) > test-compile @ powerfit-backend >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ powerfit-backend ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ powerfit-backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ powerfit-backend ---
+[INFO] skip non existing resourceDirectory C:\Users\User\Desktop\proyecto-ATW\backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ powerfit-backend ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] <<< spring-boot:3.2.5:run (default-cli) < test-compile @ powerfit-backend <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.5:run (default-cli) @ powerfit-backend ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-07-18T18:59:00.206-05:00  INFO 2828 --- [           main] com.powerfit.PowerFitApplication         : Starting PowerFitApplication using Java 17.0.19 with PID 2828 (C:\Users\User\Desktop\proyecto-ATW\backend\target\classes started by User in C:\Users\User\Desktop\proyecto-ATW\backend)
+2026-07-18T18:59:00.206-05:00 DEBUG 2828 --- [           main] com.powerfit.PowerFitApplication         : Running with Spring Boot v3.2.5, Spring v6.1.6
+2026-07-18T18:59:00.208-05:00  INFO 2828 --- [           main] com.powerfit.PowerFitApplication         : No active profile set, falling back to 1 default profile: "default"
+2026-07-18T18:59:00.982-05:00  INFO 2828 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-07-18T18:59:01.057-05:00  INFO 2828 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 70 ms. Found 12 JPA repository interfaces.
+2026-07-18T18:59:01.513-05:00  INFO 2828 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-07-18T18:59:01.522-05:00  INFO 2828 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-07-18T18:59:01.522-05:00  INFO 2828 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-07-18T18:59:01.579-05:00  INFO 2828 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-07-18T18:59:01.580-05:00  INFO 2828 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1334 ms
+2026-07-18T18:59:01.628-05:00 DEBUG 2828 --- [           main] com.powerfit.config.JwtAuthFilter        : Filter 'jwtAuthFilter' configured for use
+2026-07-18T18:59:01.710-05:00  INFO 2828 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-07-18T18:59:01.743-05:00  INFO 2828 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-07-18T18:59:01.765-05:00  INFO 2828 --- [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-07-18T18:59:01.914-05:00  INFO 2828 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-07-18T18:59:01.931-05:00  INFO 2828 --- [           main] com.zaxxer.hikari.HikariDataSource       : PowerFitPool - Starting...
+2026-07-18T18:59:02.066-05:00  INFO 2828 --- [           main] com.zaxxer.hikari.pool.HikariPool        : PowerFitPool - Added connection org.postgresql.jdbc.PgConnection@6f289728
+2026-07-18T18:59:02.067-05:00  INFO 2828 --- [           main] com.zaxxer.hikari.HikariDataSource       : PowerFitPool - Start completed.
+2026-07-18T18:59:02.918-05:00  INFO 2828 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-07-18T18:59:03.116-05:00  INFO 2828 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-07-18T18:59:03.366-05:00  INFO 2828 --- [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-07-18T18:59:04.215-05:00  WARN 2828 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-07-18T18:59:04.231-05:00  WARN 2828 --- [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: fe3f396f-1996-48d3-b862-4c7bb11b99ea
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-07-18T18:59:04.416-05:00  INFO 2828 --- [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@2c6a222a, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@280de5ae, org.springframework.security.web.context.SecurityContextHolderFilter@4887a689, org.springframework.security.web.header.HeaderWriterFilter@6bfe4dd1, org.springframework.web.filter.CorsFilter@6dce59e, org.springframework.security.web.authentication.logout.LogoutFilter@5fa7cb3, com.powerfit.config.JwtAuthFilter@66f5a02e, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@70f4dd28, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@3f0c27dc, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@eb87c61, org.springframework.security.web.session.SessionManagementFilter@691ff4fe, org.springframework.security.web.access.ExceptionTranslationFilter@674d14ff, org.springframework.security.web.access.intercept.AuthorizationFilter@536af138]
+2026-07-18T18:59:04.638-05:00  INFO 2828 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path ''
+2026-07-18T18:59:04.645-05:00  INFO 2828 --- [           main] com.powerfit.PowerFitApplication         : Started PowerFitApplication in 4.735 seconds (process running for 5.008)
+Hibernate: 
+    select
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol 
+    from
+        roles r1_0 
+    where
+        r1_0.nombre_rol=?
+Hibernate: 
+    select
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol 
+    from
+        roles r1_0 
+    where
+        r1_0.nombre_rol=?
+Hibernate: 
+    select
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol 
+    from
+        roles r1_0 
+    where
+        r1_0.nombre_rol=?
+Hibernate: 
+    select
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol 
+    from
+        roles r1_0 
+    where
+        r1_0.nombre_rol=?
+Hibernate: 
+    select
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono 
+    from
+        sucursales s1_0 
+    where
+        s1_0.estado=?
+Hibernate: 
+    select
+        u1_0.usuario_id 
+    from
+        usuarios u1_0 
+    where
+        u1_0.email=? 
+    fetch
+        first ? rows only
+2026-07-18T18:59:04.737-05:00  INFO 2828 --- [           main] com.powerfit.config.AdminInitializer     : ??  Admin Matriz ya existe: admin@powerfit.com
+2026-07-18T18:59:04.738-05:00  INFO 2828 --- [           main] com.powerfit.config.AdminInitializer     : ? Sucursal Matriz id=1 nombre=PowerFit Matriz - Santo Domingo
+2026-07-18T18:59:38.584-05:00  INFO 2828 --- [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-18T18:59:38.584-05:00  INFO 2828 --- [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-07-18T18:59:38.585-05:00  INFO 2828 --- [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+Hibernate: 
+    select
+        u1_0.usuario_id,
+        u1_0.email,
+        u1_0.estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.nombre_completo,
+        u1_0.password_hash,
+        u1_0.rol_id,
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        u1_0.telefono,
+        u1_0.ultimo_acceso 
+    from
+        usuarios u1_0 
+    join
+        roles r1_0 
+            on r1_0.rol_id=u1_0.rol_id 
+    left join
+        sucursales s1_0 
+            on s1_0.sucursal_id=u1_0.sucursal_id 
+    where
+        u1_0.email=?
+2026-07-18T18:59:38.771-05:00  INFO 2828 --- [nio-8081-exec-1] c.powerfit.service.impl.AuthServiceImpl  : Login exitoso: admin@powerfit.com rol=ADMIN_MATRIZ sucursal=null
+Hibernate: 
+    select
+        c1_0.cliente_id,
+        c1_0.documento_identidad,
+        c1_0.email,
+        c1_0.estado,
+        c1_0.fecha_actualizacion,
+        c1_0.fecha_nacimiento,
+        c1_0.fecha_registro,
+        c1_0.genero,
+        c1_0.nombre_completo,
+        c1_0.sucursal_id,
+        c1_0.telefono,
+        c1_0.usuario_id 
+    from
+        clientes c1_0
+Hibernate: 
+    select
+        u1_0.usuario_id,
+        u1_0.email,
+        u1_0.estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.nombre_completo,
+        u1_0.password_hash,
+        u1_0.rol_id,
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        u1_0.telefono,
+        u1_0.ultimo_acceso 
+    from
+        usuarios u1_0 
+    join
+        roles r1_0 
+            on r1_0.rol_id=u1_0.rol_id 
+    left join
+        sucursales s1_0 
+            on s1_0.sucursal_id=u1_0.sucursal_id 
+    where
+        u1_0.email=?
+2026-07-18T19:00:00.144-05:00  INFO 2828 --- [nio-8081-exec-4] c.powerfit.service.impl.AuthServiceImpl  : Login exitoso: admin@powerfit.com rol=ADMIN_MATRIZ sucursal=null
+Hibernate: 
+    select
+        c1_0.cliente_id,
+        c1_0.documento_identidad,
+        c1_0.email,
+        c1_0.estado,
+        c1_0.fecha_actualizacion,
+        c1_0.fecha_nacimiento,
+        c1_0.fecha_registro,
+        c1_0.genero,
+        c1_0.nombre_completo,
+        c1_0.sucursal_id,
+        c1_0.telefono,
+        c1_0.usuario_id 
+    from
+        clientes c1_0
+Hibernate: 
+    select
+        u1_0.usuario_id,
+        u1_0.email,
+        u1_0.estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.nombre_completo,
+        u1_0.password_hash,
+        u1_0.rol_id,
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        u1_0.telefono,
+        u1_0.ultimo_acceso 
+    from
+        usuarios u1_0 
+    join
+        roles r1_0 
+            on r1_0.rol_id=u1_0.rol_id 
+    left join
+        sucursales s1_0 
+            on s1_0.sucursal_id=u1_0.sucursal_id 
+    where
+        u1_0.email=?
+2026-07-18T19:00:53.384-05:00  INFO 2828 --- [nio-8081-exec-9] c.powerfit.service.impl.AuthServiceImpl  : Login exitoso: admin@powerfit.com rol=ADMIN_MATRIZ sucursal=null
+Hibernate: 
+    select
+        c1_0.cliente_id,
+        c1_0.documento_identidad,
+        c1_0.email,
+        c1_0.estado,
+        c1_0.fecha_actualizacion,
+        c1_0.fecha_nacimiento,
+        c1_0.fecha_registro,
+        c1_0.genero,
+        c1_0.nombre_completo,
+        c1_0.sucursal_id,
+        c1_0.telefono,
+        c1_0.usuario_id 
+    from
+        clientes c1_0
+2026-07-18T19:00:55.841-05:00 ERROR 2828 --- [nio-8081-exec-7] c.p.exception.GlobalExceptionHandler     : Error interno del servidor: ServletOutputStream failed to write: java.io.IOException: Connection reset by peer
+
+org.springframework.web.context.request.async.AsyncRequestNotUsableException: ServletOutputStream failed to write: java.io.IOException: Connection reset by peer
+	at org.springframework.web.context.request.async.StandardServletAsyncWebRequest$LifecycleHttpServletResponse.handleIOException(StandardServletAsyncWebRequest.java:320) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.web.context.request.async.StandardServletAsyncWebRequest$LifecycleServletOutputStream.write(StandardServletAsyncWebRequest.java:378) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.util.StreamUtils$NonClosingOutputStream.write(StreamUtils.java:264) ~[spring-core-6.1.6.jar:6.1.6]
+	at com.fasterxml.jackson.core.json.UTF8JsonGenerator._flushBuffer(UTF8JsonGenerator.java:2203) ~[jackson-core-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.core.json.UTF8JsonGenerator._writeBytes(UTF8JsonGenerator.java:1290) ~[jackson-core-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.core.json.UTF8JsonGenerator.writeFieldName(UTF8JsonGenerator.java:285) ~[jackson-core-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:730) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:772) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:178) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ser.impl.IndexedListSerializer.serializeContents(IndexedListSerializer.java:119) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ser.impl.IndexedListSerializer.serialize(IndexedListSerializer.java:79) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ser.impl.IndexedListSerializer.serialize(IndexedListSerializer.java:18) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.datatype.hibernate5.jakarta.PersistentCollectionSerializer.serialize(PersistentCollectionSerializer.java:245) ~[jackson-datatype-hibernate5-jakarta-2.16.1.jar:2.16.1]
+	at com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:732) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:772) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:178) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider._serialize(DefaultSerializerProvider.java:479) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider.serializeValue(DefaultSerializerProvider.java:318) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ObjectWriter$Prefetch.serialize(ObjectWriter.java:1572) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at com.fasterxml.jackson.databind.ObjectWriter.writeValue(ObjectWriter.java:1061) ~[jackson-databind-2.15.4.jar:2.15.4]
+	at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.writeInternal(AbstractJackson2HttpMessageConverter.java:483) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.http.converter.AbstractGenericHttpMessageConverter.write(AbstractGenericHttpMessageConverter.java:114) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.web.servlet.mvc.method.annotation.AbstractMessageConverterMethodProcessor.writeWithMessageConverters(AbstractMessageConverterMethodProcessor.java:297) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor.handleReturnValue(HttpEntityMethodProcessor.java:245) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at org.springframework.web.method.support.HandlerMethodReturnValueHandlerComposite.handleReturnValue(HandlerMethodReturnValueHandlerComposite.java:78) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:136) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:926) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:831) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564) ~[tomcat-embed-core-10.1.20.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.20.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:206) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:365) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:100) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at com.powerfit.config.JwtAuthFilter.doFilterInternal(JwtAuthFilter.java:50) ~[classes/:na]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:195) ~[spring-webmvc-6.1.6.jar:6.1.6]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:230) ~[spring-security-config-6.2.4.jar:6.2.4]
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:352) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:268) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.6.jar:6.1.6]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:391) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1736) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at java.base/java.lang.Thread.run(Thread.java:840) ~[na:na]
+	Suppressed: org.springframework.web.context.request.async.AsyncRequestNotUsableException: Response not usable after response errors.
+		at org.springframework.web.context.request.async.StandardServletAsyncWebRequest$LifecycleHttpServletResponse.obtainLockAndCheckState(StandardServletAsyncWebRequest.java:314) ~[spring-web-6.1.6.jar:6.1.6]
+		at org.springframework.web.context.request.async.StandardServletAsyncWebRequest$LifecycleServletOutputStream.write(StandardServletAsyncWebRequest.java:373) ~[spring-web-6.1.6.jar:6.1.6]
+		at org.springframework.util.StreamUtils$NonClosingOutputStream.write(StreamUtils.java:264) ~[spring-core-6.1.6.jar:6.1.6]
+		at com.fasterxml.jackson.core.json.UTF8JsonGenerator._flushBuffer(UTF8JsonGenerator.java:2203) ~[jackson-core-2.15.4.jar:2.15.4]
+		at com.fasterxml.jackson.core.json.UTF8JsonGenerator.close(UTF8JsonGenerator.java:1227) ~[jackson-core-2.15.4.jar:2.15.4]
+		at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.writeInternal(AbstractJackson2HttpMessageConverter.java:452) ~[spring-web-6.1.6.jar:6.1.6]
+		... 104 common frames omitted
+Caused by: org.apache.catalina.connector.ClientAbortException: java.io.IOException: Connection reset by peer
+	at org.apache.catalina.connector.OutputBuffer.realWriteBytes(OutputBuffer.java:341) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.connector.OutputBuffer.flushByteBuffer(OutputBuffer.java:776) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.connector.OutputBuffer.append(OutputBuffer.java:673) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.connector.OutputBuffer.writeBytes(OutputBuffer.java:376) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.connector.OutputBuffer.write(OutputBuffer.java:354) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.connector.CoyoteOutputStream.write(CoyoteOutputStream.java:103) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.springframework.security.web.util.OnCommittedResponseWrapper$SaveContextServletOutputStream.write(OnCommittedResponseWrapper.java:639) ~[spring-security-web-6.2.4.jar:6.2.4]
+	at org.springframework.web.context.request.async.StandardServletAsyncWebRequest$LifecycleServletOutputStream.write(StandardServletAsyncWebRequest.java:375) ~[spring-web-6.1.6.jar:6.1.6]
+	... 123 common frames omitted
+Caused by: java.io.IOException: Connection reset by peer
+	at java.base/sun.nio.ch.SocketDispatcher.write0(Native Method) ~[na:na]
+	at java.base/sun.nio.ch.SocketDispatcher.write(SocketDispatcher.java:54) ~[na:na]
+	at java.base/sun.nio.ch.IOUtil.writeFromNativeBuffer(IOUtil.java:132) ~[na:na]
+	at java.base/sun.nio.ch.IOUtil.write(IOUtil.java:97) ~[na:na]
+	at java.base/sun.nio.ch.IOUtil.write(IOUtil.java:53) ~[na:na]
+	at java.base/sun.nio.ch.SocketChannelImpl.write(SocketChannelImpl.java:532) ~[na:na]
+	at org.apache.tomcat.util.net.NioChannel.write(NioChannel.java:118) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.tomcat.util.net.NioEndpoint$NioSocketWrapper.doWrite(NioEndpoint.java:1373) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.tomcat.util.net.SocketWrapperBase.doWrite(SocketWrapperBase.java:764) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.tomcat.util.net.SocketWrapperBase.writeBlocking(SocketWrapperBase.java:589) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.tomcat.util.net.SocketWrapperBase.write(SocketWrapperBase.java:533) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.coyote.http11.Http11OutputBuffer$SocketOutputBuffer.doWrite(Http11OutputBuffer.java:540) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.coyote.http11.filters.ChunkedOutputFilter.doWrite(ChunkedOutputFilter.java:112) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.coyote.http11.Http11OutputBuffer.doWrite(Http11OutputBuffer.java:193) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.coyote.Response.doWrite(Response.java:618) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	at org.apache.catalina.connector.OutputBuffer.realWriteBytes(OutputBuffer.java:329) ~[tomcat-embed-core-10.1.20.jar:10.1.20]
+	... 130 common frames omitted
+
+Hibernate: 
+    select
+        u1_0.usuario_id,
+        u1_0.email,
+        u1_0.estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.nombre_completo,
+        u1_0.password_hash,
+        u1_0.rol_id,
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        u1_0.telefono,
+        u1_0.ultimo_acceso 
+    from
+        usuarios u1_0 
+    join
+        roles r1_0 
+            on r1_0.rol_id=u1_0.rol_id 
+    left join
+        sucursales s1_0 
+            on s1_0.sucursal_id=u1_0.sucursal_id 
+    where
+        u1_0.email=?
+2026-07-18T19:01:04.787-05:00  INFO 2828 --- [nio-8081-exec-8] c.powerfit.service.impl.AuthServiceImpl  : Login exitoso: admin@powerfit.com rol=ADMIN_MATRIZ sucursal=null
+Hibernate: 
+    select
+        p1_0.pago_id,
+        p1_0.cliente_id,
+        c1_0.cliente_id,
+        c1_0.documento_identidad,
+        c1_0.email,
+        c1_0.estado,
+        c1_0.fecha_actualizacion,
+        c1_0.fecha_nacimiento,
+        c1_0.fecha_registro,
+        c1_0.genero,
+        c1_0.nombre_completo,
+        c1_0.sucursal_id,
+        c1_0.telefono,
+        c1_0.usuario_id,
+        p1_0.estado,
+        p1_0.fecha_pago,
+        p1_0.membresia_id,
+        m1_0.membresia_id,
+        m1_0.cliente_id,
+        m1_0.estado,
+        m1_0.fecha_actualizacion,
+        m1_0.fecha_creacion,
+        m1_0.fecha_fin,
+        m1_0.fecha_inicio,
+        m1_0.plan_id,
+        p2_0.plan_id,
+        p2_0.descripcion,
+        p2_0.duracion_dias,
+        p2_0.estado,
+        p2_0.fecha_actualizacion,
+        p2_0.fecha_creacion,
+        p2_0.nombre_plan,
+        p2_0.precio,
+        p2_0.sucursal_id,
+        m1_0.sucursal_id,
+        p1_0.metodo_pago,
+        p1_0.monto,
+        p1_0.referencia_transaccion,
+        p1_0.sucursal_id 
+    from
+        pagos p1_0 
+    join
+        clientes c1_0 
+            on c1_0.cliente_id=p1_0.cliente_id 
+    join
+        membresias m1_0 
+            on m1_0.membresia_id=p1_0.membresia_id 
+    left join
+        planes p2_0 
+            on p2_0.plan_id=m1_0.plan_id 
+    where
+        ? is null 
+        or p1_0.sucursal_id=? 
+    order by
+        p1_0.fecha_pago desc,
+        p1_0.fecha_pago desc 
+    offset
+        ? rows 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        count(p1_0.pago_id) 
+    from
+        pagos p1_0 
+    where
+        ? is null 
+        or p1_0.sucursal_id=?
+Hibernate: 
+    select
+        u1_0.usuario_id,
+        u1_0.email,
+        u1_0.estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.nombre_completo,
+        u1_0.password_hash,
+        u1_0.rol_id,
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        u1_0.telefono,
+        u1_0.ultimo_acceso 
+    from
+        usuarios u1_0 
+    join
+        roles r1_0 
+            on r1_0.rol_id=u1_0.rol_id 
+    left join
+        sucursales s1_0 
+            on s1_0.sucursal_id=u1_0.sucursal_id 
+    where
+        u1_0.email=?
+2026-07-18T19:01:12.285-05:00  INFO 2828 --- [nio-8081-exec-3] c.powerfit.service.impl.AuthServiceImpl  : Login exitoso: admin@powerfit.com rol=ADMIN_MATRIZ sucursal=null
+Hibernate: 
+    select
+        p1_0.pago_id,
+        p1_0.cliente_id,
+        c1_0.cliente_id,
+        c1_0.documento_identidad,
+        c1_0.email,
+        c1_0.estado,
+        c1_0.fecha_actualizacion,
+        c1_0.fecha_nacimiento,
+        c1_0.fecha_registro,
+        c1_0.genero,
+        c1_0.nombre_completo,
+        c1_0.sucursal_id,
+        c1_0.telefono,
+        c1_0.usuario_id,
+        p1_0.estado,
+        p1_0.fecha_pago,
+        p1_0.membresia_id,
+        m1_0.membresia_id,
+        m1_0.cliente_id,
+        m1_0.estado,
+        m1_0.fecha_actualizacion,
+        m1_0.fecha_creacion,
+        m1_0.fecha_fin,
+        m1_0.fecha_inicio,
+        m1_0.plan_id,
+        p2_0.plan_id,
+        p2_0.descripcion,
+        p2_0.duracion_dias,
+        p2_0.estado,
+        p2_0.fecha_actualizacion,
+        p2_0.fecha_creacion,
+        p2_0.nombre_plan,
+        p2_0.precio,
+        p2_0.sucursal_id,
+        m1_0.sucursal_id,
+        p1_0.metodo_pago,
+        p1_0.monto,
+        p1_0.referencia_transaccion,
+        p1_0.sucursal_id 
+    from
+        pagos p1_0 
+    join
+        clientes c1_0 
+            on c1_0.cliente_id=p1_0.cliente_id 
+    join
+        membresias m1_0 
+            on m1_0.membresia_id=p1_0.membresia_id 
+    left join
+        planes p2_0 
+            on p2_0.plan_id=m1_0.plan_id 
+    where
+        ? is null 
+        or p1_0.sucursal_id=? 
+    order by
+        p1_0.fecha_pago desc,
+        p1_0.fecha_pago desc 
+    offset
+        ? rows 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        count(p1_0.pago_id) 
+    from
+        pagos p1_0 
+    where
+        ? is null 
+        or p1_0.sucursal_id=?
+Hibernate: 
+    select
+        u1_0.usuario_id,
+        u1_0.email,
+        u1_0.estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.nombre_completo,
+        u1_0.password_hash,
+        u1_0.rol_id,
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        u1_0.telefono,
+        u1_0.ultimo_acceso 
+    from
+        usuarios u1_0 
+    join
+        roles r1_0 
+            on r1_0.rol_id=u1_0.rol_id 
+    left join
+        sucursales s1_0 
+            on s1_0.sucursal_id=u1_0.sucursal_id 
+    where
+        u1_0.email=?
+2026-07-18T19:01:25.306-05:00  INFO 2828 --- [nio-8081-exec-5] c.powerfit.service.impl.AuthServiceImpl  : Login exitoso: admin@powerfit.com rol=ADMIN_MATRIZ sucursal=null
+Hibernate: 
+    select
+        c1_0.cliente_id,
+        c1_0.documento_identidad,
+        c1_0.email,
+        c1_0.estado,
+        c1_0.fecha_actualizacion,
+        c1_0.fecha_nacimiento,
+        c1_0.fecha_registro,
+        c1_0.genero,
+        c1_0.nombre_completo,
+        c1_0.sucursal_id,
+        c1_0.telefono,
+        c1_0.usuario_id 
+    from
+        clientes c1_0
+Hibernate: 
+    select
+        s1_0.sesion_id,
+        c1_0.cliente_id,
+        c1_0.documento_identidad,
+        c1_0.email,
+        c1_0.estado,
+        c1_0.fecha_actualizacion,
+        c1_0.fecha_nacimiento,
+        c1_0.fecha_registro,
+        c1_0.genero,
+        c1_0.nombre_completo,
+        c1_0.sucursal_id,
+        c1_0.telefono,
+        c1_0.usuario_id,
+        s1_0.cupo_maximo,
+        s1_0.entrenador_id,
+        e1_0.entrenador_id,
+        e1_0.documento_identidad,
+        e1_0.email,
+        e1_0.especialidad,
+        e1_0.estado,
+        e1_0.fecha_actualizacion,
+        e1_0.fecha_contratacion,
+        e1_0.fecha_creacion,
+        e1_0.horario,
+        e1_0.nombre_completo,
+        e1_0.sucursal_id,
+        e1_0.telefono,
+        e1_0.usuario_id,
+        s1_0.estado,
+        s1_0.fecha,
+        s1_0.hora_fin,
+        s1_0.hora_inicio,
+        s1_0.nombre,
+        s1_0.sucursal_id,
+        s2_0.sucursal_id,
+        s2_0.ciudad,
+        s2_0.codigo,
+        s2_0.direccion,
+        s2_0.email_contacto,
+        s2_0.estado,
+        s2_0.fecha_actualizacion,
+        s2_0.fecha_apertura,
+        s2_0.fecha_creacion,
+        s2_0.nombre,
+        s2_0.telefono,
+        s1_0.tipo 
+    from
+        sesiones s1_0 
+    left join
+        entrenadores e1_0 
+            on e1_0.entrenador_id=s1_0.entrenador_id 
+    left join
+        sucursales s2_0 
+            on s2_0.sucursal_id=s1_0.sucursal_id 
+    left join
+        clientes c1_0 
+            on c1_0.cliente_id=s1_0.cliente_id 
+    order by
+        s1_0.fecha desc 
+    offset
+        ? rows 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        count(s1_0.sesion_id) 
+    from
+        sesiones s1_0
+Hibernate: 
+    select
+        u1_0.usuario_id,
+        u1_0.email,
+        u1_0.estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.nombre_completo,
+        u1_0.password_hash,
+        u1_0.rol_id,
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        u1_0.telefono,
+        u1_0.ultimo_acceso 
+    from
+        usuarios u1_0 
+    join
+        roles r1_0 
+            on r1_0.rol_id=u1_0.rol_id 
+    left join
+        sucursales s1_0 
+            on s1_0.sucursal_id=u1_0.sucursal_id 
+    where
+        u1_0.email=?
+Hibernate: 
+    select
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono 
+    from
+        sucursales s1_0 
+    where
+        s1_0.codigo=?
+Hibernate: 
+    select
+        e1_0.equipo_id,
+        e1_0.categoria_id,
+        c1_0.categoria_id,
+        c1_0.descripcion,
+        c1_0.nombre,
+        e1_0.descripcion,
+        e1_0.estado,
+        e1_0.fecha_actualizacion,
+        e1_0.fecha_adquisicion,
+        e1_0.imagen_url,
+        e1_0.marca,
+        e1_0.modelo,
+        e1_0.nombre,
+        e1_0.numero_serie,
+        e1_0.sucursal_id,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        e1_0.valor_adquisicion 
+    from
+        equipos e1_0 
+    join
+        categorias_equipo c1_0 
+            on c1_0.categoria_id=e1_0.categoria_id 
+    join
+        sucursales s1_0 
+            on s1_0.sucursal_id=e1_0.sucursal_id 
+    where
+        ? is null 
+        or e1_0.sucursal_id=?
+Hibernate: 
+    select
+        u1_0.usuario_id,
+        u1_0.email,
+        u1_0.estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.nombre_completo,
+        u1_0.password_hash,
+        u1_0.rol_id,
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        u1_0.telefono,
+        u1_0.ultimo_acceso 
+    from
+        usuarios u1_0 
+    join
+        roles r1_0 
+            on r1_0.rol_id=u1_0.rol_id 
+    left join
+        sucursales s1_0 
+            on s1_0.sucursal_id=u1_0.sucursal_id 
+    where
+        u1_0.email=?
+2026-07-18T19:01:58.091-05:00  INFO 2828 --- [io-8081-exec-10] c.powerfit.service.impl.AuthServiceImpl  : Login exitoso: admin@powerfit.com rol=ADMIN_MATRIZ sucursal=null
+Hibernate: 
+    select
+        u1_0.usuario_id,
+        u1_0.email,
+        u1_0.estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.nombre_completo,
+        u1_0.password_hash,
+        u1_0.rol_id,
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        u1_0.telefono,
+        u1_0.ultimo_acceso 
+    from
+        usuarios u1_0 
+    join
+        roles r1_0 
+            on r1_0.rol_id=u1_0.rol_id 
+    left join
+        sucursales s1_0 
+            on s1_0.sucursal_id=u1_0.sucursal_id 
+    where
+        u1_0.email=?
+Hibernate: 
+    select
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono 
+    from
+        sucursales s1_0 
+    where
+        s1_0.codigo=?
+Hibernate: 
+    select
+        e1_0.equipo_id,
+        e1_0.categoria_id,
+        c1_0.categoria_id,
+        c1_0.descripcion,
+        c1_0.nombre,
+        e1_0.descripcion,
+        e1_0.estado,
+        e1_0.fecha_actualizacion,
+        e1_0.fecha_adquisicion,
+        e1_0.imagen_url,
+        e1_0.marca,
+        e1_0.modelo,
+        e1_0.nombre,
+        e1_0.numero_serie,
+        e1_0.sucursal_id,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        e1_0.valor_adquisicion 
+    from
+        equipos e1_0 
+    join
+        categorias_equipo c1_0 
+            on c1_0.categoria_id=e1_0.categoria_id 
+    join
+        sucursales s1_0 
+            on s1_0.sucursal_id=e1_0.sucursal_id 
+    where
+        ? is null 
+        or e1_0.sucursal_id=?
+Hibernate: 
+    select
+        u1_0.usuario_id,
+        u1_0.email,
+        u1_0.estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.nombre_completo,
+        u1_0.password_hash,
+        u1_0.rol_id,
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        u1_0.telefono,
+        u1_0.ultimo_acceso 
+    from
+        usuarios u1_0 
+    join
+        roles r1_0 
+            on r1_0.rol_id=u1_0.rol_id 
+    left join
+        sucursales s1_0 
+            on s1_0.sucursal_id=u1_0.sucursal_id 
+    where
+        u1_0.email=?
+2026-07-18T19:02:05.865-05:00  INFO 2828 --- [nio-8081-exec-2] c.powerfit.service.impl.AuthServiceImpl  : Login exitoso: admin@powerfit.com rol=ADMIN_MATRIZ sucursal=null
+Hibernate: 
+    select
+        u1_0.usuario_id,
+        u1_0.email,
+        u1_0.estado,
+        u1_0.fecha_actualizacion,
+        u1_0.fecha_creacion,
+        u1_0.nombre_completo,
+        u1_0.password_hash,
+        u1_0.rol_id,
+        r1_0.rol_id,
+        r1_0.ambito,
+        r1_0.descripcion,
+        r1_0.nombre_rol,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        u1_0.telefono,
+        u1_0.ultimo_acceso 
+    from
+        usuarios u1_0 
+    join
+        roles r1_0 
+            on r1_0.rol_id=u1_0.rol_id 
+    left join
+        sucursales s1_0 
+            on s1_0.sucursal_id=u1_0.sucursal_id 
+    where
+        u1_0.email=?
+Hibernate: 
+    select
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono 
+    from
+        sucursales s1_0 
+    where
+        s1_0.codigo=?
+Hibernate: 
+    select
+        e1_0.equipo_id,
+        e1_0.categoria_id,
+        c1_0.categoria_id,
+        c1_0.descripcion,
+        c1_0.nombre,
+        e1_0.descripcion,
+        e1_0.estado,
+        e1_0.fecha_actualizacion,
+        e1_0.fecha_adquisicion,
+        e1_0.imagen_url,
+        e1_0.marca,
+        e1_0.modelo,
+        e1_0.nombre,
+        e1_0.numero_serie,
+        e1_0.sucursal_id,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        e1_0.valor_adquisicion 
+    from
+        equipos e1_0 
+    join
+        categorias_equipo c1_0 
+            on c1_0.categoria_id=e1_0.categoria_id 
+    join
+        sucursales s1_0 
+            on s1_0.sucursal_id=e1_0.sucursal_id 
+    where
+        ? is null 
+        or e1_0.sucursal_id=?
+Hibernate: 
+    select
+        c1_0.cliente_id,
+        c1_0.documento_identidad,
+        c1_0.email,
+        c1_0.estado,
+        c1_0.fecha_actualizacion,
+        c1_0.fecha_nacimiento,
+        c1_0.fecha_registro,
+        c1_0.genero,
+        c1_0.nombre_completo,
+        c1_0.sucursal_id,
+        s1_0.sucursal_id,
+        s1_0.ciudad,
+        s1_0.codigo,
+        s1_0.direccion,
+        s1_0.email_contacto,
+        s1_0.estado,
+        s1_0.fecha_actualizacion,
+        s1_0.fecha_apertura,
+        s1_0.fecha_creacion,
+        s1_0.nombre,
+        s1_0.telefono,
+        c1_0.telefono,
+        c1_0.usuario_id 
+    from
+        clientes c1_0 
+    join
+        sucursales s1_0 
+            on s1_0.sucursal_id=c1_0.sucursal_id 
+    where
+        c1_0.estado='ACTIVO' 
+        and (
+            ? is null 
+            or c1_0.sucursal_id=?
+        ) 
+        and c1_0.cliente_id not in (select
+            m1_0.cliente_id 
+        from
+            membresias m1_0 
+        where
+            m1_0.fecha_fin>=current_date 
+            and m1_0.estado='ACTIVA')
+Hibernate: 
+    select
+        m1_0.membresia_id,
+        m1_0.cliente_id,
+        c1_0.cliente_id,
+        c1_0.documento_identidad,
+        c1_0.email,
+        c1_0.estado,
+        c1_0.fecha_actualizacion,
+        c1_0.fecha_nacimiento,
+        c1_0.fecha_registro,
+        c1_0.genero,
+        c1_0.nombre_completo,
+        c1_0.sucursal_id,
+        c1_0.telefono,
+        c1_0.usuario_id,
+        m1_0.estado,
+        m1_0.fecha_actualizacion,
+        m1_0.fecha_creacion,
+        m1_0.fecha_fin,
+        m1_0.fecha_inicio,
+        m1_0.plan_id,
+        p1_0.plan_id,
+        p1_0.descripcion,
+        p1_0.duracion_dias,
+        p1_0.estado,
+        p1_0.fecha_actualizacion,
+        p1_0.fecha_creacion,
+        p1_0.nombre_plan,
+        p1_0.precio,
+        p1_0.sucursal_id,
+        m1_0.sucursal_id 
+    from
+        membresias m1_0 
+    join
+        clientes c1_0 
+            on c1_0.cliente_id=m1_0.cliente_id 
+    join
+        planes p1_0 
+            on p1_0.plan_id=m1_0.plan_id 
+    where
+        m1_0.estado=? 
+    offset
+        ? rows 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        m1_0.membresia_id,
+        m1_0.cliente_id,
+        c1_0.cliente_id,
+        c1_0.documento_identidad,
+        c1_0.email,
+        c1_0.estado,
+        c1_0.fecha_actualizacion,
+        c1_0.fecha_nacimiento,
+        c1_0.fecha_registro,
+        c1_0.genero,
+        c1_0.nombre_completo,
+        c1_0.sucursal_id,
+        c1_0.telefono,
+        c1_0.usuario_id,
+        m1_0.estado,
+        m1_0.fecha_actualizacion,
+        m1_0.fecha_creacion,
+        m1_0.fecha_fin,
+        m1_0.fecha_inicio,
+        m1_0.plan_id,
+        p1_0.plan_id,
+        p1_0.descripcion,
+        p1_0.duracion_dias,
+        p1_0.estado,
+        p1_0.fecha_actualizacion,
+        p1_0.fecha_creacion,
+        p1_0.nombre_plan,
+        p1_0.precio,
+        p1_0.sucursal_id,
+        m1_0.sucursal_id 
+    from
+        membresias m1_0 
+    join
+        clientes c1_0 
+            on c1_0.cliente_id=m1_0.cliente_id 
+    join
+        planes p1_0 
+            on p1_0.plan_id=m1_0.plan_id 
+    where
+        m1_0.estado=? 
+    offset
+        ? rows 
+    fetch
+        first ? rows only
+Hibernate: 
+    select
+        count(m1_0.membresia_id) 
+    from
+        membresias m1_0 
+    where
+        m1_0.estado=?
+Hibernate: 
+    select
+        count(m1_0.membresia_id) 
+    from
+        membresias m1_0 
+    where
+        m1_0.estado=?
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  10:06 min
+[INFO] Finished at: 2026-07-18T19:09:03-05:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.2.5:run (default-cli) on project powerfit-backend: Process terminated with exit code: -1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

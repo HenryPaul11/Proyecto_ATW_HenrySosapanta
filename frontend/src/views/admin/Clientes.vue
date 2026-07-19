@@ -30,7 +30,8 @@ async function eliminarCliente() {
   if (!c) return
   try {
     await httpClient.delete(`/clientes/${c.id}`)
-    message.value     = `Cliente ${c.nombre} ${c.apellido} eliminado correctamente.`
+    const nombreDisp = c.nombreCompleto || `${c.nombre ?? ''} ${c.apellido ?? ''}`.trim()
+    message.value     = `Cliente ${nombreDisp} eliminado correctamente.`
     messageType.value = 'success'
   } catch (err: any) {
     message.value     = err?.error || 'No se pudo eliminar el cliente.'
@@ -85,8 +86,8 @@ async function eliminarCliente() {
             <tr v-for="(c, i) in items" :key="c.id"
               class="border-b border-slate-100 hover:bg-blue-50 transition-colors"
               :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'">
-              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ c.nombre }} {{ c.apellido }}</td>
-              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.cedula }}</td>
+              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ c.nombreCompleto || `${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() }}</td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.documentoIdentidad || c.cedula }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.telefono }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ c.email }}</td>
               <td class="px-4 py-3 whitespace-nowrap">
@@ -114,7 +115,7 @@ async function eliminarCliente() {
         <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
           <h3 class="text-lg font-bold text-slate-800 mb-2">¿Eliminar cliente?</h3>
           <p class="text-sm text-slate-500 mb-5">
-            Se eliminará a <strong>{{ clienteAEliminar.nombre }} {{ clienteAEliminar.apellido }}</strong>. Esta acción no se puede deshacer.
+            Se eliminará a <strong>{{ clienteAEliminar.nombreCompleto || `${clienteAEliminar.nombre ?? ''} ${clienteAEliminar.apellido ?? ''}`.trim() }}</strong>. Esta acción no se puede deshacer.
           </p>
           <div class="flex gap-3">
             <button @click="eliminarCliente"

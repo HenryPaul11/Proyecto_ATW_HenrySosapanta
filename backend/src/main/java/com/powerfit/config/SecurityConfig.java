@@ -45,20 +45,37 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
+                // Endpoints públicos (sin autenticación)
                 .requestMatchers("/api/auth/**","/swagger-ui.html","/swagger-ui/**","/api-docs/**","/v3/api-docs/**").permitAll()
-                // Roles: ADMIN_MATRIZ, ADMIN_SUCURSAL, RECEPCIONISTA, ENTRENADOR, CLIENTE
+                
+                // ENDPOINTS PÚBLICOS DE CONSULTA (AGREGAR AQUÍ)
+                .requestMatchers(HttpMethod.GET, "/api/clientes/paginado").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/clientes/**").permitAll()  // Si quieres que todos los GET de clientes sean públicos
+                // O específicamente:
+                // .requestMatchers(HttpMethod.GET, "/api/clientes").permitAll()
+                // .requestMatchers(HttpMethod.GET, "/api/clientes/{id}").permitAll()
+                // .requestMatchers(HttpMethod.GET, "/api/clientes/documento/{doc}").permitAll()
+                
+                // Roles: ADMIN_MATRIZ, ADMIN_SUCURSAL, ENTRENADOR, CLIENTE
+                .requestMatchers(HttpMethod.GET, "/api/sucursales/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
                 .requestMatchers("/api/sucursales/**").hasRole("ADMIN_MATRIZ")
                 .requestMatchers("/api/admin/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
                 .requestMatchers("/api/usuarios/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
                 .requestMatchers("/api/auditorias/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
                 .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
-                .requestMatchers("/api/sesiones/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA","ENTRENADOR")
-                .requestMatchers("/api/entrenadores/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA","ENTRENADOR")
-                .requestMatchers(HttpMethod.POST, "/api/clientes/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA")
-                .requestMatchers(HttpMethod.PUT,  "/api/clientes/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA")
-                .requestMatchers(HttpMethod.POST, "/api/membresias/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA")
-                .requestMatchers(HttpMethod.PUT,  "/api/membresias/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA")
-                .requestMatchers(HttpMethod.POST, "/api/pagos/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","RECEPCIONISTA")
+                .requestMatchers("/api/sesiones/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","ENTRENADOR")
+                .requestMatchers("/api/entrenadores/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","ENTRENADOR")
+                .requestMatchers(HttpMethod.GET, "/api/equipos/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL","ENTRENADOR")
+                .requestMatchers(HttpMethod.POST, "/api/equipos/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                .requestMatchers(HttpMethod.PUT,  "/api/equipos/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                .requestMatchers(HttpMethod.DELETE, "/api/equipos/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                .requestMatchers(HttpMethod.POST, "/api/clientes/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                .requestMatchers(HttpMethod.PUT,  "/api/clientes/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                .requestMatchers(HttpMethod.POST, "/api/membresias/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                .requestMatchers(HttpMethod.PUT,  "/api/membresias/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                .requestMatchers(HttpMethod.POST, "/api/pagos/**").hasAnyRole("ADMIN_MATRIZ","ADMIN_SUCURSAL")
+                
+                // El resto de GET requieren autenticación
                 .requestMatchers(HttpMethod.GET,  "/api/**").authenticated()
                 .anyRequest().authenticated()
             )

@@ -61,9 +61,9 @@ const filtroSucursal = computed(() =>
               class="border-b border-slate-100 transition-colors duration-150 hover:bg-amber-50/50 bg-white"
             >
               <td class="px-4 py-3.5 text-sm font-semibold text-slate-800">
-                {{ c.nombre }} {{ c.apellido }}
+                {{ c.nombreCompleto || `${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() }}
               </td>
-              <td class="px-4 py-3.5 text-sm text-slate-500">{{ c.cedula }}</td>
+              <td class="px-4 py-3.5 text-sm text-slate-500">{{ c.documentoIdentidad || c.cedula }}</td>
               <td class="px-4 py-3.5 text-sm text-slate-500">{{ c.telefono }}</td>
               <td class="px-4 py-3.5 text-sm text-slate-500">{{ c.email }}</td>
               <td class="px-4 py-3.5">
@@ -98,10 +98,14 @@ const filtroSucursal = computed(() =>
               class="border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50 bg-white"
             >
               <td class="px-4 py-3.5 text-sm font-semibold text-slate-800">
-                {{ m.clienteNombre }} {{ m.clienteApellido }}
+                {{ m.cliente?.nombreCompleto || `${m.cliente?.nombre ?? ''} ${m.cliente?.apellido ?? ''}`.trim() || `${m.clienteNombre ?? ''} ${m.clienteApellido ?? ''}`.trim() || 'Sin cliente' }}
               </td>
-              <td class="px-4 py-3.5 text-sm text-slate-500">{{ m.clienteCedula }}</td>
-              <td class="px-4 py-3.5 text-sm font-semibold text-slate-700">{{ m.tipoMembresiaNombre }}</td>
+              <td class="px-4 py-3.5 text-sm text-slate-500">
+                {{ m.cliente?.documentoIdentidad || m.clienteCedula || 'Sin cédula' }}
+              </td>
+              <td class="px-4 py-3.5 text-sm font-semibold text-slate-700">
+                {{ m.plan?.nombrePlan || m.tipoMembresiaNombre }}
+              </td>
               <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.fechaInicio) }}</td>
               <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.fechaFin) }}</td>
               <td class="px-4 py-3.5">
@@ -141,10 +145,14 @@ const filtroSucursal = computed(() =>
               class="border-b border-slate-100 transition-colors duration-150 hover:bg-red-50/30 bg-white"
             >
               <td class="px-4 py-3.5 text-sm font-semibold text-slate-800">
-                {{ m.clienteNombre }} {{ m.clienteApellido }}
+                {{ m.cliente?.nombreCompleto || `${m.cliente?.nombre ?? ''} ${m.cliente?.apellido ?? ''}`.trim() || `${m.clienteNombre ?? ''} ${m.clienteApellido ?? ''}`.trim() || 'Sin cliente' }}
               </td>
-              <td class="px-4 py-3.5 text-sm text-slate-500">{{ m.clienteCedula }}</td>
-              <td class="px-4 py-3.5 text-sm font-semibold text-slate-700">{{ m.tipoMembresiaNombre }}</td>
+              <td class="px-4 py-3.5 text-sm text-slate-500">
+                {{ m.cliente?.documentoIdentidad || m.clienteCedula || 'Sin cédula' }}
+              </td>
+              <td class="px-4 py-3.5 text-sm font-semibold text-slate-700">
+                {{ m.plan?.nombrePlan || m.tipoMembresiaNombre }}
+              </td>
               <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.fechaInicio) }}</td>
               <td class="px-4 py-3.5 text-sm text-slate-500">{{ formatDate(m.fechaFin) }}</td>
               <td class="px-4 py-3.5">
@@ -154,7 +162,7 @@ const filtroSucursal = computed(() =>
               </td>
               <td class="px-4 py-3.5">
                 <router-link
-                  :to="{ name: 'RenovarMembresia', params: { clienteId: m.clienteId } }"
+                  :to="{ name: 'RenovarMembresia', params: { clienteId: m.cliente?.id } }"
                   class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm inline-block whitespace-nowrap"
                 >
                   Renovar Membresía

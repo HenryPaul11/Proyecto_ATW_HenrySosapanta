@@ -93,6 +93,12 @@ const router = createRouter({
       component: () => import('@/views/admin/RegistrarEntrenador.vue'),
       meta: { requiresAuth: true, rol: 'admin' },
     },
+    {
+      path: '/entrenadores/:id/editar',
+      name: 'EditarEntrenador',
+      component: () => import('@/views/admin/EditarEntrenador.vue'),
+      meta: { requiresAuth: true, rol: 'admin' },
+    },
 
     // ─── Entrenador ────────────────────────────────────────────────────────
     {

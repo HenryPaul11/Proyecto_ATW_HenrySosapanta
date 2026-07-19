@@ -129,12 +129,15 @@ export interface MembresiaCliente {
 
 export interface MembresiaActiva {
   id: number
-  tipo_membresia: string
-  descripcion: string
-  precio: number
-  fecha_inicio: string
-  fecha_fin: string
-  estado: 'activa' | 'vencida'
+  plan: {
+    id: number
+    nombrePlan: string
+    descripcion: string
+    precio: number
+  } | null
+  fechaInicio: string
+  fechaFin: string
+  estado: string
 }
 
 export interface Pago {
@@ -153,12 +156,14 @@ export interface Pago {
 
 export interface HistorialPago {
   id: number
-  tipo_membresia: string
   monto: number
-  metodo_pago: string
-  fecha_pago: string
-  fecha_inicio: string
-  fecha_fin: string
+  metodoPago: string
+  fechaPago: string
+  membresia: {
+    plan: { nombrePlan: string } | null
+    fechaInicio: string
+    fechaFin: string
+  } | null
 }
 
 export interface Auditoria {
@@ -172,24 +177,24 @@ export interface Auditoria {
 
 export interface ClienteSession {
   id: number
-  nombre: string
-  apellido: string
-  cedula: string
+  nombreCompleto: string
+  documentoIdentidad: string
   telefono: string
   email: string
-  fecha_registro: string
+  fechaRegistro: string
+  sucursalId: number | null
 }
 
 export interface EntrenadorSession {
   id: number
-  nombre: string
-  apellido: string
-  cedula: string
+  nombreCompleto: string
+  documentoIdentidad: string
   telefono: string
   email: string
   especialidad: string
-  fecha_ingreso: string
+  fechaContratacion: string
   horario: string
+  sucursalId: number | null
 }
 
 export interface ClienteAsignado {
@@ -204,12 +209,15 @@ export interface ClienteAsignado {
 
 export interface Sesion {
   id: number
-  cliente_nombre: string
+  entrenadorId: number
+  entrenadorNombre: string
+  clienteId: number | null
+  clienteNombre: string | null
   fecha: string
   hora: string
   tipo: string
-  estado: 'completada' | 'pendiente' | 'cancelada'
-  notas: string
+  estado: 'ACTIVO' | 'INACTIVO'
+  notas?: string
 }
 
 export interface EntrenadorResumen {
@@ -228,10 +236,12 @@ export interface Equipo {
   categoria: string
   descripcion: string
   estado: string
-  /** Alias usado en db.json / formulario */
   imagen: string
-  /** Campo devuelto por el backend Spring */
   imagenUrl?: string
+  marca?: string
+  modelo?: string
+  valorAdquisicion?: number
+  fechaAdquisicion?: string
 }
 
 // ─── API Auth ─────────────────────────────────────────────────────────────────

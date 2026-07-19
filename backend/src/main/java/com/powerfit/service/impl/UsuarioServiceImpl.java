@@ -51,9 +51,12 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .rol(rol)
                 .estado(toEstado(request.getActivo()));
 
-        if (rol.getAmbito() == Rol.AmbitoRol.SUCURSAL) {
-            Sucursal sucursal = resolverSucursal(request.getSucursalId(), rol);
+        if (rol.getAmbito() == Rol.AmbitoRol.SUCURSAL && request.getSucursalId() != null) {
+            Sucursal sucursal = sucursalRepository.findById(request.getSucursalId())
+                .orElseThrow(() -> new ResourceNotFoundException("Sucursal no encontrada: " + request.getSucursalId()));
             builder.sucursal(sucursal);
+        } else if (rol.getAmbito() == Rol.AmbitoRol.SUCURSAL && request.getSucursalId() == null) {
+            throw new BadRequestException("sucursalId es obligatorio para el rol " + rol.getNombreRol());
         }
 
         return toResponse(usuarioRepository.save(builder.build()));
@@ -116,7 +119,6 @@ public class UsuarioServiceImpl implements UsuarioService {
             case "admin", "admin_matriz"   -> "ADMIN_MATRIZ";
             case "admin_sucursal"          -> "ADMIN_SUCURSAL";
             case "entrenador"              -> "ENTRENADOR";
-            case "recepcionista"           -> "RECEPCIONISTA";
             case "cliente"                 -> "CLIENTE";
             default                        -> rol.toUpperCase();
         };

@@ -1,6 +1,7 @@
 package com.powerfit.repository;
 
 import com.powerfit.entity.Equipo;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +12,7 @@ import java.util.List;
 public interface EquipoRepository extends JpaRepository<Equipo, Long> {
     boolean existsByNumeroSerie(String serie);
 
+    @EntityGraph(attributePaths = {"sucursal", "categoria"})
     @Query("SELECT e FROM Equipo e WHERE :sucursalId IS NULL OR e.sucursal.id = :sucursalId")
     List<Equipo> findBySucursal(@Param("sucursalId") Long sucursalId);
 

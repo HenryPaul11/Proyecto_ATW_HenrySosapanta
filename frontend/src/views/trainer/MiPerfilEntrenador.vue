@@ -15,9 +15,9 @@ function logout() { auth.logout(); router.push('/login') }
 const loading     = ref(false)
 const message     = ref('')
 const messageType = ref('')
-const form        = ref({ nombre: '', apellido: '', telefono: '', email: '' })
+const form        = ref({ nombreCompleto: '', telefono: '', email: '' })
 
-const inicial = computed(() => store.entrenador?.nombre?.charAt(0).toUpperCase() ?? '?')
+const inicial = computed(() => store.entrenador?.nombreCompleto?.charAt(0).toUpperCase() ?? '?')
 
 function formatFecha(d) {
   return new Date(d).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -34,8 +34,7 @@ async function guardar() {
   await new Promise(r => setTimeout(r, 400))
 
   if (store.entrenador) {
-    store.entrenador.nombre   = form.value.nombre
-    store.entrenador.apellido = form.value.apellido
+    store.entrenador.nombreCompleto = form.value.nombreCompleto
     store.entrenador.telefono = form.value.telefono
     store.entrenador.email    = form.value.email
   }
@@ -60,7 +59,7 @@ async function guardar() {
             {{ inicial }}
           </div>
           <div>
-            <h1 class="text-xl font-black text-slate-800">{{ store.entrenador?.nombre }} {{ store.entrenador?.apellido }}</h1>
+            <h1 class="text-xl font-black text-slate-800">{{ store.entrenador?.nombreCompleto }}</h1>
             <p class="text-sm text-slate-400 font-medium mt-0.5">{{ store.entrenador?.email }}</p>
             <span class="inline-block mt-1.5 bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-0.5 rounded-full">
               Entrenador · {{ store.entrenador?.especialidad }}
@@ -91,17 +90,10 @@ async function guardar() {
           <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-5">
             <h2 class="text-base font-bold text-slate-700 mb-5">Editar información personal</h2>
             <form @submit.prevent="guardar" class="flex flex-col gap-4">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nombre</label>
-                  <input v-model="form.nombre" type="text" required
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all bg-slate-50 focus:bg-white" />
-                </div>
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-1.5">Apellido</label>
-                  <input v-model="form.apellido" type="text" required
-                    class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all bg-slate-50 focus:bg-white" />
-                </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nombre completo</label>
+                <input v-model="form.nombreCompleto" type="text" required
+                  class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all bg-slate-50 focus:bg-white" />
               </div>
 
               <div>
@@ -137,7 +129,7 @@ async function guardar() {
               </div>
               <div class="flex justify-between py-2">
                 <span class="font-semibold text-slate-500">Fecha de ingreso</span>
-                <span class="text-slate-800 font-medium">{{ formatFecha(store.entrenador.fecha_ingreso) }}</span>
+                <span class="text-slate-800 font-medium">{{ formatFecha(store.entrenador.fechaContratacion) }}</span>
               </div>
               <div class="flex justify-between py-2">
                 <span class="font-semibold text-slate-500">Rol</span>

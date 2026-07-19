@@ -29,17 +29,20 @@ async function fetchEntrenadores() {
 const entrenadorFiltrados = computed(() => {
   const q = busqueda.value.trim().toLowerCase()
   if (!q) return entrenadores.value
-  return entrenadores.value.filter(e =>
-    `${e.nombre} ${e.apellido}`.toLowerCase().includes(q) || e.cedula?.includes(q)
-  )
+  return entrenadores.value.filter(e => {
+    const nom = (e.nombreCompleto || `${e.nombre ?? ''} ${e.apellido ?? ''}`).toLowerCase()
+    const doc = (e.documentoIdentidad || e.cedula || '')
+    return nom.includes(q) || doc.includes(q)
+  })
 })
 
 async function eliminar() {
   if (!entrenadorEliminar.value) return
   try {
     await httpClient.delete(`/entrenadores/${entrenadorEliminar.value.id}`)
+    const nom = entrenadorEliminar.value.nombreCompleto || `${entrenadorEliminar.value.nombre ?? ''} ${entrenadorEliminar.value.apellido ?? ''}`.trim()
     entrenadores.value = entrenadores.value.filter(e => e.id !== entrenadorEliminar.value.id)
-    message.value     = `Entrenador ${entrenadorEliminar.value.nombre} eliminado.`
+    message.value     = `Entrenador ${nom} eliminado.`
     messageType.value = 'success'
   } catch (err: any) {
     message.value     = err?.error || 'No se pudo eliminar.'
@@ -116,17 +119,23 @@ onMounted(fetchEntrenadores)
             <tr v-else v-for="(e, i) in entrenadorFiltrados" :key="e.id"
               class="border-b border-slate-100 hover:bg-blue-50 transition-colors"
               :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'">
-              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ e.nombre }} {{ e.apellido }}</td>
-              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.cedula }}</td>
+              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ e.nombreCompleto || `${e.nombre ?? ''} ${e.apellido ?? ''}`.trim() }}</td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.documentoIdentidad || e.cedula }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.telefono || '—' }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.email || '—' }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.especialidad || '—' }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.horario || '—' }}</td>
               <td class="px-4 py-3 whitespace-nowrap">
-                <button @click="entrenadorEliminar = e"
-                  class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-                  Eliminar
-                </button>
+                <div class="flex gap-2">
+                  <router-link :to="`/entrenadores/${e.id}/editar`"
+                    class="bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                    Editar
+                  </router-link>
+                  <button @click="entrenadorEliminar = e"
+                    class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                    Eliminar
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -141,7 +150,7 @@ onMounted(fetchEntrenadores)
         <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
           <h3 class="text-lg font-bold text-slate-800 mb-2">¿Eliminar entrenador?</h3>
           <p class="text-sm text-slate-500 mb-5">
-            Se eliminará a <strong>{{ entrenadorEliminar.nombre }} {{ entrenadorEliminar.apellido }}</strong>. Esta acción no se puede deshacer.
+            Se eliminará a <strong>{{ entrenadorEliminar.nombreCompleto || `${entrenadorEliminar.nombre ?? ''} ${entrenadorEliminar.apellido ?? ''}`.trim() }}</strong>. Esta acción no se puede deshacer.
           </p>
           <div class="flex gap-3">
             <button @click="eliminar"

@@ -2,9 +2,11 @@ package com.powerfit.service.impl;
 
 import com.powerfit.dto.request.SesionRequest;
 import com.powerfit.dto.response.SesionResponse;
+import com.powerfit.entity.Cliente;
 import com.powerfit.entity.Entrenador;
 import com.powerfit.entity.Sesion;
 import com.powerfit.exception.ResourceNotFoundException;
+import com.powerfit.repository.ClienteRepository;
 import com.powerfit.repository.EntrenadorRepository;
 import com.powerfit.repository.SesionRepository;
 import com.powerfit.service.AuditoriaService;
@@ -22,6 +24,7 @@ public class SesionServiceImpl implements SesionService {
 
     private final SesionRepository sesionRepository;
     private final EntrenadorRepository entrenadorRepository;
+    private final ClienteRepository clienteRepository;
     private final AuditoriaService auditoriaService;
 
     @Override
@@ -29,7 +32,10 @@ public class SesionServiceImpl implements SesionService {
         Sesion.EstadoGeneral estadoEnum = estado != null && !estado.isBlank()
                 ? Sesion.EstadoGeneral.valueOf(estado.toUpperCase())
                 : null;
-        return sesionRepository.findByEstadoOptional(estadoEnum, pageable).map(this::toResponse);
+        Page<Sesion> page = estadoEnum != null
+                ? sesionRepository.findByEstadoWithJoins(estadoEnum, pageable)
+                : sesionRepository.findAllWithJoins(pageable);
+        return page.map(this::toResponse);
     }
 
     @Override
@@ -90,6 +96,13 @@ public class SesionServiceImpl implements SesionService {
 
         sesion.setEntrenador(entrenador);
         sesion.setSucursal(entrenador.getSucursal());
+
+        if (request.getClienteId() != null) {
+            Cliente cliente = clienteRepository.findById(request.getClienteId().longValue())
+                    .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + request.getClienteId()));
+            sesion.setCliente(cliente);
+        }
+
         sesion.setNombre(request.getTipo() != null && !request.getTipo().isBlank() ? request.getTipo() : "Sesion");
         sesion.setTipo(toTipo(request.getTipo()));
         sesion.setFecha(request.getFecha());
@@ -118,14 +131,20 @@ public class SesionServiceImpl implements SesionService {
     }
 
     private SesionResponse toResponse(Sesion sesion) {
-        return SesionResponse.builder()
+        SesionResponse.SesionResponseBuilder builder = SesionResponse.builder()
                 .id(sesion.getId())
                 .entrenadorId(sesion.getEntrenador().getId())
                 .entrenadorNombre(sesion.getEntrenador().getNombreCompleto())
                 .fecha(sesion.getFecha())
                 .hora(sesion.getHoraInicio())
                 .tipo(sesion.getTipo().name())
-                .estado(sesion.getEstado().name())
-                .build();
+                .estado(sesion.getEstado().name());
+
+        if (sesion.getCliente() != null) {
+            builder.clienteId(sesion.getCliente().getId())
+                   .clienteNombre(sesion.getCliente().getNombreCompleto());
+        }
+
+        return builder.build();
     }
 }

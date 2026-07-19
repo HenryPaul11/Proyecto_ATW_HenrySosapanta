@@ -18,20 +18,18 @@ const errores     = ref<Record<string, string>>({})
 const form = ref({
   nombre: '', apellido: '', cedula: '', telefono: '', email: '',
   especialidad: '', horario: '', fechaIngreso: '',
-  usuario: '', contrasena: '',
+  contrasena: '',
 })
 
 function validar(): boolean {
   errores.value = {}
-  const { nombre, apellido, cedula, email, usuario, contrasena } = form.value
+  const { nombre, apellido, cedula, email, contrasena } = form.value
 
   if (!nombre.trim()) errores.value.nombre = 'El nombre es obligatorio.'
   if (!apellido.trim()) errores.value.apellido = 'El apellido es obligatorio.'
   if (!cedula.trim()) errores.value.cedula = 'La cédula es obligatoria.'
   else if (!/^\d{10}$/.test(cedula.trim())) errores.value.cedula = 'Exactamente 10 dígitos.'
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errores.value.email = 'Correo inválido.'
-  if (!usuario.trim()) errores.value.usuario = 'El usuario es obligatorio.'
-  else if (usuario.trim().length < 3) errores.value.usuario = 'Mínimo 3 caracteres.'
   if (!contrasena) errores.value.contrasena = 'La contraseña es obligatoria.'
   else if (contrasena.length < 6) errores.value.contrasena = 'Mínimo 6 caracteres.'
 
@@ -43,33 +41,23 @@ async function registrar() {
   if (!validar()) return
   loading.value = true
   try {
-    // 1. Crear usuario del sistema con rol entrenador
-    const userRes = await httpClient.post('/usuarios', {
-      usuario:    form.value.usuario.trim(),
-      nombre:     `${form.value.nombre.trim()} ${form.value.apellido.trim()}`,
-      correo:     form.value.email.trim() || `${form.value.usuario.trim()}@powerfit.com`,
-      contrasena: form.value.contrasena,
-      rol:        'entrenador',
-      activo:     true,
-    })
-    const usuarioId = userRes.data?.id
+    const sucursalId = auth.sucursalId ?? auth.sucursalActivaId ?? 1
 
-    // 2. Crear entrenador vinculado al usuario
     await httpClient.post('/entrenadores', {
-      nombre:       form.value.nombre.trim(),
-      apellido:     form.value.apellido.trim(),
-      cedula:       form.value.cedula.trim(),
-      telefono:     form.value.telefono.trim() || null,
-      email:        form.value.email.trim() || null,
-      especialidad: form.value.especialidad.trim() || null,
-      horario:      form.value.horario.trim() || null,
-      fechaIngreso: form.value.fechaIngreso || null,
-      usuarioId,
+      nombreCompleto:     `${form.value.nombre.trim()} ${form.value.apellido.trim()}`,
+      documentoIdentidad: form.value.cedula.trim(),
+      email:              form.value.email.trim() || null,
+      telefono:           form.value.telefono.trim() || null,
+      especialidad:       form.value.especialidad.trim() || null,
+      horario:            form.value.horario.trim() || null,
+      fechaIngreso:       form.value.fechaIngreso || null,
+      contrasena:         form.value.contrasena,
+      sucursalId,
     })
 
     message.value     = '¡Entrenador y usuario registrados exitosamente!'
     messageType.value = 'success'
-    form.value = { nombre: '', apellido: '', cedula: '', telefono: '', email: '', especialidad: '', horario: '', fechaIngreso: '', usuario: '', contrasena: '' }
+    form.value = { nombre: '', apellido: '', cedula: '', telefono: '', email: '', especialidad: '', horario: '', fechaIngreso: '', contrasena: '' }
     errores.value = {}
     setTimeout(() => router.push('/entrenadores'), 1500)
   } catch (err: any) {
@@ -171,21 +159,12 @@ async function registrar() {
           <!-- Acceso al sistema -->
           <div class="border-t border-slate-200 pt-4 mt-1">
             <p class="text-sm font-bold text-slate-600 mb-3">Acceso al sistema</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Usuario <span class="text-red-500">*</span></label>
-                <input v-model="form.usuario" type="text" placeholder="Ej: carlosfit"
-                  class="w-full px-4 py-3 border-2 rounded-xl text-sm focus:outline-none transition-all bg-slate-50 focus:bg-white"
-                  :class="errores.usuario ? 'border-red-400' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'" />
-                <p v-if="errores.usuario" class="text-red-500 text-xs mt-1">{{ errores.usuario }}</p>
-              </div>
-              <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Contraseña <span class="text-red-500">*</span></label>
-                <input v-model="form.contrasena" type="password" placeholder="Mínimo 6 caracteres"
-                  class="w-full px-4 py-3 border-2 rounded-xl text-sm focus:outline-none transition-all bg-slate-50 focus:bg-white"
-                  :class="errores.contrasena ? 'border-red-400' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'" />
-                <p v-if="errores.contrasena" class="text-red-500 text-xs mt-1">{{ errores.contrasena }}</p>
-              </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5">Contraseña <span class="text-red-500">*</span></label>
+              <input v-model="form.contrasena" type="password" placeholder="Mínimo 6 caracteres"
+                class="w-full px-4 py-3 border-2 rounded-xl text-sm focus:outline-none transition-all bg-slate-50 focus:bg-white"
+                :class="errores.contrasena ? 'border-red-400' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'" />
+              <p v-if="errores.contrasena" class="text-red-500 text-xs mt-1">{{ errores.contrasena }}</p>
             </div>
           </div>
 

@@ -23,4 +23,6 @@ public interface SucursalRepository extends JpaRepository<Sucursal, Long> {
 
     boolean existsByNombreAndIdNot(String nombre, Long id);
 
+    Optional<Sucursal> findByCodigo(String codigo);
+
 }

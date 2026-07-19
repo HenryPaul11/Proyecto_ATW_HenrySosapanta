@@ -22,9 +22,9 @@ const props = defineProps({
 })
 
 const fields = computed(() => [
-  { label: 'Nombre',   value: `${props.cliente.nombre} ${props.cliente.apellido}` },
-  { label: 'Cédula',   value: props.cliente.cedula },
-  { label: 'Teléfono', value: props.cliente.telefono },
-  { label: 'Email',    value: props.cliente.email },
+  { label: 'Nombre',   value: props.cliente.nombreCompleto || `${props.cliente.nombre ?? ''} ${props.cliente.apellido ?? ''}`.trim() || 'Sin nombre' },
+  { label: 'Cédula',   value: props.cliente.documentoIdentidad || props.cliente.cedula || 'Sin documento' },
+  { label: 'Teléfono', value: props.cliente.telefono || 'Sin teléfono' },
+  { label: 'Email',    value: props.cliente.email || 'Sin email' },
 ])
 </script>

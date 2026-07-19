@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useEquiposStore, IMAGEN_EQUIPO_DEFAULT } from '@/stores/equiposStore'
+import { httpClient } from '@/services/api'
 import Navbar from '@/components/admin/AdminNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 
@@ -21,7 +22,7 @@ const message   = ref('')
 const errorMsg  = ref('')
 
 // ── Formulario nuevo equipo ────────────────────────────────────
-const form = ref({ nombre: '', categoria: 'Cardio', descripcion: '', imagen: '', estado: 'disponible' })
+const form = ref({ nombre: '', categoria: 'Cardio', descripcion: '', imagen: '', estado: 'disponible', marca: '', modelo: '', valorAdquisicion: '', fechaAdquisicion: '' })
 const errores = ref<Record<string, string>>({})
 
 const categorias = ['Cardio', 'Fuerza', 'Funcional', 'Flexibilidad']
@@ -69,10 +70,15 @@ async function registrar() {
       categoria:   form.value.categoria,
       descripcion: form.value.descripcion.trim(),
       estado:      form.value.estado,
-      imagen:      form.value.imagen.trim() || IMAGEN_EQUIPO_DEFAULT,
+      imagenUrl:   form.value.imagen.trim() || IMAGEN_EQUIPO_DEFAULT,
+      marca:       form.value.marca.trim() || undefined,
+      modelo:      form.value.modelo.trim() || undefined,
+      valorAdquisicion: form.value.valorAdquisicion ? Number(form.value.valorAdquisicion) : undefined,
+      fechaAdquisicion: form.value.fechaAdquisicion || undefined,
+      sucursalId:  auth.sucursalId ?? auth.sucursalActivaId ?? 1,
     })
 
-    form.value    = { nombre: '', categoria: 'Cardio', descripcion: '', imagen: '', estado: 'disponible' }
+    form.value    = { nombre: '', categoria: 'Cardio', descripcion: '', imagen: '', estado: 'disponible', marca: '', modelo: '', valorAdquisicion: '', fechaAdquisicion: '' }
     errores.value = {}
     mostrarForm.value = false
     message.value = '✅ Equipo registrado correctamente.'
@@ -115,7 +121,7 @@ async function guardarEdicion() {
       imagenUrl: formEditar.value.imagen, imagen: formEditar.value.imagen,
     })
     const idx = store.equipos.findIndex((e: any) => e.id === equipoEditar.value.id)
-    if (idx !== -1) store.equipos[idx] = { ...store.equipos[idx], ...res.data }
+    if (idx !== -1) store.equipos[idx] = normalizarEquipo(res.data)
     equipoEditar.value = null
     message.value = '✓ Equipo actualizado.'
     setTimeout(() => message.value = '', 3000)
@@ -231,6 +237,34 @@ onMounted(() => store.fetchEquipos(true))
                 <option value="mantenimiento">En mantenimiento</option>
                 <option value="fuera_de_servicio">Fuera de servicio</option>
               </select>
+            </div>
+
+            <!-- Marca -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5">Marca</label>
+              <input v-model="form.marca" type="text" placeholder="Ej: Life Fitness"
+                class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all bg-slate-50 focus:bg-white" />
+            </div>
+
+            <!-- Modelo -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5">Modelo</label>
+              <input v-model="form.modelo" type="text" placeholder="Ej: 95T"
+                class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all bg-slate-50 focus:bg-white" />
+            </div>
+
+            <!-- Valor de adquisición -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5">Valor de Adquisición ($)</label>
+              <input v-model="form.valorAdquisicion" type="number" step="0.01" min="0" placeholder="Ej: 1500.00"
+                class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all bg-slate-50 focus:bg-white" />
+            </div>
+
+            <!-- Fecha de adquisición -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5">Fecha de Adquisición</label>
+              <input v-model="form.fechaAdquisicion" type="date"
+                class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 transition-all bg-slate-50 focus:bg-white" />
             </div>
 
             <!-- Botón -->

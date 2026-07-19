@@ -17,7 +17,7 @@ const fechaHoy = new Date().toLocaleDateString('es-EC', { weekday: 'long', day: 
 
 const clientesActivos    = computed(() => store.clientes.filter(c => c.estado_membresia === 'activa'))
 const sesionesHoy        = computed(() => store.sesiones.filter(s => s.fecha === hoy))
-const sesionesPendientes = computed(() => store.sesiones.filter(s => s.estado === 'pendiente'))
+const sesionesPendientes = computed(() => store.sesiones.filter(s => s.estado === 'ACTIVO'))
 
 onMounted(() => store.fetchAll(auth.usuario))
 </script>
@@ -32,7 +32,7 @@ onMounted(() => store.fetchAll(auth.usuario))
       <div class="mb-8">
         <p class="text-emerald-600 font-semibold text-sm mb-1">Panel de Entrenador</p>
         <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-          Bienvenido, {{ store.entrenador?.nombre ?? auth.usuario }}
+          Bienvenido, {{ store.entrenador?.nombreCompleto?.split(' ')[0] ?? auth.usuario }}
           <img src="/icons/musculo.svg" alt="💪" class="w-8 h-8 svg-icon" />
         </h1>
         <p class="text-slate-400 text-sm mt-1">{{ store.entrenador?.especialidad }} · {{ store.entrenador?.horario }}</p>
@@ -85,18 +85,20 @@ onMounted(() => store.fetchAll(auth.usuario))
                   {{ s.hora.slice(0, 5) }}
                 </div>
                 <div>
-                  <p class="font-semibold text-slate-800 text-sm">{{ s.cliente_nombre }}</p>
+                  <p class="font-semibold text-slate-800 text-sm">{{ s.clienteNombre ?? 'Sin cliente' }}</p>
                   <p class="text-xs text-slate-400">{{ s.tipo }}</p>
                 </div>
               </div>
               <!-- Badge con SVG en lugar de emoji -->
               <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full"
-                :class="s.estado === 'completada' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
-                <svg v-if="s.estado === 'completada'" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                :class="s.estado === 'ACTIVO' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'">
+                <svg v-if="s.estado === 'ACTIVO'" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-                <img v-else src="/icons/reloj.svg" class="w-3.5 h-3.5 icon-amber" alt="" />
-                {{ s.estado === 'completada' ? 'Completada' : 'Pendiente' }}
+                <svg v-else class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                {{ s.estado === 'ACTIVO' ? 'Activo' : 'Inactivo' }}
               </span>
             </div>
           </div>

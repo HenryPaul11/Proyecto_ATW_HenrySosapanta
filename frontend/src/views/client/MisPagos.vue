@@ -50,7 +50,7 @@ onMounted(async () => {
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 border-t-4 border-t-purple-500">
           <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Último pago</p>
           <p class="text-base font-black text-purple-600">
-            {{ store.historialPagos.length ? formatFecha(store.historialPagos[0].fecha_pago) : '—' }}
+            {{ store.historialPagos.length ? formatFecha(store.historialPagos[0].fechaPago) : '—' }}
           </p>
           <p class="text-xs text-slate-400 mt-1">Fecha más reciente</p>
         </div>
@@ -89,23 +89,23 @@ onMounted(async () => {
                 :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
               >
                 <td class="px-4 py-3 text-sm font-bold text-slate-700 whitespace-nowrap">#{{ pago.id }}</td>
-                <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ pago.tipo_membresia }}</td>
+                <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ pago.membresia?.plan?.nombrePlan }}</td>
                 <td class="px-4 py-3 whitespace-nowrap">
                   <span class="text-emerald-600 font-bold">${{ pago.monto.toFixed(2) }}</span>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
                   <span class="inline-block px-2.5 py-1 rounded-full text-xs font-bold"
                     :class="{
-                      'bg-emerald-100 text-emerald-800': pago.metodo_pago === 'efectivo',
-                      'bg-blue-100 text-blue-800':       pago.metodo_pago === 'tarjeta',
-                      'bg-amber-100 text-amber-800':     pago.metodo_pago === 'transferencia',
+                      'bg-emerald-100 text-emerald-800': pago.metodoPago?.toLowerCase() === 'efectivo',
+                      'bg-blue-100 text-blue-800':       pago.metodoPago?.toLowerCase() === 'tarjeta',
+                      'bg-amber-100 text-amber-800':     pago.metodoPago?.toLowerCase() === 'transferencia',
                     }">
-                    {{ pago.metodo_pago.charAt(0).toUpperCase() + pago.metodo_pago.slice(1) }}
+                    {{ pago.metodoPago?.charAt(0).toUpperCase() + pago.metodoPago?.slice(1) }}
                   </span>
                 </td>
-                <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(pago.fecha_pago) }}</td>
+                <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(pago.fechaPago) }}</td>
                 <td class="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">
-                  {{ formatFecha(pago.fecha_inicio) }} – {{ formatFecha(pago.fecha_fin) }}
+                  {{ formatFecha(pago.membresia?.fechaInicio) }} – {{ formatFecha(pago.membresia?.fechaFin) }}
                 </td>
               </tr>
             </tbody>

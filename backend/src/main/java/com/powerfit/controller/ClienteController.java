@@ -2,21 +2,27 @@ package com.powerfit.controller;
 
 import com.powerfit.dto.ApiResponse;
 import com.powerfit.entity.Cliente;
+import com.powerfit.entity.Rol;
 import com.powerfit.entity.Sucursal;
+import com.powerfit.entity.Usuario;
 import com.powerfit.exception.BadRequestException;
 import com.powerfit.exception.ResourceNotFoundException;
 import com.powerfit.repository.ClienteRepository;
+import com.powerfit.repository.RolRepository;
 import com.powerfit.repository.SucursalRepository;
+import com.powerfit.repository.UsuarioRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.http.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/clientes")
@@ -26,6 +32,9 @@ public class ClienteController {
 
     private final ClienteRepository clienteRepo;
     private final SucursalRepository sucursalRepo;
+    private final UsuarioRepository usuarioRepo;
+    private final RolRepository rolRepo;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Cliente>>> listar(
@@ -52,6 +61,21 @@ public class ClienteController {
             .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + id))));
     }
 
+    @GetMapping("/usuario/{email}")
+    public ResponseEntity<ApiResponse<Cliente>> porUsuario(@PathVariable String email) {
+        return ResponseEntity.ok(ApiResponse.ok(clienteRepo.findByEmail(email)
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado para usuario: " + email))));
+    }
+
+    @GetMapping("/perfil")
+    public ResponseEntity<ApiResponse<Cliente>> perfil(
+            @RequestParam(required = false) String usuario) {
+        if (usuario == null || usuario.isBlank())
+            throw new BadRequestException("Parámetro 'usuario' es obligatorio");
+        return ResponseEntity.ok(ApiResponse.ok(clienteRepo.findByEmail(usuario)
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado para usuario: " + usuario))));
+    }
+
     @GetMapping("/documento/{doc}")
     public ResponseEntity<ApiResponse<Cliente>> porDocumento(@PathVariable String doc) {
         return ResponseEntity.ok(ApiResponse.ok(
@@ -59,7 +83,16 @@ public class ClienteController {
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + doc))));
     }
 
+    // Alias para compatibilidad con frontend que usa /cedula/{cedula}
+    @GetMapping("/cedula/{cedula}")
+    public ResponseEntity<ApiResponse<Cliente>> porCedula(@PathVariable String cedula) {
+        return ResponseEntity.ok(ApiResponse.ok(
+            clienteRepo.findByDocumentoIdentidadAndEstado(cedula, Cliente.EstadoGeneral.ACTIVO)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con cédula: " + cedula))));
+    }
+
     @GetMapping("/sin-membresia")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<Cliente>>> sinMembresia(
             @RequestParam(required = false) Long sucursalId) {
         return ResponseEntity.ok(ApiResponse.ok(clienteRepo.sinMembresia(sucursalId)));
@@ -76,15 +109,40 @@ public class ClienteController {
         if (clienteRepo.existsByDocumentoIdentidad(doc))
             throw new BadRequestException("Documento ya registrado: " + doc);
 
+        String email = body.get("email") != null ? body.get("email").toString() : null;
+        String contrasena = body.get("contrasena") != null ? body.get("contrasena").toString() : null;
+
         Cliente c = Cliente.builder()
             .sucursal(sucursal)
             .nombreCompleto(body.getOrDefault("nombreCompleto", "").toString())
             .documentoIdentidad(doc)
-            .email(body.get("email") != null ? body.get("email").toString() : null)
+            .email(email)
             .telefono(body.get("telefono") != null ? body.get("telefono").toString() : null)
             .genero(body.get("genero") != null ? body.get("genero").toString() : null)
             .estado(Cliente.EstadoGeneral.ACTIVO)
             .build();
+
+        // Crear Usuario para login si se proporcionó email y contraseña
+        if (email != null && !email.isBlank() && contrasena != null && !contrasena.isBlank()) {
+            if (usuarioRepo.existsByEmail(email))
+                throw new BadRequestException("Ya existe un usuario con ese correo: " + email);
+
+            Rol rolCliente = rolRepo.findByNombreRol("CLIENTE")
+                .orElseThrow(() -> new ResourceNotFoundException("Rol CLIENTE no encontrado"));
+
+            Usuario usuario = Usuario.builder()
+                .email(email)
+                .nombreCompleto(body.getOrDefault("nombreCompleto", "").toString())
+                .telefono(body.get("telefono") != null ? body.get("telefono").toString() : null)
+                .passwordHash(passwordEncoder.encode(contrasena))
+                .rol(rolCliente)
+                .sucursal(sucursal)
+                .estado(Usuario.EstadoGeneral.ACTIVO)
+                .build();
+            usuario = usuarioRepo.save(usuario);
+            c.setUsuario(usuario);
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(clienteRepo.save(c), "Cliente registrado"));
     }
 

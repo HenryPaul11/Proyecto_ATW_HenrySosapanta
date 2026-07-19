@@ -95,12 +95,12 @@ function limpiarFiltros() { filtroUsuario.value = ''; filtroTabla.value = ''; fi
               class="border-b border-slate-100 transition-colors duration-150 hover:bg-blue-50 bg-white"
               :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
             >
-              <td class="px-4 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap">{{ row.tabla_afectada }}</td>
+              <td class="px-4 py-3 text-sm font-semibold text-slate-700 whitespace-nowrap">{{ row.tablaAfectada || row.tabla_afectada }}</td>
               <td class="px-4 py-3 whitespace-nowrap"><AccionBadge :accion="row.accion" /></td>
-              <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{{ row.usuario }}</td>
-              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(row.fecha_hora) }}</td>
-              <td class="px-4 py-3 align-top"><DatosAuditoria :datos="row.datos_anteriores" /></td>
-              <td class="px-4 py-3 align-top"><DatosAuditoria :datos="row.datos_nuevos" /></td>
+              <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{{ row.usuario?.nombreCompleto || row.usuario || 'Sistema' }}</td>
+              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(row.fechaHora || row.fecha_hora) }}</td>
+              <td class="px-4 py-3 align-top"><DatosAuditoria :datos="row.datosAnteriores || row.datos_anteriores" /></td>
+              <td class="px-4 py-3 align-top"><DatosAuditoria :datos="row.datosNuevos || row.datos_nuevos" /></td>
             </tr>
           </template>
         </PaginatedTable>

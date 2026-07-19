@@ -159,6 +159,10 @@ const performanceStore = usePerformanceStore()
 // Estados reactivos internos
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const items = ref<any[]>([])
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const allItems = ref<any[]>([])
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const filteredItems = ref<any[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 const currentPage = ref(0) // 0-indexed por Spring Boot
@@ -166,6 +170,7 @@ const pageSize = ref(10)
 const totalElements = ref(0)
 const totalPages = ref(0)
 const lastResponseTime = ref<number | null>(null)
+const isLocalPaginated = ref(false)
 
 // Campo de búsqueda con debounce
 const searchQuery = ref('')
@@ -192,6 +197,14 @@ const visiblePages = computed(() => {
   return pages
 })
 
+// Función para paginar localmente cuando el backend retorna un array plano
+function paginateLocal() {
+  const source = filteredItems.value
+  const start = currentPage.value * pageSize.value
+  const end = start + pageSize.value
+  items.value = source.slice(start, end)
+}
+
 // Función principal de carga de datos
 async function fetchData() {
   loading.value = true
@@ -200,6 +213,15 @@ async function fetchData() {
   const startTime = performance.now()
 
   try {
+    // Si ya tenemos datos locales paginados, solo recortar
+    if (isLocalPaginated.value) {
+      paginateLocal()
+      const duration = Math.round(performance.now() - startTime)
+      lastResponseTime.value = duration
+      loading.value = false
+      return
+    }
+
     // Unir la búsqueda debounced y otros filtros
     const params = {
       page: currentPage.value,
@@ -220,10 +242,13 @@ async function fetchData() {
         totalElements.value = pageData.totalElements ?? pageData.content.length
         totalPages.value = pageData.totalPages ?? Math.ceil(totalElements.value / pageSize.value)
       } else if (Array.isArray(pageData)) {
-        // Fallback si retorna un listado directo en lugar de Page
-        items.value = pageData
+        // Backend retorna array plano → paginar localmente
+        allItems.value = pageData
+        filteredItems.value = pageData
         totalElements.value = pageData.length
-        totalPages.value = 1
+        totalPages.value = Math.ceil(pageData.length / pageSize.value) || 1
+        isLocalPaginated.value = true
+        paginateLocal()
       } else {
         items.value = []
         totalElements.value = 0
@@ -257,20 +282,32 @@ async function fetchData() {
 function changePage(page: number) {
   if (page >= 0 && page < totalPages.value) {
     currentPage.value = page
-    fetchData()
+    if (isLocalPaginated.value) {
+      paginateLocal()
+    } else {
+      fetchData()
+    }
   }
 }
 
 // Recargar cuando cambie el tamaño de página o filtros externos
 watch(pageSize, () => {
   currentPage.value = 0
-  fetchData()
+  if (isLocalPaginated.value) {
+    totalPages.value = Math.ceil(filteredItems.value.length / pageSize.value) || 1
+    paginateLocal()
+  } else {
+    fetchData()
+  }
 })
 
 watch(
   () => props.filtros,
   () => {
     currentPage.value = 0
+    isLocalPaginated.value = false
+    allItems.value = []
+    filteredItems.value = []
     fetchData()
   },
   { deep: true }
@@ -281,7 +318,24 @@ watch(searchQuery, () => {
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
     currentPage.value = 0
-    fetchData()
+    if (isLocalPaginated.value) {
+      // Filtrar localmente los datos ya cargados
+      const q = searchQuery.value?.toLowerCase() || ''
+      if (!q) {
+        filteredItems.value = allItems.value
+      } else {
+        filteredItems.value = allItems.value.filter((item: any) =>
+          Object.values(item).some(v =>
+            v !== null && v !== undefined && String(v).toLowerCase().includes(q)
+          )
+        )
+      }
+      totalElements.value = filteredItems.value.length
+      totalPages.value = Math.ceil(filteredItems.value.length / pageSize.value) || 1
+      paginateLocal()
+    } else {
+      fetchData()
+    }
   }, 400) // 400ms de rebote
 })
 

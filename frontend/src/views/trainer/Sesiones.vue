@@ -14,8 +14,8 @@ function logout() { auth.logout(); router.push('/login') }
 const filtroActivo = ref('todos')
 const filtros = [
   { label: 'Todas',       value: 'todos'      },
-  { label: 'Pendientes',  value: 'pendiente'  },
-  { label: 'Completadas', value: 'completada' },
+  { label: 'Activas',     value: 'ACTIVO'     },
+  { label: 'Inactivas',   value: 'INACTIVO'   },
 ]
 const columnas = ['Cliente', 'Fecha', 'Hora', 'Tipo', 'Estado', 'Notas']
 
@@ -67,7 +67,7 @@ function formatFecha(d: string) {
             <tr v-for="(s, i) in items" :key="s.id"
               class="border-b border-slate-100 transition-colors hover:bg-emerald-50 bg-white"
               :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'">
-              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ s.cliente_nombre }}</td>
+              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ s.clienteNombre ?? 'Sin cliente' }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ formatFecha(s.fecha) }}</td>
               <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ s.hora }}</td>
               <td class="px-4 py-3 whitespace-nowrap">
@@ -77,12 +77,14 @@ function formatFecha(d: string) {
               </td>
               <td class="px-4 py-3 whitespace-nowrap">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
-                  :class="s.estado === 'completada' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'">
-                  <svg v-if="s.estado === 'completada'" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  :class="s.estado === 'ACTIVO' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'">
+                  <svg v-if="s.estado === 'ACTIVO'" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
-                  <img v-else src="/icons/reloj.svg" class="w-3.5 h-3.5 icon-amber" alt="" />
-                  {{ s.estado === 'completada' ? 'Completada' : 'Pendiente' }}
+                  <svg v-else class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  {{ s.estado === 'ACTIVO' ? 'Activa' : 'Inactiva' }}
                 </span>
               </td>
               <td class="px-4 py-3 text-xs text-slate-400 max-w-[180px] truncate">{{ s.notas || '—' }}</td>

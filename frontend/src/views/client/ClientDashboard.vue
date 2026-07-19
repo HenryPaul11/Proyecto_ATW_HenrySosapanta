@@ -16,18 +16,18 @@ const hoy = new Date()
 
 const diasRestantes = computed(() => {
   if (!store.membresia) return 0
-  return Math.max(0, Math.ceil((new Date(store.membresia.fecha_fin) - hoy) / 86_400_000))
+  return Math.max(0, Math.ceil((new Date(store.membresia.fechaFin) - hoy) / 86_400_000))
 })
 
 const infoPersonal = computed(() => {
   if (!store.cliente) return []
   const c = store.cliente
   return [
-    { label: 'Nombre completo:', value: `${c.nombre} ${c.apellido}` },
-    { label: 'Cédula:',          value: c.cedula   },
+    { label: 'Nombre completo:', value: c.nombreCompleto },
+    { label: 'Cédula:',          value: c.documentoIdentidad },
     { label: 'Teléfono:',        value: c.telefono },
-    { label: 'Email:',           value: c.email    },
-    { label: 'Registrado desde:', value: formatFecha(c.fecha_registro) },
+    { label: 'Email:',           value: c.email },
+    { label: 'Registrado desde:', value: formatFecha(c.fechaRegistro) },
   ]
 })
 
@@ -48,7 +48,7 @@ onMounted(() => store.fetchAll(auth.usuario))
       <div class="text-center mb-8 pb-6 border-b border-slate-200">
         <img src="/icons/pesa.svg" alt="🏋️" class="w-14 h-14 mx-auto mb-3 icon-slate" />
         <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight flex items-center justify-center gap-2">
-          ¡Bienvenido, {{ store.cliente?.nombre ?? auth.usuario }}!
+          ¡Bienvenido, {{ store.cliente?.nombreCompleto?.split(' ')[0] ?? auth.usuario }}!
           <img src="/icons/musculo.svg" alt="💪" class="w-8 h-8 icon-slate" />
         </h1>
         <p class="text-slate-500 text-sm mt-1 font-medium">Gestiona tu membresía y revisa tu información personal</p>
@@ -113,33 +113,33 @@ onMounted(() => store.fetchAll(auth.usuario))
               <div class="space-y-3 text-sm">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3">
                   <span class="font-bold text-slate-500 sm:min-w-[130px]">Tipo:</span>
-                  <span class="text-slate-800 font-semibold">{{ store.membresia.tipo_membresia }}</span>
+                  <span class="text-slate-800 font-semibold">{{ store.membresia.plan?.nombrePlan }}</span>
                 </div>
                 <div class="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3">
                   <span class="font-bold text-slate-500 sm:min-w-[130px]">Inicio:</span>
-                  <span class="text-slate-800 font-medium">{{ formatFecha(store.membresia.fecha_inicio) }}</span>
+                  <span class="text-slate-800 font-medium">{{ formatFecha(store.membresia.fechaInicio) }}</span>
                 </div>
                 <div class="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3">
                   <span class="font-bold text-slate-500 sm:min-w-[130px]">Vencimiento:</span>
-                  <span class="text-slate-800 font-medium">{{ formatFecha(store.membresia.fecha_fin) }}</span>
+                  <span class="text-slate-800 font-medium">{{ formatFecha(store.membresia.fechaFin) }}</span>
                 </div>
                 <div class="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3">
                   <span class="font-bold text-slate-500 sm:min-w-[130px]">Estado:</span>
                   <span
                     class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold"
-                    :class="store.membresia.estado === 'activa' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'"
+                    :class="store.membresia.estado === 'ACTIVA' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'"
                   >
-                    {{ store.membresia.estado === 'activa' ? 'ACTIVA' : 'VENCIDA' }}
+                    {{ store.membresia.estado === 'ACTIVA' ? 'ACTIVA' : 'VENCIDA' }}
                   </span>
                 </div>
               </div>
 
-              <div v-if="store.membresia.estado === 'activa' && diasRestantes <= 7 && diasRestantes >= 0"
+              <div v-if="store.membresia.estado === 'ACTIVA' && diasRestantes <= 7 && diasRestantes >= 0"
                 class="mt-4 bg-amber-50 border-l-4 border-amber-400 rounded-lg px-4 py-3 text-sm text-amber-800 font-semibold flex items-center gap-2">
                 <img src="/icons/reloj.svg" class="w-4 h-4 shrink-0 icon-amber" alt="" />
                 Tu membresía vence en <strong>{{ diasRestantes }} día{{ diasRestantes !== 1 ? 's' : '' }}</strong>
               </div>
-              <div v-else-if="store.membresia.estado === 'activa'"
+              <div v-else-if="store.membresia.estado === 'ACTIVA'"
                 class="mt-3 text-sm text-slate-500">
                 Días restantes: <strong class="text-emerald-600">{{ diasRestantes }}</strong>
               </div>

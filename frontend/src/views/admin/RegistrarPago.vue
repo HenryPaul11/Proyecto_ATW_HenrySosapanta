@@ -32,11 +32,13 @@ const loadingPago           = ref(false)
 const camposCliente = computed(() => {
   if (!clienteEncontrado.value) return []
   const c = clienteEncontrado.value
+  const nombre = c.nombreCompleto || [c.nombre, c.apellido].filter(Boolean).join(' ') || ''
+  const cedula = c.documentoIdentidad || c.cedula || ''
   return [
-    { label: 'Nombre',   value: `${c.nombre} ${c.apellido}` },
-    { label: 'Cédula',   value: c.cedula   },
-    { label: 'Teléfono', value: c.telefono },
-    { label: 'Email',    value: c.email    },
+    { label: 'Nombre',   value: nombre },
+    { label: 'Cédula',   value: cedula },
+    { label: 'Teléfono', value: c.telefono || '' },
+    { label: 'Email',    value: c.email    || '' },
   ]
 })
 
@@ -51,9 +53,10 @@ const resumenConfirmacion = computed(() => {
   ]
 })
 
-const puedeRegistrar = computed(() =>
-  membresiaSeleccionada.value && monto.value && metodoPago.value && membresiasDisponibles.value.length > 0,
-)
+const puedeRegistrar = computed(() => {
+  const montoNum = parseFloat(monto.value)
+  return membresiaSeleccionada.value && monto.value && montoNum > 0 && metodoPago.value && membresiasDisponibles.value.length > 0
+})
 
 async function buscarCliente() {
   message.value = ''
@@ -75,10 +78,14 @@ async function buscarCliente() {
 
     // Cruzar precio desde tipos de membresía
     membresiasDisponibles.value = todasMembresias
-      .filter(m => m.estado === 'activa')
+      .filter(m => (m.estado || '').toUpperCase() === 'ACTIVA')
       .map(m => {
-        const tipo = tipos.find(t => t.id === m.tipoMembresiaId)
-        return { ...m, precio: tipo?.precio ?? 0 }
+        const tipo = tipos.find(t => t.id === (m.plan?.id ?? m.tipoMembresiaId))
+        return {
+          ...m,
+          precio: tipo?.precio ?? m.plan?.precio ?? 0,
+          tipoMembresiaNombre: m.plan?.nombrePlan ?? tipo?.nombre ?? m.tipoMembresiaNombre ?? '—',
+        }
       })
 
     membresiaSeleccionada.value = null
@@ -106,6 +113,12 @@ function seleccionarMembresia(id, precio) {
 
 async function registrarPago() {
   if (!puedeRegistrar.value) return
+  const montoNum = parseFloat(monto.value)
+  if (isNaN(montoNum) || montoNum <= 0) {
+    message.value = 'El monto debe ser mayor a $0.00.'
+    messageType.value = 'error'
+    return
+  }
   const c    = clienteEncontrado.value
   const memb = membresiasDisponibles.value.find(m => m.id === membresiaSeleccionada.value)
   loadingPago.value = true
@@ -119,8 +132,8 @@ async function registrarPago() {
     const nuevo = res.data
     pagoIdConfirmado.value = nuevo?.id ?? '—'
     confirmacion.value = {
-      cliente:   `${c.nombre} ${c.apellido}`,
-      membresia: memb?.tipo_membresia ?? '—',
+      cliente:   c.nombreCompleto || `${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() || '—',
+      membresia: memb?.plan?.nombrePlan ?? memb?.tipoMembresiaNombre ?? memb?.tipo_membresia ?? '—',
       monto:     `$${Number(monto.value).toFixed(2)}`,
       metodo:    metodoPago.value,
       fecha:     new Date().toLocaleString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),

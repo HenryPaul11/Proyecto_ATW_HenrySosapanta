@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/membresias")
@@ -27,50 +28,82 @@ public class MembresiaController {
     private final SucursalRepository  sucursalRepo;
 
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<Page<Membresia>>> listar(
             @RequestParam(defaultValue = "0")  int    page,
             @RequestParam(defaultValue = "10") int    size,
             @RequestParam(required = false)    Long   sucursalId,
             @RequestParam(required = false)    String estado) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(ApiResponse.ok(membresiaRepo.findFiltered(sucursalId, estado, pageable)));
+        if (estado != null && !estado.isBlank()) {
+            Membresia.EstadoMembresia e = Membresia.EstadoMembresia.valueOf(estado.toUpperCase());
+            return ResponseEntity.ok(ApiResponse.ok(
+                sucursalId != null
+                    ? membresiaRepo.findBySucursalIdAndEstado(sucursalId, e, pageable)
+                    : membresiaRepo.findByEstado(e, pageable)));
+        }
+        return ResponseEntity.ok(ApiResponse.ok(
+            sucursalId != null
+                ? membresiaRepo.findBySucursalId(sucursalId, pageable)
+                : membresiaRepo.findAll(pageable)));
     }
 
     @GetMapping("/activas")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<Page<Membresia>>> activas(
             @RequestParam(defaultValue = "0")  int  page,
             @RequestParam(defaultValue = "10") int  size,
             @RequestParam(required = false)    Long sucursalId) {
+        Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(ApiResponse.ok(
-            membresiaRepo.findFiltered(sucursalId, "ACTIVA", PageRequest.of(page, size))));
+            sucursalId != null
+                ? membresiaRepo.findBySucursalIdAndEstado(sucursalId, Membresia.EstadoMembresia.ACTIVA, pageable)
+                : membresiaRepo.findByEstado(Membresia.EstadoMembresia.ACTIVA, pageable)));
     }
 
     @GetMapping("/vencidas")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<Page<Membresia>>> vencidas(
             @RequestParam(defaultValue = "0")  int  page,
             @RequestParam(defaultValue = "10") int  size,
             @RequestParam(required = false)    Long sucursalId) {
+        Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(ApiResponse.ok(
-            membresiaRepo.findFiltered(sucursalId, "VENCIDA", PageRequest.of(page, size))));
+            sucursalId != null
+                ? membresiaRepo.findBySucursalIdAndEstado(sucursalId, Membresia.EstadoMembresia.VENCIDA, pageable)
+                : membresiaRepo.findByEstado(Membresia.EstadoMembresia.VENCIDA, pageable)));
     }
 
     @GetMapping("/cliente/{clienteId}")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<Membresia>>> porCliente(@PathVariable Long clienteId) {
         return ResponseEntity.ok(ApiResponse.ok(membresiaRepo.findByClienteId(clienteId)));
+    }
+
+    @GetMapping("/cliente/{clienteId}/activa")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<Membresia>> activaPorCliente(@PathVariable Long clienteId) {
+        return membresiaRepo.findPrimeraActivaByClienteId(clienteId)
+            .map(m -> ResponseEntity.ok(ApiResponse.ok(m)))
+            .orElse(ResponseEntity.ok(ApiResponse.ok(null)));
     }
 
     @PostMapping("/asignar")
     public ResponseEntity<ApiResponse<Membresia>> asignar(@RequestBody Map<String, Object> body) {
         Long clienteId = Long.valueOf(body.get("clienteId").toString());
-        Long planId    = Long.valueOf(body.get("planId").toString());
+        // Soportar planId y tipoMembresiaId (compatibilidad frontend)
+        Long planId = body.get("planId") != null ? Long.valueOf(body.get("planId").toString())
+                    : body.get("tipoMembresiaId") != null ? Long.valueOf(body.get("tipoMembresiaId").toString())
+                    : null;
+        if (planId == null) throw new com.powerfit.exception.BadRequestException("planId es obligatorio");
 
         Cliente cliente = clienteRepo.findById(clienteId)
             .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
         Plan plan = planRepo.findById(planId)
             .orElseThrow(() -> new ResourceNotFoundException("Plan no encontrado"));
 
-        LocalDate inicio = LocalDate.now();
-        LocalDate fin    = inicio.plusDays(plan.getDuracionDias());
+        java.time.LocalDate inicio = java.time.LocalDate.now();
+        java.time.LocalDate fin    = inicio.plusDays(plan.getDuracionDias());
 
         Membresia m = Membresia.builder()
             .cliente(cliente).plan(plan)

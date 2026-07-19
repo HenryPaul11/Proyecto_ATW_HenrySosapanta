@@ -9,14 +9,32 @@ export const IMAGEN_EQUIPO_DEFAULT =
 function normalizarEquipo(raw: Partial<Equipo> & Record<string, unknown>): Equipo {
   const url = String(raw.imagenUrl ?? raw.imagen ?? '').trim()
   const imagen = url || IMAGEN_EQUIPO_DEFAULT
+
+  let cat = String(raw.categoria ?? '')
+  if (typeof raw.categoria === 'object' && raw.categoria !== null) {
+    cat = String((raw.categoria as Record<string, unknown>).nombre ?? '')
+  }
+
+  let est = String(raw.estado ?? 'disponible')
+  const estMap: Record<string, string> = {
+    OPERATIVO: 'disponible',
+    MANTENIMIENTO: 'mantenimiento',
+    DADO_DE_BAJA: 'fuera_de_servicio',
+  }
+  est = estMap[est] ?? est.toLowerCase()
+
   return {
     id: Number(raw.id),
     nombre: String(raw.nombre ?? ''),
-    categoria: String(raw.categoria ?? ''),
+    categoria: cat,
     descripcion: String(raw.descripcion ?? ''),
-    estado: String(raw.estado ?? 'disponible'),
+    estado: est,
     imagen,
     imagenUrl: imagen,
+    marca: raw.marca != null ? String(raw.marca) : undefined,
+    modelo: raw.modelo != null ? String(raw.modelo) : undefined,
+    valorAdquisicion: raw.valorAdquisicion != null ? Number(raw.valorAdquisicion) : undefined,
+    fechaAdquisicion: raw.fechaAdquisicion != null ? String(raw.fechaAdquisicion) : undefined,
   }
 }
 
@@ -35,17 +53,22 @@ export const useEquiposStore = defineStore('equipos', () => {
     finally { loading.value = false }
   }
 
-  async function registrarEquipo(equipo: Omit<Equipo, 'id'>) {
+  async function registrarEquipo(equipo: Omit<Equipo, 'id'> & { sucursalId?: number; marca?: string; modelo?: string; valorAdquisicion?: number; fechaAdquisicion?: string }) {
     loading.value = true
     try {
       const imagenUrl = (equipo.imagenUrl || equipo.imagen || IMAGEN_EQUIPO_DEFAULT).trim()
-      const payload = {
+      const payload: Record<string, unknown> = {
         nombre: equipo.nombre,
         categoria: equipo.categoria,
         descripcion: equipo.descripcion,
         estado: equipo.estado,
         imagenUrl,
+        sucursalId: equipo.sucursalId,
       }
+      if (equipo.marca) payload.marca = equipo.marca
+      if (equipo.modelo) payload.modelo = equipo.modelo
+      if (equipo.valorAdquisicion != null) payload.valorAdquisicion = equipo.valorAdquisicion
+      if (equipo.fechaAdquisicion) payload.fechaAdquisicion = equipo.fechaAdquisicion
       const res = await httpClient.post('/equipos', payload)
       const nuevo = normalizarEquipo(res.data)
       equipos.value.unshift(nuevo)

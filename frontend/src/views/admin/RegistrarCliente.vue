@@ -16,13 +16,13 @@ const messageType = ref('')
 const errores     = ref<Record<string, string>>({})
 
 const form = ref({
-  nombre: '', apellido: '', cedula: '', telefono: '', email: '',
-  usuario: '', contrasena: '',
+  nombre: '', apellido: '', cedula: '', telefono: '', email: '', genero: '',
+  contrasena: '',
 })
 
 function validar(): boolean {
   errores.value = {}
-  const { nombre, apellido, cedula, telefono, email, usuario, contrasena } = form.value
+  const { nombre, apellido, cedula, email, contrasena } = form.value
 
   if (!nombre.trim()) errores.value.nombre = 'El nombre es obligatorio.'
   else if (nombre.trim().length < 2) errores.value.nombre = 'Mínimo 2 caracteres.'
@@ -33,14 +33,11 @@ function validar(): boolean {
   if (!cedula.trim()) errores.value.cedula = 'La cédula es obligatoria.'
   else if (!/^\d{10}$/.test(cedula.trim())) errores.value.cedula = 'Exactamente 10 dígitos numéricos.'
 
-  if (telefono.trim() && !/^\d{7,15}$/.test(telefono.trim()))
+  if (form.value.telefono.trim() && !/^\d{7,15}$/.test(form.value.telefono.trim()))
     errores.value.telefono = 'Entre 7 y 15 dígitos.'
 
   if (!email.trim()) errores.value.email = 'El correo es obligatorio.'
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errores.value.email = 'Correo inválido.'
-
-  if (!usuario.trim()) errores.value.usuario = 'El usuario es obligatorio.'
-  else if (usuario.trim().length < 3) errores.value.usuario = 'Mínimo 3 caracteres.'
 
   if (!contrasena.trim()) errores.value.contrasena = 'La contraseña es obligatoria.'
   else if (contrasena.length < 6) errores.value.contrasena = 'Mínimo 6 caracteres.'
@@ -53,35 +50,21 @@ async function registrar() {
   if (!validar()) return
   loading.value = true
   try {
-    // sucursalId del admin que registra
-    // Si es admin matriz (sin sucursal asignada), usar la sucursal seleccionada o la default
     const sucursalId = auth.sucursalId ?? auth.sucursalMatrizId ?? 1
 
-    // 1. Crear usuario del sistema con rol cliente
-    const userRes = await httpClient.post('/usuarios', {
-      usuario:    form.value.usuario.trim(),
-      nombre:     `${form.value.nombre.trim()} ${form.value.apellido.trim()}`,
-      correo:     form.value.email.trim(),
-      contrasena: form.value.contrasena,
-      rol:        'cliente',
-      sucursalId,
-      activo:     true,
-    })
-    const usuarioId = userRes.data?.id
-
-    // 2. Crear cliente vinculado al usuario y la sucursal
     await httpClient.post('/clientes', {
       nombreCompleto:     `${form.value.nombre.trim()} ${form.value.apellido.trim()}`,
       documentoIdentidad: form.value.cedula.trim(),
       email:              form.value.email.trim(),
       telefono:           form.value.telefono.trim() || null,
+      genero:             form.value.genero || null,
+      contrasena:         form.value.contrasena,
       sucursalId,
-      usuarioId,
     })
 
     message.value     = '¡Cliente y usuario registrados exitosamente!'
     messageType.value = 'success'
-    form.value = { nombre: '', apellido: '', cedula: '', telefono: '', email: '', usuario: '', contrasena: '' }
+    form.value = { nombre: '', apellido: '', cedula: '', telefono: '', email: '', genero: '', contrasena: '' }
     errores.value = {}
     setTimeout(() => router.push('/clientes'), 1500)
   } catch (err: any) {
@@ -176,7 +159,7 @@ async function registrar() {
             <label for="email" class="block text-sm font-semibold text-slate-700 mb-1.5">
               Email <span class="text-red-500">*</span>
             </label>
-            <input id="email" v-model="form.email" type="text" placeholder="Ej: juan@mail.com"
+            <input id="email" v-model="form.email" type="text" placeholder="Ej: juan@powerfit.com"
               class="w-full px-4 py-3 border-2 rounded-xl text-sm focus:outline-none transition-all bg-slate-50 focus:bg-white"
               :class="errores.email ? 'border-red-400 focus:border-red-500 focus:ring-red-100' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'" />
             <p v-if="errores.email" class="text-red-500 text-xs mt-1 flex items-center gap-1">
@@ -185,30 +168,30 @@ async function registrar() {
             </p>
           </div>
 
+          <div>
+            <label for="genero" class="block text-sm font-semibold text-slate-700 mb-1.5">Género</label>
+            <select id="genero" v-model="form.genero"
+              class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-white">
+              <option value="">Seleccionar…</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+
           <p class="text-xs text-slate-400 -mt-1">Los campos marcados con <span class="text-red-500 font-bold">*</span> son obligatorios.</p>
 
-          <!-- Separador acceso -->
+          <!-- Contraseña acceso -->
           <div class="border-t border-slate-200 pt-4 mt-1">
             <p class="text-sm font-bold text-slate-600 mb-3">Acceso al sistema</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label for="usuario" class="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Usuario <span class="text-red-500">*</span>
-                </label>
-                <input id="usuario" v-model="form.usuario" type="text" placeholder="Ej: juanperez"
-                  class="w-full px-4 py-3 border-2 rounded-xl text-sm focus:outline-none transition-all bg-slate-50 focus:bg-white"
-                  :class="errores.usuario ? 'border-red-400' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'" />
-                <p v-if="errores.usuario" class="text-red-500 text-xs mt-1">{{ errores.usuario }}</p>
-              </div>
-              <div>
-                <label for="contrasena" class="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Contraseña <span class="text-red-500">*</span>
-                </label>
-                <input id="contrasena" v-model="form.contrasena" type="password" placeholder="Mínimo 6 caracteres"
-                  class="w-full px-4 py-3 border-2 rounded-xl text-sm focus:outline-none transition-all bg-slate-50 focus:bg-white"
-                  :class="errores.contrasena ? 'border-red-400' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'" />
-                <p v-if="errores.contrasena" class="text-red-500 text-xs mt-1">{{ errores.contrasena }}</p>
-              </div>
+            <div>
+              <label for="contrasena" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                Contraseña <span class="text-red-500">*</span>
+              </label>
+              <input id="contrasena" v-model="form.contrasena" type="password" placeholder="Mínimo 6 caracteres"
+                class="w-full px-4 py-3 border-2 rounded-xl text-sm focus:outline-none transition-all bg-slate-50 focus:bg-white"
+                :class="errores.contrasena ? 'border-red-400' : 'border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'" />
+              <p v-if="errores.contrasena" class="text-red-500 text-xs mt-1">{{ errores.contrasena }}</p>
             </div>
           </div>
 

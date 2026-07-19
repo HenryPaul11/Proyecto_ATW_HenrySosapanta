@@ -2,6 +2,7 @@ package com.powerfit.controller;
 
 import com.powerfit.dto.ApiResponse;
 import com.powerfit.entity.*;
+import com.powerfit.exception.BadRequestException;
 import com.powerfit.exception.ResourceNotFoundException;
 import com.powerfit.repository.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import org.springframework.transaction.annotation.Transactional;
 
 @RestController
 @RequestMapping("/api/pagos")
@@ -25,6 +27,7 @@ public class PagoController {
     private final ClienteRepository   clienteRepo;
 
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<Page<Pago>>> listar(
             @RequestParam(defaultValue = "0")  int  page,
             @RequestParam(defaultValue = "20") int  size,
@@ -34,12 +37,14 @@ public class PagoController {
     }
 
     @GetMapping("/{id}")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<Pago>> porId(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(pagoRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Pago no encontrado: " + id))));
     }
 
     @GetMapping("/cliente/{clienteId}")
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<Pago>>> porCliente(@PathVariable Long clienteId) {
         return ResponseEntity.ok(ApiResponse.ok(pagoRepo.findByClienteId(clienteId)));
     }
@@ -58,21 +63,38 @@ public class PagoController {
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity<ApiResponse<Pago>> registrar(@RequestBody Map<String, Object> body) {
         Long membresiaId = Long.valueOf(body.get("membresiaId").toString());
         Membresia memb   = membresiaRepo.findById(membresiaId)
             .orElseThrow(() -> new ResourceNotFoundException("Membresía no encontrada"));
 
+        BigDecimal monto = new BigDecimal(body.get("monto").toString());
+        if (monto.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("El monto debe ser mayor a $0.00");
+        }
+
+        // Forzar inicialización de lazy associations antes de construir el Pago
+        Long clienteId  = memb.getCliente().getId();
+        Long sucursalId = memb.getSucursal().getId();
+
         Pago p = Pago.builder()
             .membresia(memb)
             .cliente(memb.getCliente())
             .sucursal(memb.getSucursal())
-            .monto(new BigDecimal(body.get("monto").toString()))
+            .monto(monto)
             .metodoPago(Pago.MetodoPago.valueOf(body.get("metodoPago").toString().toUpperCase()))
             .estado(Pago.EstadoPago.COMPLETADO)
             .build();
+        Pago guardado = pagoRepo.save(p);
+
+        // Serializar lazy associations de la respuesta
+        guardado.getMembresia().getId();
+        guardado.getCliente().getId();
+        guardado.getSucursal().getId();
+
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.ok(pagoRepo.save(p), "Pago registrado"));
+            .body(ApiResponse.ok(guardado, "Pago registrado"));
     }
 
     @DeleteMapping("/{id}")

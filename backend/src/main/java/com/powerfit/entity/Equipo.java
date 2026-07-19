@@ -1,11 +1,13 @@
 package com.powerfit.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "fieldHandler"})
 @Entity
 @Table(name = "equipos")
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
@@ -47,15 +49,17 @@ public class Equipo {
     @Builder.Default
     private EstadoEquipo estado = EstadoEquipo.OPERATIVO;
 
-    @Column(name = "fecha_creacion", nullable = false, updatable = false)
-    private LocalDateTime fechaCreacion;
+    @Column(length = 500)
+    private String imagenUrl;
+
+    @Column(length = 255)
+    private String descripcion;
 
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
 
     @PrePersist
     public void prePersist() {
-        fechaCreacion = LocalDateTime.now();
         fechaActualizacion = LocalDateTime.now();
         if (estado == null) estado = EstadoEquipo.OPERATIVO;
     }
