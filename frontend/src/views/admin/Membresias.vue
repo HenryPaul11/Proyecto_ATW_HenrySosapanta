@@ -103,7 +103,7 @@ const tabs = [
               <td class="px-4 py-3.5 text-sm text-slate-500">{{ c.email }}</td>
               <td class="px-4 py-3.5">
                 <router-link
-                  to="/membresias/asignar"
+                  :to="{ path: '/membresias/asignar', query: { clienteId: c.id } }"
                   class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm inline-block whitespace-nowrap"
                 >
                   Asignar Membresia

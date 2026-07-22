@@ -1,6 +1,9 @@
 <template>
   <div class="bg-white border-2 border-blue-500 rounded-2xl p-6 mb-6">
-    <h3 class="text-blue-600 font-bold text-lg mb-4">✅ Cliente Encontrado</h3>
+    <h3 class="text-blue-600 font-bold text-lg mb-4 flex items-center gap-2">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Cliente Encontrado
+    </h3>
     <div class="divide-y divide-slate-100">
       <div
         v-for="field in fields"

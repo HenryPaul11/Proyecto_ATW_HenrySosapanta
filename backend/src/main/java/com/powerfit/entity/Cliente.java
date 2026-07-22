@@ -3,7 +3,6 @@ package com.powerfit.entity;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "fieldHandler"})
@@ -39,9 +38,6 @@ public class Cliente {
 
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
-
-    @Column(name = "fecha_nacimiento")
-    private LocalDate fechaNacimiento;
 
     @Column(length = 20)
     private String genero;

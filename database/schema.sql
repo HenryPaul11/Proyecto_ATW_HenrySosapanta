@@ -278,6 +278,16 @@ SELECT
     'ACTIVO'
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'admin@powerfit.com');
 
+-- Planes de membresía iniciales (3 planes)
+INSERT INTO planes (sucursal_id, nombre_plan, descripcion, duracion_dias, precio, estado) VALUES
+    ((SELECT sucursal_id FROM sucursales WHERE codigo = 'MAT001'),
+     'Plan Básico', 'Acceso al gimnasio con equipamiento base y zona de peso libre', 30, 25.00, 'ACTIVO'),
+    ((SELECT sucursal_id FROM sucursales WHERE codigo = 'MAT001'),
+     'Plan Premium', 'Acceso completo con clases grupales, zona VIP y asesoría inicial', 30, 45.00, 'ACTIVO'),
+    ((SELECT sucursal_id FROM sucursales WHERE codigo = 'MAT001'),
+     'Plan Elite', 'Acceso ilimitado con entrenador personal, nutrición y todas las instalaciones', 30, 75.00, 'ACTIVO')
+ON CONFLICT DO NOTHING;
+
 -- Categorías de equipo iniciales
 INSERT INTO categorias_equipo (nombre, descripcion) VALUES
     ('Cardio', 'Equipos de entrenamiento cardiovascular'),

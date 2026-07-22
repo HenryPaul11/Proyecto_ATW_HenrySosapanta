@@ -50,7 +50,10 @@ onMounted(() => store.fetchAll(auth.usuario))
 
       <!-- Sin entrenador asociado -->
       <div v-else-if="!store.entrenador" class="bg-red-50 border-l-4 border-red-400 rounded-xl p-5 mb-6">
-        <p class="text-red-800 font-bold text-sm">⚠️ No se encontró información de entrenador para tu usuario. Contacta con administración.</p>
+        <p class="text-red-800 font-bold text-sm flex items-center gap-1.5">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            No se encontró información de entrenador para tu usuario. Contacta con administración.
+          </p>
       </div>
 
       <template v-else>

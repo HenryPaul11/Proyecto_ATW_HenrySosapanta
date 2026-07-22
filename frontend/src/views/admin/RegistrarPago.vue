@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { httpClient } from '@/services/api'
@@ -32,7 +32,6 @@ const navLinks = computed(() => {
 const pasos      = ['Buscar Cliente', 'Registrar Pago', 'Confirmación']
 const pasoActual = ref(0)
 
-const cedulaBusqueda        = ref('')
 const clienteEncontrado     = ref(null)
 const membresiasDisponibles = ref([])
 const membresiaSeleccionada = ref(null)
@@ -42,8 +41,13 @@ const message               = ref('')
 const messageType           = ref('')
 const pagoIdConfirmado      = ref(null)
 const confirmacion          = ref({})
-const loadingBuscar         = ref(false)
 const loadingPago           = ref(false)
+
+const busquedaCliente    = ref('')
+const resultadosClientes = ref([])
+const buscandoCliente    = ref(false)
+const mostrarDropdown    = ref(false)
+let debounceTimer = null
 
 const camposCliente = computed(() => {
   if (!clienteEncontrado.value) return []
@@ -74,55 +78,80 @@ const puedeRegistrar = computed(() => {
   return membresiaSeleccionada.value && monto.value && montoNum > 0 && metodoPago.value && membresiasDisponibles.value.length > 0
 })
 
-async function buscarCliente() {
-  message.value = ''
-  const cedula = cedulaBusqueda.value.trim()
-  if (!cedula) { message.value = 'Ingrese una cédula.'; messageType.value = 'error'; return }
-  loadingBuscar.value = true
-  try {
-    // Buscar cliente y tipos de membresía en paralelo
-    const [clienteRes, tiposRes] = await Promise.all([
-      httpClient.get(`/clientes/cedula/${cedula}`),
-      httpClient.get('/tipos-membresia'),
-    ])
-    clienteEncontrado.value = clienteRes.data
-    const tipos = tiposRes.data ?? []
+function clienteNombre(c) {
+  return c.nombreCompleto || `${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() || 'Sin nombre'
+}
 
-    // Obtener membresías del cliente
-    const membRes = await httpClient.get(`/membresias/cliente/${clienteEncontrado.value.id}`).catch(() => ({ data: [] }))
-    const todasMembresias = membRes.data ?? []
-
-    // Cruzar precio desde tipos de membresía
-    membresiasDisponibles.value = todasMembresias
-      .filter(m => (m.estado || '').toUpperCase() === 'ACTIVA')
-      .map(m => {
-        const tipo = tipos.find(t => t.id === (m.plan?.id ?? m.tipoMembresiaId))
-        return {
-          ...m,
-          precio: tipo?.precio ?? m.plan?.precio ?? 0,
-          tipoMembresiaNombre: m.plan?.nombrePlan ?? tipo?.nombre ?? m.tipoMembresiaNombre ?? '—',
-        }
-      })
-
-    membresiaSeleccionada.value = null
-    monto.value = ''
-    metodoPago.value = ''
-    message.value = ''
-    pasoActual.value = 1
-
-    if (membresiasDisponibles.value.length === 0) {
-      message.value = 'El cliente no tiene membresías activas.'
-      messageType.value = 'warning'
+watch(busquedaCliente, (val) => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  if (!val || val.trim().length < 1) {
+    resultadosClientes.value = []
+    mostrarDropdown.value = false
+    return
+  }
+  debounceTimer = setTimeout(async () => {
+    buscandoCliente.value = true
+    try {
+      const params = { page: 0, size: 8, q: val.trim() }
+      if (auth.esSucursal) params.sucursalId = auth.sucursalId
+      const res = await httpClient.get('/clientes/paginado', { params })
+      const page = res.data
+      resultadosClientes.value = page?.content ?? page ?? []
+      mostrarDropdown.value = resultadosClientes.value.length > 0
+    } catch {
+      resultadosClientes.value = []
+    } finally {
+      buscandoCliente.value = false
     }
-  } catch {
-    message.value = 'Cliente no encontrado. Verifique la cédula.'
-    messageType.value = 'error'
-  } finally { loadingBuscar.value = false }
+  }, 300)
+})
+
+async function seleccionarCliente(c) {
+  clienteEncontrado.value = c
+  busquedaCliente.value = clienteNombre(c)
+  mostrarDropdown.value = false
+  message.value = ''
+
+  const [tiposRes, membRes] = await Promise.all([
+    httpClient.get('/tipos-membresia'),
+    httpClient.get(`/membresias/cliente/${c.id}`).catch(() => ({ data: [] })),
+  ])
+  const tipos = tiposRes.data ?? []
+  const todasMembresias = membRes.data ?? []
+
+  membresiasDisponibles.value = todasMembresias
+    .filter(m => (m.estado || '').toUpperCase() === 'ACTIVA')
+    .map(m => {
+      const tipo = tipos.find(t => t.id === (m.plan?.id ?? m.tipoMembresiaId))
+      return {
+        ...m,
+        precio: tipo?.precio ?? m.plan?.precio ?? 0,
+        tipoMembresiaNombre: m.plan?.nombrePlan ?? tipo?.nombre ?? m.tipoMembresiaNombre ?? '—',
+      }
+    })
+
+  membresiaSeleccionada.value = null
+  monto.value = ''
+  metodoPago.value = ''
+
+  if (membresiasDisponibles.value.length === 0) {
+    message.value = 'El cliente no tiene membresías activas.'
+    messageType.value = 'warning'
+  }
+}
+
+function continuarAPago() {
+  pasoActual.value = 1
+}
+
+function cerrarDropdown(e) {
+  if (!e.target.closest('.busqueda-cliente')) {
+    mostrarDropdown.value = false
+  }
 }
 
 function seleccionarMembresia(id, precio) {
   membresiaSeleccionada.value = id
-  // Buscar el precio directamente de la membresía enriquecida
   const memb = membresiasDisponibles.value.find(m => m.id === id)
   monto.value = Number(memb?.precio ?? precio ?? 0).toFixed(2)
 }
@@ -165,7 +194,7 @@ function resetBusqueda() {
   clienteEncontrado.value = null
   membresiasDisponibles.value = []
   membresiaSeleccionada.value = null
-  cedulaBusqueda.value = ''
+  busquedaCliente.value = ''
   monto.value = ''
   metodoPago.value = ''
   message.value = ''
@@ -176,7 +205,7 @@ function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmac
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-slate-50">
+  <div class="min-h-screen flex flex-col bg-slate-50" @click="cerrarDropdown">
     <AppNavbar :usuario="auth.usuario" :links="navLinks" badge="Matriz" variant="blue" @logout="logout" />
 
     <main class="flex-1 flex flex-col items-center px-4 py-8 md:py-10 fade-in">
@@ -199,7 +228,9 @@ function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmac
               'bg-amber-50  text-amber-800  border-amber-200':     messageType === 'warning',
             }"
           >
-            <span>{{ { success:'✅', error:'❌', warning:'⚠️' }[messageType] }}</span>
+            <svg v-if="messageType === 'success'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <svg v-else-if="messageType === 'error'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <svg v-else class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <span>{{ message }}</span>
           </div>
         </Transition>
@@ -209,34 +240,52 @@ function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmac
           <div class="bg-slate-50 rounded-xl p-5">
             <h2 class="text-base font-bold text-slate-700 mb-4 flex items-center gap-2">
               <svg class="w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              Buscar Cliente por Cédula
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Seleccionar Cliente
             </h2>
-            <label for="cedula" class="block text-sm font-semibold text-slate-700 mb-2">Cédula del Cliente</label>
-            <input
-              id="cedula"
-              v-model="cedulaBusqueda"
-              type="text"
-              placeholder="Ingrese la cédula del cliente"
-              autofocus
-              class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all mb-4"
-              @keyup.enter="buscarCliente"
-            />
-            <div class="flex flex-col sm:flex-row gap-3">
+            <div class="relative busqueda-cliente">
+              <label for="cliente" class="block text-sm font-semibold text-slate-700 mb-2">Buscar por nombre o cédula</label>
+              <div class="relative">
+                <input
+                  id="cliente"
+                  v-model="busquedaCliente"
+                  type="text"
+                  placeholder="Escriba el nombre o cédula del cliente..."
+                  autofocus
+                  class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                  @focus="mostrarDropdown = resultadosClientes.length > 0"
+                />
+                <svg v-if="buscandoCliente" class="absolute right-3 top-3 w-4 h-4 text-blue-500 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+              </div>
+              <Transition name="fade">
+                <div v-if="mostrarDropdown && resultadosClientes.length > 0"
+                  class="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                  <button
+                    v-for="c in resultadosClientes"
+                    :key="c.id"
+                    @click="seleccionarCliente(c)"
+                    class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer"
+                  >
+                    <p class="text-sm font-semibold text-slate-800">{{ clienteNombre(c) }}</p>
+                    <p class="text-xs text-slate-400">{{ c.documentoIdentidad || c.cedula || '—' }} · {{ c.email || '—' }}</p>
+                  </button>
+                </div>
+              </Transition>
+            </div>
+
+            <div v-if="clienteEncontrado" class="mt-4 flex flex-col sm:flex-row gap-3">
               <button
-                @click="buscarCliente"
-                :disabled="loadingBuscar"
-                class="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-semibold text-sm px-5 py-3 rounded-xl transition-all disabled:opacity-60 cursor-pointer"
+                @click="continuarAPago"
+                class="flex-1 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-semibold text-sm px-5 py-3 rounded-xl transition-all cursor-pointer"
               >
-                {{ loadingBuscar ? 'Buscando…' : 'Buscar Cliente' }}
+                Continuar
               </button>
-              <router-link
-                to="/clientes"
-                class="flex-1 text-center bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm px-5 py-3 rounded-xl transition-all"
+              <button
+                @click="resetBusqueda"
+                class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm px-5 py-3 rounded-xl transition-all cursor-pointer"
               >
-                👥 Ver todos los clientes
-              </router-link>
+                Cancelar
+              </button>
             </div>
           </div>
         </template>
@@ -259,7 +308,8 @@ function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmac
             <div class="mb-4">
               <label class="block text-sm font-semibold text-slate-700 mb-3">Seleccione la Membresía</label>
               <div v-if="membresiasDisponibles.length === 0" class="text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm font-medium">
-                ⚠️ El cliente no tiene membresías activas. Asigne una membresía primero.
+                <svg class="w-4 h-4 inline-block mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                El cliente no tiene membresías activas. Asigne una membresía primero.
               </div>
               <div v-else class="flex flex-col gap-3">
                 <MembresiaCard
@@ -296,9 +346,9 @@ function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmac
                 class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-white"
               >
                 <option value="">Seleccione un método</option>
-                <option value="efectivo">💵 Efectivo</option>
-                <option value="tarjeta">💳 Tarjeta de Crédito/Débito</option>
-                <option value="transferencia">🏦 Transferencia Bancaria</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="tarjeta">Tarjeta de Crédito/Débito</option>
+                <option value="transferencia">Transferencia Bancaria</option>
               </select>
             </div>
 
@@ -314,7 +364,7 @@ function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmac
                 @click="resetBusqueda"
                 class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm px-5 py-3 rounded-xl transition-all cursor-pointer"
               >
-                Buscar Otro Cliente
+                Seleccionar Otro Cliente
               </button>
             </div>
           </div>
@@ -346,13 +396,15 @@ function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmac
                 @click="nuevoPago"
                 class="flex-1 sm:flex-none bg-blue-500 hover:bg-blue-600 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-all cursor-pointer"
               >
-                ➕ Registrar Otro Pago
+                <svg class="w-4 h-4 inline-block mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Registrar Otro Pago
               </button>
               <router-link
                 to="/pagos"
                 class="flex-1 sm:flex-none text-center bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm px-6 py-3 rounded-xl transition-all"
               >
-                📋 Ver Todos los Pagos
+                <svg class="w-4 h-4 inline-block mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Ver Todos los Pagos
               </router-link>
             </div>
           </div>
@@ -360,7 +412,8 @@ function nuevoPago() { resetBusqueda(); pagoIdConfirmado.value = null; confirmac
 
         <div v-if="pasoActual < 2" class="mt-5 text-center">
           <router-link to="/pagos" class="text-blue-500 hover:text-blue-700 text-sm font-semibold underline underline-offset-2">
-            📋 Ver Todos los Pagos →
+            <svg class="w-4 h-4 inline-block mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Ver Todos los Pagos →
           </router-link>
         </div>
 

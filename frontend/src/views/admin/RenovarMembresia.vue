@@ -98,8 +98,9 @@ async function renovar() {
 
     <main class="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-8 py-8 md:py-10 fade-in">
 
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 tracking-tight mb-8 text-center">
-        🔄 Renovar Membresía
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 tracking-tight mb-8 text-center flex items-center justify-center gap-2">
+        <svg class="w-7 h-7 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Renovar Membresia
       </h1>
 
       <Transition name="fade">
@@ -118,7 +119,8 @@ async function renovar() {
             </router-link>
             <router-link to="/pagos/registrar"
               class="inline-flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs px-4 py-2 rounded-lg transition-all">
-              💰 Registrar Pago
+              <svg class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Registrar Pago
             </router-link>
           </div>
         </div>
@@ -137,7 +139,10 @@ async function renovar() {
 
       <!-- Membresía actual -->
       <div class="bg-white rounded-2xl shadow-sm border-t-4 border-sky-400 p-5 sm:p-6 mb-5">
-        <h3 class="text-base font-bold text-slate-700 mb-3">📋 Membresía Actual</h3>
+        <h3 class="text-base font-bold text-slate-700 mb-3 flex items-center gap-2">
+          <svg class="w-5 h-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          Membresia Actual
+        </h3>
         <template v-if="membresiaActual">
           <div class="text-sm text-slate-600 space-y-1.5">
             <p><span class="font-semibold">Tipo:</span> {{ membresiaActual.tipo_membresia }}</p>
@@ -190,7 +195,7 @@ async function renovar() {
                 <p class="font-bold text-slate-800 text-base">{{ tipo.nombre }}</p>
                 <p class="text-xs text-slate-500 mt-1 leading-relaxed">
                   {{ tipo.descripcion }}<br />
-                  ⏱️ Duración: {{ tipo.duracion_dias }} días
+                  Duracion: {{ tipo.duracion_dias }} dias
                 </p>
               </div>
               <div class="shrink-0 text-right">

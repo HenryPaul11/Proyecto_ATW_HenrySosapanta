@@ -99,7 +99,7 @@ async function registrar() {
     form.value    = { nombre: '', categoria: 'Cardio', descripcion: '', imagen: '', estado: 'disponible', marca: '', modelo: '', valorAdquisicion: '', fechaAdquisicion: '' }
     errores.value = {}
     mostrarForm.value = false
-    message.value = '✅ Equipo registrado correctamente.'
+    message.value = 'Equipo registrado correctamente.'
     setTimeout(() => message.value = '', 3000)
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Error al registrar el equipo.'

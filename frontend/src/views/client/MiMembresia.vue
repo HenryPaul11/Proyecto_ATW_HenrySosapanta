@@ -66,8 +66,9 @@ onMounted(async () => {
               <img src="/icons/boleto.svg" class="w-10 h-10 mx-auto mb-3 icon-slate" alt="" />
           <h2 class="text-lg font-bold text-slate-700 mb-2">No tienes membresía activa</h2>
           <p class="text-slate-500 text-sm mb-6">Visita la recepción del gimnasio para adquirir un plan y comenzar a entrenar.</p>
-          <div class="bg-blue-50 rounded-xl p-4 text-sm text-blue-800 font-medium">
-            📞 Contáctanos: <strong>(02) 123-4567</strong> · Lun–Vie 5:00–22:00
+          <div class="bg-blue-50 rounded-xl p-4 text-sm text-blue-800 font-medium flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Contáctanos: <strong>(02) 123-4567</strong> · Lun–Vie 5:00–22:00
           </div>
         </div>
       </template>

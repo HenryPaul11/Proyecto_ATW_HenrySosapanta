@@ -213,8 +213,7 @@ async function fetchData() {
     const params = {
       page: currentPage.value,
       size: pageSize.value,
-      search: searchQuery.value || undefined,
-      query: searchQuery.value || undefined,
+      q: searchQuery.value || undefined,
       ...props.filtros,
     }
 

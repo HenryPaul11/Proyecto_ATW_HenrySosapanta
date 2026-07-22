@@ -42,7 +42,7 @@ public class ClienteController {
     public ResponseEntity<ApiResponse<List<Cliente>>> listar(
             @RequestParam(required = false) Long sucursalId) {
         List<Cliente> lista = (sucursalId != null)
-            ? clienteRepo.buscar(null, sucursalId, Pageable.unpaged()).getContent()
+            ? clienteRepo.buscar(sucursalId, Pageable.unpaged()).getContent()
             : clienteRepo.findAll();
         return ResponseEntity.ok(ApiResponse.ok(lista));
     }
@@ -53,8 +53,11 @@ public class ClienteController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false)    String q,
             @RequestParam(required = false)    Long sucursalId) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("nombreCompleto").ascending());
-        return ResponseEntity.ok(ApiResponse.ok(clienteRepo.buscar(q, sucursalId, pageable)));
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Cliente> result = (q != null && !q.isBlank())
+            ? clienteRepo.buscarConBusqueda(q.trim(), sucursalId, pageable)
+            : clienteRepo.buscar(sucursalId, pageable);
+        return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
     @GetMapping("/{id}")
@@ -95,9 +98,12 @@ public class ClienteController {
 
     @GetMapping("/sin-membresia")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<List<Cliente>>> sinMembresia(
-            @RequestParam(required = false) Long sucursalId) {
-        return ResponseEntity.ok(ApiResponse.ok(clienteRepo.sinMembresia(sucursalId)));
+    public ResponseEntity<ApiResponse<Page<Cliente>>> sinMembresia(
+            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false)    Long sucursalId) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(ApiResponse.ok(clienteRepo.sinMembresia(sucursalId, pageable)));
     }
 
     @PostMapping

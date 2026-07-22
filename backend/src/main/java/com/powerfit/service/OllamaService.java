@@ -9,6 +9,7 @@ import com.powerfit.repository.PagoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -83,7 +84,7 @@ public class OllamaService {
 
         if (pregunta.contains("cliente") || pregunta.contains("miembros") || pregunta.contains("socios")) {
             long totalClientes = clienteRepository.countByEstado(Cliente.EstadoGeneral.ACTIVO);
-            List<Cliente> sinMembresia = clienteRepository.sinMembresia(null);
+            List<Cliente> sinMembresia = clienteRepository.sinMembresia(null, Pageable.unpaged()).getContent();
             ctx.append("CLIENTES:\n");
             ctx.append("- Total clientes activos: ").append(totalClientes).append("\n");
             ctx.append("- Clientes sin membresia activa: ").append(sinMembresia.size()).append("\n");

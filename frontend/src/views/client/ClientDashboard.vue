@@ -68,7 +68,10 @@ onMounted(() => store.fetchAll(auth.usuario))
 
       <!-- Sin cliente asociado -->
       <div v-else-if="!store.cliente" class="bg-red-50 border-l-4 border-red-400 rounded-xl p-5 mb-6">
-        <h3 class="text-red-800 font-bold text-base mb-1">⚠️ Información importante</h3>
+        <h3 class="text-red-800 font-bold text-base mb-1 flex items-center gap-1.5">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Información importante
+          </h3>
         <p class="text-red-700 text-sm">No se encontró información de cliente para tu usuario. Contacta con la administración.</p>
       </div>
 
@@ -96,8 +99,9 @@ onMounted(() => store.fetchAll(auth.usuario))
 
           <!-- Membresía -->
           <div class="bg-white rounded-2xl border-2 border-slate-200 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-100 transition-all duration-300 p-6">
-            <h2 class="text-lg font-bold text-slate-800 mb-4 pb-3 border-b-2 border-blue-500">
-              🎫 Mi Membresía
+            <h2 class="text-lg font-bold text-slate-800 mb-4 pb-3 border-b-2 border-blue-500 flex items-center gap-2">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16"/><path d="M17 4v16"/><path d="M2 12h20"/></svg>
+              Mi Membresía
             </h2>
 
             <template v-if="!store.membresia">
