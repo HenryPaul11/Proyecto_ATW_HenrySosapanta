@@ -36,11 +36,19 @@ public class OllamaService {
     private final MembresiaRepository membresiaRepository;
     private final PagoRepository pagoRepository;
 
-    private static final String SISTEMA_BASE = "Eres PowerFit AI, un asistente inteligente para el sistema de gestion del gimnasio PowerFit. " +
-        "Responde siempre en espanol, de forma concisa y util. " +
-        "Tienes acceso a los datos reales del gimnasio y puedes responder preguntas sobre clientes, membresias, pagos y estadisticas. " +
-        "Si no tienes suficiente informacion para responder, di la verdad. " +
-        "Nunca inventes datos.";
+    private static final String SISTEMA_BASE = """
+        Eres PowerFit AI, el asistente del gimnasio PowerFit. Responde SIEMPRE en español.
+
+        REGLAS ESTRICTAS:
+        1. Te proporciono datos REALES y ACTUALES de la base de datos. USA ESOS DATOS para responder.
+        2. NUNCA digas que no tienes acceso a la información si los datos están en el contexto.
+        3. Responde con NÚMEROS EXACTOS basándote en los datos proporcionados.
+        4. Sé conciso: máximo 2-3 oraciones.
+        5. Si preguntan "cuántos clientes hay", responde el número exacto del contexto.
+        6. Si preguntan "cuántas transacciones", responde el número exacto del contexto.
+        7. Si preguntan por sucursales, responde con los datos que tengas.
+        8. NUNCA inventes datos. Si no tienes la información específica, di "no tengo ese dato específico".
+        """;
 
     public String chat(String mensaje, String contexto) {
         try {
@@ -54,7 +62,7 @@ public class OllamaService {
             body.put("model", modelo);
             body.put("prompt", prompt.toString());
             body.put("stream", false);
-            body.put("options", Map.of("temperature", 0.7, "num_predict", 500));
+                body.put("options", Map.of("temperature", 0.3, "num_predict", 300));
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -73,7 +81,15 @@ public class OllamaService {
     public String chatConDatos(String mensaje) {
         String contextoLower = mensaje.toLowerCase();
         String datosContexto = construirContexto(contextoLower);
-        return chat(mensaje, SISTEMA_BASE + "\n\nDatos actuales del gimnasio:\n" + datosContexto);
+
+        String prompt = SISTEMA_BASE + "\n\n" +
+            "=== DATOS REALES DE LA BASE DE DATOS (usa estos números para responder) ===\n" +
+            datosContexto + "\n" +
+            "=== FIN DE DATOS ===\n\n" +
+            "PREGUNTA DEL USUARIO: " + mensaje + "\n" +
+            "RESPUESTA (usa los datos de arriba):";
+
+        return chat(mensaje, prompt);
     }
 
     private String construirContexto(String pregunta) {
@@ -82,7 +98,7 @@ public class OllamaService {
         LocalDateTime inicioMes = hoy.withDayOfMonth(1).atStartOfDay();
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-        if (pregunta.contains("cliente") || pregunta.contains("miembros") || pregunta.contains("socios")) {
+        if (pregunta.contains("cliente") || pregunta.contains("miembros") || pregunta.contains("socios") || pregunta.contains("cuantos")) {
             long totalClientes = clienteRepository.countByEstado(Cliente.EstadoGeneral.ACTIVO);
             List<Cliente> sinMembresia = clienteRepository.sinMembresia(null, Pageable.unpaged()).getContent();
             ctx.append("CLIENTES:\n");
@@ -113,14 +129,14 @@ public class OllamaService {
             }
         }
 
-        if (pregunta.contains("pago") || pregunta.contains("ingreso") || pregunta.contains("dinero") || pregunta.contains("factura") || pregunta.contains("cobro")) {
+        if (pregunta.contains("pago") || pregunta.contains("ingreso") || pregunta.contains("dinero") || pregunta.contains("factura") || pregunta.contains("cobro") || pregunta.contains("transaccion") || pregunta.contains("transacciones")) {
             BigDecimal totalIngresos = pagoRepository.sumIngresos(null);
             BigDecimal promedioPago = pagoRepository.avgMonto();
             long totalPagos = pagoRepository.count();
             ctx.append("PAGOS:\n");
+            ctx.append("- Total transacciones realizadas: ").append(totalPagos).append("\n");
             ctx.append("- Total ingresos: $").append(totalIngresos != null ? totalIngresos.setScale(2) : "0.00").append("\n");
-            ctx.append("- Pago promedio: $").append(promedioPago != null ? promedioPago.setScale(2) : "0.00").append("\n");
-            ctx.append("- Total transacciones: ").append(totalPagos).append("\n");
+            ctx.append("- Monto promedio por transacción: $").append(promedioPago != null ? promedioPago.setScale(2) : "0.00").append("\n");
         }
 
         if (pregunta.contains("resumen") || pregunta.contains("estadistica") || pregunta.contains("reporte") || pregunta.contains("dashboard")) {
@@ -134,14 +150,22 @@ public class OllamaService {
             ctx.append("- Fecha de consulta: ").append(hoy.format(fmt)).append("\n");
         }
 
+        if (pregunta.contains("sucursal") || pregunta.contains("sucursales") || pregunta.contains("sede") || pregunta.contains("sedes")) {
+            ctx.append("SUCURSALES:\n");
+            ctx.append("- El sistema maneja sucursales. Consulta la lista desde el panel de administración.\n");
+        }
+
         if (ctx.isEmpty()) {
             long totalClientes = clienteRepository.countByEstado(Cliente.EstadoGeneral.ACTIVO);
             Long activas = membresiaRepository.countActivas(null);
             BigDecimal totalIngresos = pagoRepository.sumIngresos(null);
-            ctx.append("DATOS GENERALES:\n");
-            ctx.append("- Clientes activos: ").append(totalClientes).append("\n");
-            ctx.append("- Membresias activas: ").append(activas).append("\n");
-            ctx.append("- Ingresos totales: $").append(totalIngresos != null ? totalIngresos.setScale(2) : "0.00").append("\n");
+            long totalPagos = pagoRepository.count();
+            ctx.append("DATOS GENERALES DEL GIMNASIO:\n");
+            ctx.append("- Total clientes activos: ").append(totalClientes).append("\n");
+            ctx.append("- Total membresías activas: ").append(activas).append("\n");
+            ctx.append("- Total ingresos: $").append(totalIngresos != null ? totalIngresos.setScale(2) : "0.00").append("\n");
+            ctx.append("- Total transacciones: ").append(totalPagos).append("\n");
+            ctx.append("- Fecha: ").append(hoy.format(fmt)).append("\n");
         }
 
         return ctx.toString();
