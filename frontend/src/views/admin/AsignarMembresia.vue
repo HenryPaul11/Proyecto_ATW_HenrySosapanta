@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { httpClient } from '@/services/api'
@@ -37,12 +37,7 @@ const message           = ref('')
 const messageType       = ref('')
 const loadingAsignar    = ref(false)
 const loadingTipos      = ref(false)
-
-const busquedaCliente   = ref('')
-const resultadosClientes = ref([])
-const buscandoCliente   = ref(false)
-const mostrarDropdown   = ref(false)
-let debounceTimer = null
+const loadingCliente    = ref(false)
 
 async function fetchTiposMembresia() {
   if (tiposMembresia.value.length > 0) return
@@ -61,55 +56,18 @@ onMounted(async () => {
   await fetchTiposMembresia()
   const clienteId = route.query.clienteId
   if (clienteId) {
+    loadingCliente.value = true
     try {
       const res = await httpClient.get(`/clientes/${clienteId}`)
-      seleccionarCliente(res.data)
+      clienteEncontrado.value = res.data
     } catch {
-      // si falla, queda en modo búsqueda
-    }
-  }
-})
-
-function clienteNombre(c) {
-  return c.nombreCompleto || `${c.nombre ?? ''} ${c.apellido ?? ''}`.trim() || 'Sin nombre'
-}
-
-watch(busquedaCliente, (val) => {
-  if (debounceTimer) clearTimeout(debounceTimer)
-  if (!val || val.trim().length < 1) {
-    resultadosClientes.value = []
-    mostrarDropdown.value = false
-    return
-  }
-  debounceTimer = setTimeout(async () => {
-    buscandoCliente.value = true
-    try {
-      const params = { page: 0, size: 8, q: val.trim() }
-      if (auth.esSucursal) params.sucursalId = auth.sucursalId
-      const res = await httpClient.get('/clientes/paginado', { params })
-      const page = res.data
-      resultadosClientes.value = page?.content ?? page ?? []
-      mostrarDropdown.value = resultadosClientes.value.length > 0
-    } catch {
-      resultadosClientes.value = []
+      message.value = 'No se pudo cargar el cliente.'
+      messageType.value = 'error'
     } finally {
-      buscandoCliente.value = false
+      loadingCliente.value = false
     }
-  }, 300)
-})
-
-function seleccionarCliente(c) {
-  clienteEncontrado.value = c
-  busquedaCliente.value = clienteNombre(c)
-  mostrarDropdown.value = false
-  tipoSeleccionado.value = null
-}
-
-function cerrarDropdown(e) {
-  if (!e.target.closest('.busqueda-cliente')) {
-    mostrarDropdown.value = false
   }
-}
+})
 
 async function asignarMembresia() {
   if (!tipoSeleccionado.value || !clienteEncontrado.value) return
@@ -121,25 +79,16 @@ async function asignarMembresia() {
     })
     message.value = '¡Membresía asignada exitosamente!'
     messageType.value = 'success'
-    clienteEncontrado.value = null
-    busquedaCliente.value = ''
-    tipoSeleccionado.value = null
+    setTimeout(() => router.push('/membresias'), 1200)
   } catch (err) {
     message.value = err?.error || 'No se pudo asignar la membresía.'
     messageType.value = 'error'
   } finally { loadingAsignar.value = false }
 }
-
-function resetBusqueda() {
-  clienteEncontrado.value = null
-  busquedaCliente.value = ''
-  tipoSeleccionado.value = null
-  message.value = ''
-}
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-slate-50" @click="cerrarDropdown">
+  <div class="min-h-screen flex flex-col bg-slate-50">
     <AppNavbar :usuario="auth.usuario" :links="navLinks" badge="Matriz" variant="blue" @logout="logout" />
 
     <main class="flex-1 flex flex-col items-center px-4 py-8 md:py-10 fade-in">
@@ -163,48 +112,11 @@ function resetBusqueda() {
           </div>
         </Transition>
 
-        <!-- PASO 1 -->
-        <template v-if="!clienteEncontrado">
-          <div class="bg-slate-50 rounded-xl p-5">
-            <h2 class="text-base font-bold text-slate-700 mb-4 flex items-center gap-2">
-              <svg class="w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              Seleccionar Cliente
-            </h2>
-            <div class="relative busqueda-cliente">
-              <label for="cliente" class="block text-sm font-semibold text-slate-700 mb-2">Buscar por nombre o cédula</label>
-              <div class="relative">
-                <input
-                  id="cliente"
-                  v-model="busquedaCliente"
-                  type="text"
-                  placeholder="Escriba el nombre o cédula del cliente..."
-                  autofocus
-                  class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
-                  @focus="mostrarDropdown = resultadosClientes.length > 0"
-                />
-                <svg v-if="buscandoCliente" class="absolute right-3 top-3 w-4 h-4 text-blue-500 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
-              </div>
-              <Transition name="fade">
-                <div v-if="mostrarDropdown && resultadosClientes.length > 0"
-                  class="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
-                  <button
-                    v-for="c in resultadosClientes"
-                    :key="c.id"
-                    @click="seleccionarCliente(c)"
-                    class="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0 cursor-pointer"
-                  >
-                    <p class="text-sm font-semibold text-slate-800">{{ clienteNombre(c) }}</p>
-                    <p class="text-xs text-slate-400">{{ c.documentoIdentidad || c.cedula || '—' }} · {{ c.email || '—' }}</p>
-                  </button>
-                </div>
-              </Transition>
-            </div>
-          </div>
-        </template>
+        <div v-if="loadingCliente" class="text-center py-10 text-slate-400 text-sm animate-pulse">
+          Cargando cliente…
+        </div>
 
-        <!-- PASO 2 -->
-        <template v-else>
+        <template v-else-if="clienteEncontrado">
           <ClienteInfoCard :cliente="clienteEncontrado" />
 
           <div class="bg-slate-50 rounded-xl p-5">
@@ -226,21 +138,22 @@ function resetBusqueda() {
               />
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-3">
-              <button @click="asignarMembresia" :disabled="!tipoSeleccionado || loadingAsignar"
-                class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm px-5 py-3 rounded-xl transition-all disabled:opacity-60 cursor-pointer">
-                {{ loadingAsignar ? 'Asignando…' : 'Asignar Membresía' }}
-              </button>
-              <button @click="resetBusqueda"
-                class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm px-5 py-3 rounded-xl transition-all cursor-pointer">
-                Seleccionar Otro Cliente
-              </button>
-            </div>
+            <button @click="asignarMembresia" :disabled="!tipoSeleccionado || loadingAsignar"
+              class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm px-5 py-3 rounded-xl transition-all disabled:opacity-60 cursor-pointer">
+              {{ loadingAsignar ? 'Asignando…' : 'Asignar Membresía' }}
+            </button>
           </div>
         </template>
 
-        <div class="mt-5 text-center">
-          <router-link to="/pagos" class="text-blue-500 hover:text-blue-700 text-sm font-semibold underline underline-offset-2">
+        <div v-else class="text-center py-10 text-slate-400 text-sm">
+          No se encontró el cliente. Vuelve a la tabla de membresías y selecciona uno.
+        </div>
+
+        <div class="mt-5 flex flex-col sm:flex-row gap-3 text-center">
+          <router-link to="/membresias" class="flex-1 text-blue-500 hover:text-blue-700 text-sm font-semibold underline underline-offset-2">
+            ← Volver a Membresías
+          </router-link>
+          <router-link to="/pagos" class="flex-1 text-emerald-500 hover:text-emerald-700 text-sm font-semibold underline underline-offset-2">
             Ir a Registrar Pago →
           </router-link>
         </div>
