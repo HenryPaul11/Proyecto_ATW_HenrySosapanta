@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useAdminStore } from '@/stores/adminStore'
-import Navbar from '@/components/admin/AdminNavbar.vue'
+import AppNavbar from '@/components/shared/AppNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 
 const router = useRouter()
@@ -12,12 +12,28 @@ const admin  = useAdminStore()
 
 function logout() { auth.logout(); router.push('/login') }
 
+const navLinks = computed(() => {
+  const links = [
+    { to: '/dashboard',    label: 'Inicio',       icon: 'home'       },
+    { to: '/clientes',     label: 'Clientes',      icon: 'clientes'   },
+    { to: '/entrenadores', label: 'Entrenadores',  icon: 'clientes'   },
+    { to: '/membresias',   label: 'Membresías',    icon: 'membresias' },
+    { to: '/equipos',      label: 'Equipos',       icon: 'equipos'    },
+    { to: '/pagos',        label: 'Pagos',         icon: 'pagos'      },
+    { to: '/auditorias',   label: 'Auditorías',    icon: 'auditorias' },
+  ]
+  if (!auth.esSucursal) {
+    links.splice(6, 0, { to: '/sucursales', label: 'Sucursales', icon: 'home' })
+  }
+  return links
+})
+
 onMounted(() => admin.fetchStats())
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-slate-100">
-    <Navbar :usuario="auth.usuario" @logout="logout" />
+    <AppNavbar :usuario="auth.usuario" :links="navLinks" badge="Matriz" variant="blue" @logout="logout" />
 
     <main class="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 py-8 md:py-10 fade-in">
 
@@ -32,35 +48,43 @@ onMounted(() => admin.fetchStats())
       </div>
 
       <!-- Stats skeleton -->
-      <div v-if="admin.loading" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div v-for="i in 3" :key="i" class="h-24 bg-slate-200 animate-pulse rounded-2xl" />
+      <div v-if="admin.loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div v-for="i in 4" :key="i" class="h-24 bg-slate-200 animate-pulse rounded-2xl" />
       </div>
 
       <!-- Stats -->
-      <div v-else-if="admin.stats" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 border-t-4 border-t-blue-500">
+      <div v-else-if="admin.stats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 border-t-4 border-t-blue-500 overflow-hidden">
           <div class="flex items-center gap-2 mb-1">
-            <img src="/icons/grupo.svg" class="w-5 h-5 icon-slate" alt="" />
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Clientes Registrados</p>
+            <img src="/icons/grupo.svg" class="w-5 h-5 icon-slate shrink-0" alt="" />
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">Clientes</p>
           </div>
-          <p class="text-3xl font-black text-blue-600">{{ admin.stats.clientes }}</p>
+          <p class="text-2xl font-black text-blue-600 truncate">{{ admin.stats.clientes }}</p>
           <p class="text-xs text-slate-400 mt-1">total en el sistema</p>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 border-t-4 border-t-sky-500">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 border-t-4 border-t-sky-500 overflow-hidden">
           <div class="flex items-center gap-2 mb-1">
-            <img src="/icons/boleto.svg" class="w-5 h-5 icon-slate" alt="" />
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Membresías Activas</p>
+            <img src="/icons/boleto.svg" class="w-5 h-5 icon-slate shrink-0" alt="" />
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">Membresias</p>
           </div>
-          <p class="text-3xl font-black text-sky-500">{{ admin.stats.membresias }}</p>
+          <p class="text-2xl font-black text-sky-500 truncate">{{ admin.stats.membresias }}</p>
           <p class="text-xs text-slate-400 mt-1">activas este mes</p>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 border-t-4 border-t-emerald-500">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 border-t-4 border-t-emerald-500 overflow-hidden">
           <div class="flex items-center gap-2 mb-1">
-            <img src="/icons/efectivo.svg" class="w-5 h-5 icon-slate" alt="" />
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ingresos Mensuales</p>
+            <img src="/icons/efectivo.svg" class="w-5 h-5 icon-slate shrink-0" alt="" />
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">Ingresos</p>
           </div>
-          <p class="text-3xl font-black text-emerald-600">${{ Number(admin.stats.ingresos).toFixed(2) }}</p>
+          <p class="text-2xl font-black text-emerald-600 truncate">${{ Number(admin.stats.ingresos).toFixed(2) }}</p>
           <p class="text-xs text-slate-400 mt-1">mes actual</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 border-t-4 border-t-red-500 overflow-hidden">
+          <div class="flex items-center gap-2 mb-1">
+            <img src="/icons/efectivo.svg" class="w-5 h-5 icon-slate shrink-0" alt="" />
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">Egresos</p>
+          </div>
+          <p class="text-2xl font-black text-red-500 truncate">${{ Number(admin.stats?.egresosMensuales ?? 0).toFixed(2) }}</p>
+          <p class="text-xs text-slate-400 mt-1">equipos + servicios</p>
         </div>
       </div>
 

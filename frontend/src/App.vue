@@ -1,10 +1,26 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import ChatIA from '@/components/shared/ChatIA.vue'
+import { useAuthStore } from '@/stores/authStore'
+
+const auth = useAuthStore()
+const showChat = computed(() => auth.isLoggedIn())
+</script>
+
 <template>
   <div id="app">
     <router-view />
+    <ChatIA v-if="showChat" />
   </div>
 </template>
 
 <style>
+/* ─── Sin scroll ─────────────────────────────────────────── */
+html, body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 /* ─── Transición global ─────────────────────────────────── */
 *, *::before, *::after {
   transition-property: background-color, border-color, color;

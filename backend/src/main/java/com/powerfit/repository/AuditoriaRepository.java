@@ -14,10 +14,10 @@ public interface AuditoriaRepository extends JpaRepository<Auditoria, Long> {
     @Query(value = """
         SELECT a.* FROM auditoria a
         LEFT JOIN sucursales s ON s.sucursal_id = a.sucursal_id
-        JOIN usuarios u ON u.usuario_id = a.usuario_id
+        LEFT JOIN usuarios u ON u.usuario_id = a.usuario_id
         WHERE (:sucursalId IS NULL OR a.sucursal_id = :sucursalId)
           AND (:tabla IS NULL OR a.tabla_afectada = :tabla)
-          AND (:accion IS NULL OR UPPER(a.accion) = UPPER(:accion))
+          AND (:accion IS NULL OR a.accion = :accion)
           AND (:usuario IS NULL OR LOWER(u.nombre_completo) LIKE LOWER(CONCAT('%', :usuario, '%')))
         ORDER BY a.fecha_hora DESC
         """, nativeQuery = true)

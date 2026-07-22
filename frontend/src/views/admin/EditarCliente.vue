@@ -1,9 +1,9 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { httpClient } from '@/services/api'
-import Navbar from '@/components/admin/AdminNavbar.vue'
+import AppNavbar from '@/components/shared/AppNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 
 const router = useRouter()
@@ -11,6 +11,22 @@ const route  = useRoute()
 const auth   = useAuthStore()
 
 function logout() { auth.logout(); router.push('/login') }
+
+const navLinks = computed(() => {
+  const links = [
+    { to: '/dashboard',    label: 'Inicio',       icon: 'home'       },
+    { to: '/clientes',     label: 'Clientes',      icon: 'clientes'   },
+    { to: '/entrenadores', label: 'Entrenadores',  icon: 'clientes'   },
+    { to: '/membresias',   label: 'Membresías',    icon: 'membresias' },
+    { to: '/equipos',      label: 'Equipos',       icon: 'equipos'    },
+    { to: '/pagos',        label: 'Pagos',         icon: 'pagos'      },
+    { to: '/auditorias',   label: 'Auditorías',    icon: 'auditorias' },
+  ]
+  if (!auth.esSucursal) {
+    links.splice(6, 0, { to: '/sucursales', label: 'Sucursales', icon: 'home' })
+  }
+  return links
+})
 
 const cliente     = ref(null)
 const form        = ref({ nombre: '', apellido: '', cedula: '', telefono: '', email: '' })
@@ -53,7 +69,7 @@ async function guardar() {
 
 <template>
   <div class="min-h-screen flex flex-col bg-slate-50">
-    <Navbar :usuario="auth.usuario" @logout="logout" />
+    <AppNavbar :usuario="auth.usuario" :links="navLinks" badge="Matriz" variant="blue" @logout="logout" />
 
     <main class="flex-1 flex flex-col items-center px-4 py-8 md:py-10 fade-in">
       <div class="w-full max-w-xl bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 md:p-10">

@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import TrainerNavbar from '@/components/trainer/TrainerNavbar.vue'
+import AppNavbar from '@/components/shared/AppNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 import PaginatedTable from '@/components/shared/PaginatedTable.vue'
 
@@ -10,6 +10,12 @@ const router = useRouter()
 const auth   = useAuthStore()
 
 function logout() { auth.logout(); router.push('/login') }
+
+const navLinks = [
+  { to: '/entrenador/dashboard', label: 'Inicio',    icon: 'home'     },
+  { to: '/entrenador/sesiones',  label: 'Sesiones',  icon: 'sesiones' },
+  { to: '/entrenador/perfil',    label: 'Mi Perfil', icon: 'perfil'   },
+]
 
 const filtroActivo = ref('todos')
 const filtros = [
@@ -20,7 +26,7 @@ const filtros = [
 const columnas = ['Cliente', 'Fecha', 'Hora', 'Tipo', 'Estado', 'Notas']
 
 const filtrosExternos = computed(() => ({
-  entrenador: auth.usuario || undefined,
+  entrenadorEmail: auth.usuario || undefined,
   estado: filtroActivo.value !== 'todos' ? filtroActivo.value : undefined,
 }))
 
@@ -32,7 +38,7 @@ function formatFecha(d: string) {
 
 <template>
   <div class="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 to-slate-100">
-    <TrainerNavbar :usuario="auth.usuario" @logout="logout" />
+    <AppNavbar :usuario="auth.usuario" :links="navLinks" badge="Entrenador" variant="emerald" @logout="logout" />
 
     <main class="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 py-8 md:py-10 fade-in">
 

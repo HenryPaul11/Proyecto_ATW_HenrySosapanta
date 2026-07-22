@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import Navbar from '@/components/admin/AdminNavbar.vue'
+import AppNavbar from '@/components/shared/AppNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 import PaginatedTable from '@/components/shared/PaginatedTable.vue'
 
@@ -11,24 +11,47 @@ const auth   = useAuthStore()
 
 function logout() { auth.logout(); router.push('/login') }
 
+const navLinks = computed(() => {
+  const links = [
+    { to: '/dashboard',    label: 'Inicio',       icon: 'home'       },
+    { to: '/clientes',     label: 'Clientes',      icon: 'clientes'   },
+    { to: '/entrenadores', label: 'Entrenadores',  icon: 'clientes'   },
+    { to: '/membresias',   label: 'Membresías',    icon: 'membresias' },
+    { to: '/equipos',      label: 'Equipos',       icon: 'equipos'    },
+    { to: '/pagos',        label: 'Pagos',         icon: 'pagos'      },
+    { to: '/auditorias',   label: 'Auditorías',    icon: 'auditorias' },
+  ]
+  if (!auth.esSucursal) {
+    links.splice(6, 0, { to: '/sucursales', label: 'Sucursales', icon: 'home' })
+  }
+  return links
+})
+
 const hoy      = new Date()
 const fechaHoy = hoy.toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
 function diasRestantes(fin: string) { return Math.max(0, Math.ceil((new Date(fin).getTime() - hoy.getTime()) / 86_400_000)) }
 function formatDate(d: string)      { if (!d) return '—'; return new Date(d).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric' }) }
 
-const colSinMembresia = ['Nombre', 'Cédula', 'Teléfono', 'Email', 'Acciones']
-const colActivas      = ['Cliente', 'Cédula', 'Tipo', 'F. Inicio', 'F. Fin', 'Días', 'Estado']
-const colVencidas     = ['Cliente', 'Cédula', 'Tipo', 'F. Inicio', 'F. Fin', 'Estado', 'Acción']
+const colSinMembresia = ['Nombre', 'Cedula', 'Telefono', 'Email', 'Acciones']
+const colActivas      = ['Cliente', 'Cedula', 'Tipo', 'F. Inicio', 'F. Fin', 'Dias', 'Estado']
+const colVencidas     = ['Cliente', 'Cedula', 'Tipo', 'F. Inicio', 'F. Fin', 'Estado', 'Accion']
 
 const filtroSucursal = computed(() =>
   auth.esSucursal ? { sucursalId: auth.sucursalId } : {}
 )
+
+const tabActiva = ref('sin_membresia')
+const tabs = [
+  { key: 'sin_membresia', label: 'Sin Membresia', dot: 'bg-amber-500', activeBg: 'bg-amber-500 text-white border-amber-500' },
+  { key: 'activas',      label: 'Activas',        dot: 'bg-emerald-500', activeBg: 'bg-emerald-500 text-white border-emerald-500' },
+  { key: 'vencidas',     label: 'Vencidas',       dot: 'bg-red-500', activeBg: 'bg-red-500 text-white border-red-500' },
+]
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col bg-slate-50 overflow-x-hidden">
-    <Navbar :usuario="auth.usuario" @logout="logout" />
+    <AppNavbar :usuario="auth.usuario" :links="navLinks" badge="Matriz" variant="blue" @logout="logout" />
 
     <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-8 py-8 md:py-10 fade-in">
 
@@ -37,17 +60,29 @@ const filtroSucursal = computed(() =>
       </h1>
 
       <!-- Alerta informativa -->
-      <div class="bg-white border-l-4 border-blue-500 text-blue-800 rounded-xl px-4 py-3 mb-8 text-sm font-medium shadow-sm">
-        <strong class="font-bold">Nota:</strong> Los estados se actualizan automáticamente según la fecha actual.
+      <div class="bg-white border-l-4 border-blue-500 text-blue-800 rounded-xl px-4 py-3 mb-6 text-sm font-medium shadow-sm">
+        <strong class="font-bold">Nota:</strong> Los estados se actualizan automaticamente segun la fecha actual.
         <small class="block mt-1 text-xs opacity-75">Fecha actual del sistema: {{ fechaHoy }}</small>
       </div>
 
-      <!-- Sección 1: Clientes Sin Membresía Activa -->
-      <div class="mb-10">
-        <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <span class="w-3 h-3 rounded-full bg-amber-500"></span>
-          Clientes Sin Membresía Activa
-        </h2>
+      <!-- Tabs -->
+      <div class="flex gap-2 mb-6 flex-wrap">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          @click="tabActiva = tab.key"
+          class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 cursor-pointer border-2"
+          :class="tabActiva === tab.key
+            ? tab.activeBg + ' shadow-md'
+            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'"
+        >
+          <span class="w-2.5 h-2.5 rounded-full" :class="tab.dot"></span>
+          {{ tab.label }}
+        </button>
+      </div>
+
+      <!-- Sin Membresia -->
+      <div v-show="tabActiva === 'sin_membresia'" class="mb-4">
         <PaginatedTable
           endpoint="/clientes/sin-membresia"
           :filtros="filtroSucursal"
@@ -71,7 +106,7 @@ const filtroSucursal = computed(() =>
                   to="/membresias/asignar"
                   class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm inline-block whitespace-nowrap"
                 >
-                  Asignar Membresía
+                  Asignar Membresia
                 </router-link>
               </td>
             </tr>
@@ -79,12 +114,8 @@ const filtroSucursal = computed(() =>
         </PaginatedTable>
       </div>
 
-      <!-- Sección 2: Membresías Activas -->
-      <div class="mb-10">
-        <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
-          Membresías Activas
-        </h2>
+      <!-- Activas -->
+      <div v-show="tabActiva === 'activas'" class="mb-4">
         <PaginatedTable
           endpoint="/membresias"
           :filtros="{ estado: 'activa', ...filtroSucursal }"
@@ -101,7 +132,7 @@ const filtroSucursal = computed(() =>
                 {{ m.cliente?.nombreCompleto || `${m.cliente?.nombre ?? ''} ${m.cliente?.apellido ?? ''}`.trim() || `${m.clienteNombre ?? ''} ${m.clienteApellido ?? ''}`.trim() || 'Sin cliente' }}
               </td>
               <td class="px-4 py-3.5 text-sm text-slate-500">
-                {{ m.cliente?.documentoIdentidad || m.clienteCedula || 'Sin cédula' }}
+                {{ m.cliente?.documentoIdentidad || m.clienteCedula || 'Sin cedula' }}
               </td>
               <td class="px-4 py-3.5 text-sm font-semibold text-slate-700">
                 {{ m.plan?.nombrePlan || m.tipoMembresiaNombre }}
@@ -126,12 +157,8 @@ const filtroSucursal = computed(() =>
         </PaginatedTable>
       </div>
 
-      <!-- Sección 3: Membresías Vencidas -->
-      <div class="mb-10">
-        <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <span class="w-3 h-3 rounded-full bg-red-500"></span>
-          Membresías Vencidas
-        </h2>
+      <!-- Vencidas -->
+      <div v-show="tabActiva === 'vencidas'" class="mb-4">
         <PaginatedTable
           endpoint="/membresias"
           :filtros="{ estado: 'vencida', ...filtroSucursal }"
@@ -148,7 +175,7 @@ const filtroSucursal = computed(() =>
                 {{ m.cliente?.nombreCompleto || `${m.cliente?.nombre ?? ''} ${m.cliente?.apellido ?? ''}`.trim() || `${m.clienteNombre ?? ''} ${m.clienteApellido ?? ''}`.trim() || 'Sin cliente' }}
               </td>
               <td class="px-4 py-3.5 text-sm text-slate-500">
-                {{ m.cliente?.documentoIdentidad || m.clienteCedula || 'Sin cédula' }}
+                {{ m.cliente?.documentoIdentidad || m.clienteCedula || 'Sin cedula' }}
               </td>
               <td class="px-4 py-3.5 text-sm font-semibold text-slate-700">
                 {{ m.plan?.nombrePlan || m.tipoMembresiaNombre }}
@@ -165,7 +192,7 @@ const filtroSucursal = computed(() =>
                   :to="{ name: 'RenovarMembresia', params: { clienteId: m.cliente?.id } }"
                   class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm inline-block whitespace-nowrap"
                 >
-                  Renovar Membresía
+                  Renovar Membresia
                 </router-link>
               </td>
             </tr>

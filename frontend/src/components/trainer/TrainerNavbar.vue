@@ -138,10 +138,9 @@ const inicial     = computed(() => props.usuario?.charAt(0).toUpperCase() ?? '?'
 const theme       = useThemeStore()
 
 const navLinks = [
-  { to: '/entrenador/dashboard', label: 'Inicio',       icon: 'home'     },
-  { to: '/entrenador/clientes',  label: 'Mis Clientes', icon: 'clientes' },
-  { to: '/entrenador/sesiones',  label: 'Sesiones',     icon: 'sesiones' },
-  { to: '/entrenador/perfil',    label: 'Mi Perfil',    icon: 'perfil'   },
+  { to: '/entrenador/dashboard', label: 'Inicio',    icon: 'home'     },
+  { to: '/entrenador/sesiones',  label: 'Sesiones',  icon: 'sesiones' },
+  { to: '/entrenador/perfil',    label: 'Mi Perfil', icon: 'perfil'   },
 ]
 
 function handleLogout() { menuAbierto.value = false; emit('logout') }

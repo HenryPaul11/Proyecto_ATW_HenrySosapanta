@@ -69,7 +69,22 @@ public class EntrenadorController {
 
         List<Cliente> clientes = clienteRepo.findBySucursalId(entrenador.getSucursal().getId());
 
-        List<Map<String, Object>> resultado = clientes.stream().map(c -> {
+        // Batch: fetch all active memberships for these clients at once
+        List<Long> clienteIds = clientes.stream().map(Cliente::getId).toList();
+        Map<Long, Membresia> membresiaPorCliente = new java.util.HashMap<>();
+        if (!clienteIds.isEmpty()) {
+            List<Membresia> membresias = membresiaRepo.findAllByClienteIdInAndEstado(clienteIds, Membresia.EstadoMembresia.ACTIVA);
+            for (Membresia m : membresias) {
+                membresiaPorCliente.putIfAbsent(m.getCliente().getId(), m);
+            }
+        }
+
+        // Single query: next session for this trainer (not per client)
+        Optional<Sesion> proximaSesion = sesionRepo.findFirstByEntrenadorIdAndFechaGreaterThanEqualOrderByFechaAsc(id, java.time.LocalDate.now());
+        java.time.LocalDate proximaFecha = proximaSesion.map(Sesion::getFecha).orElse(null);
+
+        List<Map<String, Object>> resultado = new java.util.ArrayList<>(clientes.size());
+        for (Cliente c : clientes) {
             Map<String, Object> map = new java.util.HashMap<>();
             map.put("id", c.getId());
             String[] partes = c.getNombreCompleto() != null ? c.getNombreCompleto().split(" ", 2) : new String[]{""};
@@ -77,21 +92,18 @@ public class EntrenadorController {
             map.put("apellido", partes.length > 1 ? partes[1] : "");
             map.put("cedula", c.getDocumentoIdentidad());
 
-            Optional<Membresia> membresiaOpt = membresiaRepo.findPrimeraActivaByClienteId(c.getId());
-            if (membresiaOpt.isPresent()) {
-                Membresia m = membresiaOpt.get();
-                map.put("plan", m.getPlan() != null ? m.getPlan().getNombrePlan() : "");
-                map.put("estado_membresia", m.getEstado().name().toLowerCase());
+            Membresia membresia = membresiaPorCliente.get(c.getId());
+            if (membresia != null) {
+                map.put("plan", membresia.getPlan() != null ? membresia.getPlan().getNombrePlan() : "");
+                map.put("estado_membresia", membresia.getEstado().name().toLowerCase());
             } else {
                 map.put("plan", "Sin plan");
                 map.put("estado_membresia", "vencida");
             }
 
-            Optional<Sesion> proximaSesion = sesionRepo.findFirstByEntrenadorIdAndFechaGreaterThanEqualOrderByFechaAsc(id, java.time.LocalDate.now());
-            map.put("proxima_sesion", proximaSesion.map(Sesion::getFecha).orElse(null));
-
-            return map;
-        }).collect(Collectors.toList());
+            map.put("proxima_sesion", proximaFecha);
+            resultado.add(map);
+        }
 
         return ResponseEntity.ok(ApiResponse.ok(resultado));
     }

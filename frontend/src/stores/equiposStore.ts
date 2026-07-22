@@ -23,6 +23,17 @@ function normalizarEquipo(raw: Partial<Equipo> & Record<string, unknown>): Equip
   }
   est = estMap[est] ?? est.toLowerCase()
 
+  let sucursalId: number | undefined
+  let sucursalNombre: string | undefined
+  if (typeof raw.sucursal === 'object' && raw.sucursal !== null) {
+    const s = raw.sucursal as Record<string, unknown>
+    sucursalId = Number(s.id)
+    sucursalNombre = String(s.nombre ?? '')
+  } else if (raw.sucursalId != null) {
+    sucursalId = Number(raw.sucursalId)
+    sucursalNombre = raw.sucursalNombre != null ? String(raw.sucursalNombre) : undefined
+  }
+
   return {
     id: Number(raw.id),
     nombre: String(raw.nombre ?? ''),
@@ -35,6 +46,8 @@ function normalizarEquipo(raw: Partial<Equipo> & Record<string, unknown>): Equip
     modelo: raw.modelo != null ? String(raw.modelo) : undefined,
     valorAdquisicion: raw.valorAdquisicion != null ? Number(raw.valorAdquisicion) : undefined,
     fechaAdquisicion: raw.fechaAdquisicion != null ? String(raw.fechaAdquisicion) : undefined,
+    sucursalId,
+    sucursalNombre,
   }
 }
 

@@ -3,7 +3,7 @@ import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useEntrenadorStore } from '@/stores/entrenadorStore'
-import TrainerNavbar from '@/components/trainer/TrainerNavbar.vue'
+import AppNavbar from '@/components/shared/AppNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 
 const router = useRouter()
@@ -12,10 +12,15 @@ const store  = useEntrenadorStore()
 
 function logout() { auth.logout(); router.push('/login') }
 
+const navLinks = [
+  { to: '/entrenador/dashboard', label: 'Inicio',    icon: 'home'     },
+  { to: '/entrenador/sesiones',  label: 'Sesiones',  icon: 'sesiones' },
+  { to: '/entrenador/perfil',    label: 'Mi Perfil', icon: 'perfil'   },
+]
+
 const hoy      = new Date().toISOString().slice(0, 10)
 const fechaHoy = new Date().toLocaleDateString('es-EC', { weekday: 'long', day: '2-digit', month: 'long' })
 
-const clientesActivos    = computed(() => store.clientes.filter(c => c.estado_membresia === 'activa'))
 const sesionesHoy        = computed(() => store.sesiones.filter(s => s.fecha === hoy))
 const sesionesPendientes = computed(() => store.sesiones.filter(s => s.estado === 'ACTIVO'))
 
@@ -24,7 +29,7 @@ onMounted(() => store.fetchAll(auth.usuario))
 
 <template>
   <div class="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 to-slate-100">
-    <TrainerNavbar :usuario="auth.usuario" @logout="logout" />
+    <AppNavbar :usuario="auth.usuario" :links="navLinks" badge="Entrenador" variant="emerald" @logout="logout" />
 
     <main class="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 py-8 md:py-10 fade-in">
 
@@ -39,8 +44,8 @@ onMounted(() => store.fetchAll(auth.usuario))
       </div>
 
       <!-- Loading -->
-      <div v-if="store.loading" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div v-for="i in 3" :key="i" class="h-24 bg-slate-200 animate-pulse rounded-2xl" />
+      <div v-if="store.loading" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <div v-for="i in 2" :key="i" class="h-24 bg-slate-200 animate-pulse rounded-2xl" />
       </div>
 
       <!-- Sin entrenador asociado -->
@@ -50,21 +55,16 @@ onMounted(() => store.fetchAll(auth.usuario))
 
       <template v-else>
         <!-- Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 border-t-4 border-t-emerald-500">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Clientes Asignados</p>
-            <p class="text-3xl font-black text-emerald-600">{{ clientesActivos.length }}</p>
-            <p class="text-xs text-slate-400 mt-1">con membresía activa</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 border-t-4 border-t-blue-500 overflow-hidden">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Sesiones Hoy</p>
+            <p class="text-2xl font-black text-blue-600 truncate">{{ sesionesHoy.length }}</p>
+            <p class="text-xs text-slate-400 mt-1 truncate">{{ fechaHoy }}</p>
           </div>
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 border-t-4 border-t-blue-500">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Sesiones Hoy</p>
-            <p class="text-3xl font-black text-blue-600">{{ sesionesHoy.length }}</p>
-            <p class="text-xs text-slate-400 mt-1">{{ fechaHoy }}</p>
-          </div>
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 border-t-4 border-t-amber-500">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Sesiones Pendientes</p>
-            <p class="text-3xl font-black text-amber-600">{{ sesionesPendientes.length }}</p>
-            <p class="text-xs text-slate-400 mt-1">próximas sesiones</p>
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 border-t-4 border-t-amber-500 overflow-hidden">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">Sesiones Pendientes</p>
+            <p class="text-2xl font-black text-amber-600 truncate">{{ sesionesPendientes.length }}</p>
+            <p class="text-xs text-slate-400 mt-1">proximas sesiones</p>
           </div>
         </div>
 
@@ -105,13 +105,7 @@ onMounted(() => store.fetchAll(auth.usuario))
         </div>
 
         <!-- Accesos rápidos -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <router-link to="/entrenador/clientes"
-            class="bg-white rounded-2xl border-2 border-slate-200 hover:border-emerald-400 hover:shadow-md transition-all duration-200 p-5 flex flex-col gap-2 group">
-            <img src="/icons/grupo.svg" class="w-8 h-8 icon-slate" alt="" />
-            <p class="font-bold text-slate-800 text-sm group-hover:text-emerald-600 transition-colors">Mis Clientes</p>
-            <p class="text-xs text-slate-400">Ver y gestionar clientes asignados</p>
-          </router-link>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <router-link to="/entrenador/sesiones"
             class="bg-white rounded-2xl border-2 border-slate-200 hover:border-emerald-400 hover:shadow-md transition-all duration-200 p-5 flex flex-col gap-2 group">
             <img src="/icons/calendario.svg" class="w-8 h-8 icon-slate" alt="" />

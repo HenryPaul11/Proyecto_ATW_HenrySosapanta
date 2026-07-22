@@ -60,7 +60,8 @@ public class SucursalController {
             .nombre(nombre).codigo(codigo)
             .direccion(direccion).ciudad(ciudad)
             .telefono(body.get("telefono")     != null ? body.get("telefono").toString()     : null)
-            .emailContacto(body.get("emailContacto") != null ? body.get("emailContacto").toString() : null)
+            .emailContacto(body.get("emailContacto") != null ? body.get("emailContacto").toString()
+                : (body.get("email") != null ? body.get("email").toString() : null))
             .fechaApertura(body.get("fechaApertura") != null ? LocalDate.parse(body.get("fechaApertura").toString()) : null)
             .estado(Sucursal.EstadoGeneral.ACTIVO)
             .build();

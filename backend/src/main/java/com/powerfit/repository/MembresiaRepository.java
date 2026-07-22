@@ -44,4 +44,7 @@ public interface MembresiaRepository extends JpaRepository<Membresia, Long> {
 
     @Query("SELECT COUNT(m) FROM Membresia m WHERE m.estado = 'ACTIVA' AND (:sid IS NULL OR m.sucursal.id = :sid)")
     Long countActivas(@Param("sid") Long sucursalId);
+
+    @EntityGraph(attributePaths = {"plan", "cliente"})
+    List<Membresia> findAllByClienteIdInAndEstado(List<Long> clienteIds, Membresia.EstadoMembresia estado);
 }

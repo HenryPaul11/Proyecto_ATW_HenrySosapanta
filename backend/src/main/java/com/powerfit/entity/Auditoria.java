@@ -51,5 +51,5 @@ public class Auditoria {
         if (fechaHora == null) fechaHora = LocalDateTime.now();
     }
 
-    public enum AccionAuditoria { INSERT, UPDATE, DELETE }
+    public enum AccionAuditoria { INSERT, UPDATE, DELETE, TRANSFERENCIA }
 }

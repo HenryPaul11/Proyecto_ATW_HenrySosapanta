@@ -75,6 +75,8 @@ export interface AdminStats {
   pagosTotales: number
   equiposDisponibles: number
   totalEntrenadores: number
+  egresosMensuales?: number
+  balance?: number
   // aliases para compatibilidad con vistas existentes
   clientes?: number
   membresias?: number
@@ -242,6 +244,8 @@ export interface Equipo {
   modelo?: string
   valorAdquisicion?: number
   fechaAdquisicion?: string
+  sucursalId?: number
+  sucursalNombre?: string
 }
 
 // ─── API Auth ─────────────────────────────────────────────────────────────────
@@ -453,6 +457,15 @@ export const entrenadorApi = {
     }
   },
 
+  async getProximasSesiones(entrenadorId: number): Promise<Sesion[]> {
+    try {
+      const res = await httpClient.get<any>(`/sesiones/entrenador/${entrenadorId}/proximas`)
+      return res.data
+    } catch {
+      return []
+    }
+  },
+
   async getTodos(): Promise<EntrenadorResumen[]> {
     const res = await httpClient.get<any>('/entrenadores')
     return res.data
@@ -464,6 +477,44 @@ export const entrenadorApi = {
 export const equiposApi = {
   async getAll(): Promise<Equipo[]> {
     const res = await httpClient.get<any>('/equipos')
+    return res.data
+  },
+}
+
+// ─── IA (Ollama) ─────────────────────────────────────────────────────────────
+
+export const iaApi = {
+  async chat(mensaje: string, contexto?: string): Promise<string> {
+    const res = await httpClient.post<any>('/ia/chat', { mensaje, contexto })
+    return res.data?.respuesta || 'Sin respuesta'
+  },
+
+  async chatDatos(mensaje: string): Promise<string> {
+    const res = await httpClient.post<any>('/ia/chat-datos', { mensaje })
+    return res.data?.respuesta || 'Sin respuesta'
+  },
+
+  async recomendar(datosCliente: string): Promise<string> {
+    const res = await httpClient.post<any>('/ia/recomendar', { datosCliente })
+    return res.data?.respuesta || 'Sin respuesta'
+  },
+
+  async resumen(estadisticas: string): Promise<string> {
+    const res = await httpClient.post<any>('/ia/resumen', { estadisticas })
+    return res.data?.respuesta || 'Sin respuesta'
+  },
+
+  async health(): Promise<{ status: string; message: string }> {
+    const res = await httpClient.get<any>('/ia/health')
+    return res.data || { status: 'unknown', message: 'Could not check' }
+  },
+}
+
+// ─── Equipos (transferencia) ──────────────────────────────────────────────────
+
+export const equiposTransferApi = {
+  async transferir(equipoId: number, sucursalDestinoId: number): Promise<Equipo> {
+    const res = await httpClient.put<any>(`/equipos/${equipoId}/transferir`, { sucursalDestinoId })
     return res.data
   },
 }

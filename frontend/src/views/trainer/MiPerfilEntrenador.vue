@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useEntrenadorStore } from '@/stores/entrenadorStore'
-import TrainerNavbar from '@/components/trainer/TrainerNavbar.vue'
+import AppNavbar from '@/components/shared/AppNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 
 const router = useRouter()
@@ -11,6 +11,12 @@ const auth   = useAuthStore()
 const store  = useEntrenadorStore()
 
 function logout() { auth.logout(); router.push('/login') }
+
+const navLinks = [
+  { to: '/entrenador/dashboard', label: 'Inicio',    icon: 'home'     },
+  { to: '/entrenador/sesiones',  label: 'Sesiones',  icon: 'sesiones' },
+  { to: '/entrenador/perfil',    label: 'Mi Perfil', icon: 'perfil'   },
+]
 
 const loading     = ref(false)
 const message     = ref('')
@@ -48,7 +54,7 @@ async function guardar() {
 
 <template>
   <div class="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 to-slate-100">
-    <TrainerNavbar :usuario="auth.usuario" @logout="logout" />
+    <AppNavbar :usuario="auth.usuario" :links="navLinks" badge="Entrenador" variant="emerald" @logout="logout" />
 
     <main class="flex-1 flex flex-col items-center px-4 py-8 md:py-10 fade-in">
       <div class="w-full max-w-xl">

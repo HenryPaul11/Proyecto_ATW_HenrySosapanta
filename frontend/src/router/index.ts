@@ -108,12 +108,6 @@ const router = createRouter({
       meta: { requiresAuth: true, rol: 'entrenador' },
     },
     {
-      path: '/entrenador/clientes',
-      name: 'MisClientes',
-      component: () => import('@/views/trainer/MisClientes.vue'),
-      meta: { requiresAuth: true, rol: 'entrenador' },
-    },
-    {
       path: '/entrenador/sesiones',
       name: 'Sesiones',
       component: () => import('@/views/trainer/Sesiones.vue'),

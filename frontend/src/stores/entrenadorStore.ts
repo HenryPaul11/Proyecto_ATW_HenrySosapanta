@@ -26,17 +26,22 @@ export const useEntrenadorStore = defineStore('entrenador', () => {
 
   async function fetchAll(usuario: string) {
     loading.value = true
-    const e = await entrenadorApi.getByUsuario(usuario)
-    entrenador.value = e
-    if (e) {
-      const [c, s] = await Promise.all([
-        entrenadorApi.getClientesAsignados(e.id),
-        entrenadorApi.getSesiones(e.id),
-      ])
-      clientes.value = c
-      sesiones.value = s
+    try {
+      const e = await entrenadorApi.getByUsuario(usuario)
+      entrenador.value = e
+      if (e) {
+        const [c, s] = await Promise.all([
+          entrenadorApi.getClientesAsignados(e.id),
+          entrenadorApi.getProximasSesiones(e.id),
+        ])
+        clientes.value = c
+        sesiones.value = s
+      }
+    } catch (err) {
+      console.error('Error cargando datos del entrenador:', err)
+    } finally {
+      loading.value = false
     }
-    loading.value = false
   }
 
   async function fetchTodos() {

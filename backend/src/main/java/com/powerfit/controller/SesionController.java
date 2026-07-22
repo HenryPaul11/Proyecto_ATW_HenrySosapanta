@@ -29,13 +29,14 @@ public class SesionController {
 
     @GetMapping
     @Operation(summary = "Listar sesiones — paginación FÍSICA",
-               description = "Parámetros: page (0-based), size, estado (opcional: pendiente/completada/cancelada)")
+               description = "Parámetros: page (0-based), size, estado, entrenadorEmail (opcional)")
     public ResponseEntity<ApiResponse<Page<SesionResponse>>> listar(
             @RequestParam(defaultValue = "0")   int    page,
             @RequestParam(defaultValue = "20")  int    size,
-            @RequestParam(required = false)     String estado) {
-        Page<SesionResponse> resultado = sesionService.listarPaginado(
-                estado,
+            @RequestParam(required = false)     String estado,
+            @RequestParam(required = false)     String entrenadorEmail) {
+        Page<SesionResponse> resultado = sesionService.listarPaginadoFiltrado(
+                estado, entrenadorEmail,
                 PageRequest.of(page, size, Sort.by("fecha").descending()));
         return ResponseEntity.ok(ApiResponse.ok(resultado));
     }
@@ -54,6 +55,13 @@ public class SesionController {
     public ResponseEntity<ApiResponse<List<SesionResponse>>> porEntrenador(
             @PathVariable Integer entrenadorId) {
         return ResponseEntity.ok(ApiResponse.ok(sesionService.listarPorEntrenador(entrenadorId)));
+    }
+
+    @GetMapping("/entrenador/{entrenadorId}/proximas")
+    @Operation(summary = "Próximas sesiones de un entrenador (desde hoy)")
+    public ResponseEntity<ApiResponse<List<SesionResponse>>> proximasPorEntrenador(
+            @PathVariable Integer entrenadorId) {
+        return ResponseEntity.ok(ApiResponse.ok(sesionService.listarProximasPorEntrenador(entrenadorId)));
     }
 
     @GetMapping("/cliente/{clienteId}")

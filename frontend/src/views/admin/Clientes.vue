@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import Navbar from '@/components/admin/AdminNavbar.vue'
+import AppNavbar from '@/components/shared/AppNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 import PaginatedTable from '@/components/shared/PaginatedTable.vue'
 import { httpClient, type Cliente } from '@/services/api'
@@ -11,6 +11,22 @@ const router = useRouter()
 const auth   = useAuthStore()
 
 function logout() { auth.logout(); router.push('/login') }
+
+const navLinks = computed(() => {
+  const links = [
+    { to: '/dashboard',    label: 'Inicio',       icon: 'home'       },
+    { to: '/clientes',     label: 'Clientes',      icon: 'clientes'   },
+    { to: '/entrenadores', label: 'Entrenadores',  icon: 'clientes'   },
+    { to: '/membresias',   label: 'Membresías',    icon: 'membresias' },
+    { to: '/equipos',      label: 'Equipos',       icon: 'equipos'    },
+    { to: '/pagos',        label: 'Pagos',         icon: 'pagos'      },
+    { to: '/auditorias',   label: 'Auditorías',    icon: 'auditorias' },
+  ]
+  if (!auth.esSucursal) {
+    links.splice(6, 0, { to: '/sucursales', label: 'Sucursales', icon: 'home' })
+  }
+  return links
+})
 
 const message          = ref('')
 const messageType      = ref('')
@@ -45,7 +61,7 @@ async function eliminarCliente() {
 
 <template>
   <div class="min-h-screen flex flex-col bg-slate-50 overflow-x-hidden">
-    <Navbar :usuario="auth.usuario" @logout="logout" />
+    <AppNavbar :usuario="auth.usuario" :links="navLinks" badge="Matriz" variant="blue" @logout="logout" />
 
     <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-8 py-8 md:py-10 fade-in">
 

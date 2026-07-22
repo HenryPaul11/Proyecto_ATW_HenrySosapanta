@@ -1,49 +1,46 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import Navbar from '@/components/admin/AdminNavbar.vue'
+import AppNavbar from '@/components/shared/AppNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
+import PaginatedTable from '@/components/shared/PaginatedTable.vue'
 import { httpClient } from '@/services/api'
 
 const router = useRouter()
 const auth   = useAuthStore()
 function logout() { auth.logout(); router.push('/login') }
 
-const entrenadores      = ref<any[]>([])
-const loading           = ref(false)
-const message           = ref('')
-const messageType       = ref('')
-const busqueda          = ref('')
+const navLinks = computed(() => {
+  const links = [
+    { to: '/dashboard',    label: 'Inicio',       icon: 'home'       },
+    { to: '/clientes',     label: 'Clientes',      icon: 'clientes'   },
+    { to: '/entrenadores', label: 'Entrenadores',  icon: 'clientes'   },
+    { to: '/membresias',   label: 'Membresías',    icon: 'membresias' },
+    { to: '/equipos',      label: 'Equipos',       icon: 'equipos'    },
+    { to: '/pagos',        label: 'Pagos',         icon: 'pagos'      },
+    { to: '/auditorias',   label: 'Auditorías',    icon: 'auditorias' },
+  ]
+  if (!auth.esSucursal) {
+    links.splice(6, 0, { to: '/sucursales', label: 'Sucursales', icon: 'home' })
+  }
+  return links
+})
+
+const tableRef        = ref<InstanceType<typeof PaginatedTable> | null>(null)
+const message         = ref('')
+const messageType     = ref('')
 const entrenadorEliminar = ref<any>(null)
 
-async function fetchEntrenadores() {
-  loading.value = true
-  try {
-    const res = await httpClient.get('/entrenadores')
-    entrenadores.value = res.data ?? []
-  } catch { entrenadores.value = [] }
-  finally { loading.value = false }
-}
-
-const entrenadorFiltrados = computed(() => {
-  const q = busqueda.value.trim().toLowerCase()
-  if (!q) return entrenadores.value
-  return entrenadores.value.filter(e => {
-    const nom = (e.nombreCompleto || `${e.nombre ?? ''} ${e.apellido ?? ''}`).toLowerCase()
-    const doc = (e.documentoIdentidad || e.cedula || '')
-    return nom.includes(q) || doc.includes(q)
-  })
-})
+const columnas = ['Nombre', 'Cédula', 'Teléfono', 'Email', 'Especialidad', 'Horario', 'Acciones']
 
 async function eliminar() {
   if (!entrenadorEliminar.value) return
   try {
     await httpClient.delete(`/entrenadores/${entrenadorEliminar.value.id}`)
-    const nom = entrenadorEliminar.value.nombreCompleto || `${entrenadorEliminar.value.nombre ?? ''} ${entrenadorEliminar.value.apellido ?? ''}`.trim()
-    entrenadores.value = entrenadores.value.filter(e => e.id !== entrenadorEliminar.value.id)
-    message.value     = `Entrenador ${nom} eliminado.`
+    message.value     = '✓ Entrenador eliminado.'
     messageType.value = 'success'
+    tableRef.value?.reload()
   } catch (err: any) {
     message.value     = err?.error || 'No se pudo eliminar.'
     messageType.value = 'error'
@@ -52,14 +49,11 @@ async function eliminar() {
     setTimeout(() => message.value = '', 4000)
   }
 }
-
-import { computed } from 'vue'
-onMounted(fetchEntrenadores)
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col bg-slate-50">
-    <Navbar :usuario="auth.usuario" @logout="logout" />
+    <AppNavbar :usuario="auth.usuario" :links="navLinks" badge="Matriz" variant="blue" @logout="logout" />
 
     <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-8 py-8 fade-in">
 
@@ -78,69 +72,47 @@ onMounted(fetchEntrenadores)
         </div>
       </Transition>
 
-      <!-- Acciones + búsqueda -->
+      <!-- Acciones -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <router-link to="/entrenadores/registrar"
           class="inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm px-5 py-3 rounded-xl shadow-sm transition-all hover:-translate-y-0.5 w-full sm:w-auto">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Registrar Entrenador
         </router-link>
-        <input v-model="busqueda" type="text" placeholder="Buscar por nombre o cédula…"
-          class="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all w-full sm:w-72" />
       </div>
 
-      <p class="text-sm text-slate-400 font-medium mb-3">
-        Mostrando <strong class="text-slate-600">{{ entrenadorFiltrados.length }}</strong> de {{ entrenadores.length }} entrenadores
-      </p>
-
-      <!-- Tabla -->
-      <div class="overflow-x-auto bg-white rounded-2xl shadow-sm mb-8">
-        <table class="w-full border-collapse" style="min-width:640px">
-          <thead class="bg-gradient-to-r from-blue-500 to-blue-700">
-            <tr>
-              <th v-for="col in ['Nombre', 'Cédula', 'Teléfono', 'Email', 'Especialidad', 'Horario', 'Acciones']" :key="col"
-                class="px-4 py-3 text-left text-white font-bold text-xs uppercase tracking-wider whitespace-nowrap">{{ col }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="loading">
-              <td colspan="7" class="text-center py-16 text-slate-400 text-sm">
-                <div class="flex flex-col items-center gap-2">
-                  <div class="w-7 h-7 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                  <span>Cargando entrenadores…</span>
-                </div>
-              </td>
-            </tr>
-            <tr v-else-if="entrenadorFiltrados.length === 0">
-              <td colspan="7" class="text-center py-16 text-slate-400">
-                <p class="font-semibold text-slate-600">No se encontraron entrenadores</p>
-              </td>
-            </tr>
-            <tr v-else v-for="(e, i) in entrenadorFiltrados" :key="e.id"
-              class="border-b border-slate-100 hover:bg-blue-50 transition-colors"
-              :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'">
-              <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ e.nombreCompleto || `${e.nombre ?? ''} ${e.apellido ?? ''}`.trim() }}</td>
-              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.documentoIdentidad || e.cedula }}</td>
-              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.telefono || '—' }}</td>
-              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.email || '—' }}</td>
-              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.especialidad || '—' }}</td>
-              <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.horario || '—' }}</td>
-              <td class="px-4 py-3 whitespace-nowrap">
-                <div class="flex gap-2">
-                  <router-link :to="`/entrenadores/${e.id}/editar`"
-                    class="bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-                    Editar
-                  </router-link>
-                  <button @click="entrenadorEliminar = e"
-                    class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-                    Eliminar
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Tabla paginada -->
+      <PaginatedTable
+        ref="tableRef"
+        endpoint="/entrenadores"
+        :columns="columnas"
+        endpointKey="usuarios"
+      >
+        <template #default="{ items }">
+          <tr v-for="(e, i) in items" :key="e.id"
+            class="border-b border-slate-100 hover:bg-blue-50 transition-colors"
+            :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'">
+            <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">{{ e.nombreCompleto || `${e.nombre ?? ''} ${e.apellido ?? ''}`.trim() }}</td>
+            <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.documentoIdentidad || e.cedula }}</td>
+            <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.telefono || '—' }}</td>
+            <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.email || '—' }}</td>
+            <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.especialidad || '—' }}</td>
+            <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">{{ e.horario || '—' }}</td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <div class="flex gap-2">
+                <router-link :to="`/entrenadores/${e.id}/editar`"
+                  class="bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                  Editar
+                </router-link>
+                <button @click="entrenadorEliminar = e"
+                  class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                  Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+        </template>
+      </PaginatedTable>
 
     </main>
 

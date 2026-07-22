@@ -11,6 +11,7 @@ import com.powerfit.repository.EntrenadorRepository;
 import com.powerfit.repository.SesionRepository;
 import com.powerfit.service.AuditoriaService;
 import com.powerfit.service.SesionService;
+import com.powerfit.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,7 @@ public class SesionServiceImpl implements SesionService {
     private final EntrenadorRepository entrenadorRepository;
     private final ClienteRepository clienteRepository;
     private final AuditoriaService auditoriaService;
+    private final SecurityUtil securityUtil;
 
     @Override
     public Page<SesionResponse> listarPaginado(String estado, Pageable pageable) {
@@ -36,6 +38,30 @@ public class SesionServiceImpl implements SesionService {
                 ? sesionRepository.findByEstadoWithJoins(estadoEnum, pageable)
                 : sesionRepository.findAllWithJoins(pageable);
         return page.map(this::toResponse);
+    }
+
+    @Override
+    public Page<SesionResponse> listarPaginadoFiltrado(String estado, String entrenadorEmail, Pageable pageable) {
+        Sesion.EstadoGeneral estadoEnum = estado != null && !estado.isBlank()
+                ? Sesion.EstadoGeneral.valueOf(estado.toUpperCase())
+                : null;
+
+        if (entrenadorEmail != null && !entrenadorEmail.isBlank()) {
+            java.util.Optional<com.powerfit.entity.Entrenador> entrenadorOpt =
+                    entrenadorRepository.findByEmail(entrenadorEmail);
+            if (entrenadorOpt.isPresent()) {
+                Long entrenadorId = entrenadorOpt.get().getId();
+                Page<Sesion> page = estadoEnum != null
+                        ? sesionRepository.findByEntrenadorIdAndEstado(entrenadorId, estadoEnum, pageable)
+                        : sesionRepository.findByEntrenadorIdWithJoins(entrenadorId, pageable);
+                return page.map(this::toResponse);
+            }
+            // Si no se encuentra el entrenador, devolver página vacía
+            return Page.empty(pageable);
+        }
+
+        // Sin filtro de entrenador, usar la lógica original
+        return listarPaginado(estado, pageable);
     }
 
     @Override
@@ -56,6 +82,13 @@ public class SesionServiceImpl implements SesionService {
     }
 
     @Override
+    public List<SesionResponse> listarProximasPorEntrenador(Integer entrenadorId) {
+        return sesionRepository.findProximasByEntrenadorId(entrenadorId.longValue(), java.time.LocalDate.now()).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
     public List<SesionResponse> listarPorCliente(Integer clienteId) {
         return List.of();
     }
@@ -64,7 +97,11 @@ public class SesionServiceImpl implements SesionService {
     public SesionResponse crear(SesionRequest request) {
         Sesion sesion = buildFromRequest(new Sesion(), request);
         Sesion saved = sesionRepository.save(sesion);
-        auditoriaService.registrar("sesiones", "INSERT", "system", null, "{\"id\":" + saved.getId() + "}", null);
+        try {
+            auditoriaService.registrarConUsuario("sesiones", "INSERT",
+                    securityUtil.getUsuarioId(), securityUtil.getSucursalIdEfectiva(),
+                    null, "{\"id\":" + saved.getId() + "}", null);
+        } catch (Exception ignored) {}
         return toResponse(saved);
     }
 
@@ -73,7 +110,11 @@ public class SesionServiceImpl implements SesionService {
         Sesion sesion = findOrThrow(id);
         String datosAnteriores = "{\"estado\":\"" + sesion.getEstado() + "\"}";
         Sesion saved = sesionRepository.save(buildFromRequest(sesion, request));
-        auditoriaService.registrar("sesiones", "UPDATE", "system", datosAnteriores, "{\"estado\":\"" + saved.getEstado() + "\"}", null);
+        try {
+            auditoriaService.registrarConUsuario("sesiones", "UPDATE",
+                    securityUtil.getUsuarioId(), securityUtil.getSucursalIdEfectiva(),
+                    datosAnteriores, "{\"estado\":\"" + saved.getEstado() + "\"}", null);
+        } catch (Exception ignored) {}
         return toResponse(saved);
     }
 
@@ -82,7 +123,11 @@ public class SesionServiceImpl implements SesionService {
         Sesion sesion = findOrThrow(id);
         sesion.setEstado(Sesion.EstadoGeneral.INACTIVO);
         sesionRepository.save(sesion);
-        auditoriaService.registrar("sesiones", "DELETE", "system", "{\"id\":" + id + "}", null, null);
+        try {
+            auditoriaService.registrarConUsuario("sesiones", "DELETE",
+                    securityUtil.getUsuarioId(), securityUtil.getSucursalIdEfectiva(),
+                    "{\"id\":" + id + "}", null, null);
+        } catch (Exception ignored) {}
     }
 
     private Sesion findOrThrow(Integer id) {

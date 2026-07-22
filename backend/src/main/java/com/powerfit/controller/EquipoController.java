@@ -6,6 +6,7 @@ import com.powerfit.exception.BadRequestException;
 import com.powerfit.exception.ForbiddenException;
 import com.powerfit.exception.ResourceNotFoundException;
 import com.powerfit.repository.*;
+import com.powerfit.service.AuditoriaService;
 import com.powerfit.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class EquipoController {
     private final SucursalRepository  sucursalRepo;
     private final CategoriaEquipoRepository categoriaRepo;
     private final SecurityUtil securityUtil;
+    private final AuditoriaService auditoriaService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Equipo>>> listar() {
@@ -130,5 +132,34 @@ public class EquipoController {
         e.setEstado(Equipo.EstadoEquipo.DADO_DE_BAJA);
         equipoRepo.save(e);
         return ResponseEntity.ok(ApiResponse.ok(null, "Equipo dado de baja"));
+    }
+
+    @PutMapping("/{id}/transferir")
+    public ResponseEntity<ApiResponse<Equipo>> transferir(@PathVariable Long id,
+                                                           @RequestBody Map<String, Object> body) {
+        if (!securityUtil.isAdminMatriz()) {
+            throw new ForbiddenException("Solo el administrador matriz puede transferir equipos");
+        }
+
+        Equipo e = equipoRepo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado: " + id));
+
+        Object sidObj = body.get("sucursalDestinoId");
+        if (sidObj == null) throw new BadRequestException("sucursalDestinoId es obligatorio");
+        Long sucursalDestinoId = Long.valueOf(sidObj.toString());
+
+        Sucursal destino = sucursalRepo.findById(sucursalDestinoId)
+            .orElseThrow(() -> new ResourceNotFoundException("Sucursal destino no encontrada: " + sucursalDestinoId));
+
+        Sucursal origen = e.getSucursal();
+        String datosAnteriores = "{\"sucursalId\":" + origen.getId() + ",\"sucursalNombre\":\"" + origen.getNombre() + "\"}";
+        String datosNuevos = "{\"sucursalId\":" + destino.getId() + ",\"sucursalNombre\":\"" + destino.getNombre() + "\"}";
+        e.setSucursal(destino);
+        equipoRepo.save(e);
+
+        auditoriaService.registrar("equipos", "TRANSFERENCIA", securityUtil.getUsuarioActual().getEmail(),
+            datosAnteriores, datosNuevos, null);
+
+        return ResponseEntity.ok(ApiResponse.ok(e, "Equipo transferido de " + origen.getNombre() + " a " + destino.getNombre()));
     }
 }

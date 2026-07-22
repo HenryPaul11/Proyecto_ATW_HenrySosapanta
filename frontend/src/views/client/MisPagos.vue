@@ -1,9 +1,9 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useClienteStore } from '@/stores/clienteStore'
-import ClientNavbar from '@/components/client/ClientNavbar.vue'
+import AppNavbar from '@/components/shared/AppNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
 
 const router = useRouter()
@@ -12,8 +12,28 @@ const store  = useClienteStore()
 
 function logout() { auth.logout(); router.push('/login') }
 
+const navLinks = [
+  { to: '/cliente/dashboard', label: 'Inicio',    icon: 'home'      },
+  { to: '/cliente/membresia', label: 'Membresía', icon: 'membresia' },
+  { to: '/cliente/pagos',     label: 'Mis Pagos', icon: 'pagos'     },
+  { to: '/cliente/perfil',    label: 'Mi Perfil', icon: 'perfil'    },
+]
+
 const totalPagado = computed(() => store.historialPagos.reduce((s, p) => s + p.monto, 0))
 const columnas    = ['#', 'Membresía', 'Monto', 'Método', 'Fecha Pago', 'Vigencia']
+
+const currentPage = ref(0)
+const pageSize    = ref(10)
+
+const totalPages = computed(() => Math.ceil(store.historialPagos.length / pageSize.value) || 1)
+const pagosPaginados = computed(() => {
+  const start = currentPage.value * pageSize.value
+  return store.historialPagos.slice(start, start + pageSize.value)
+})
+
+function changePage(p) {
+  if (p >= 0 && p < totalPages.value) currentPage.value = p
+}
 
 function formatFecha(d) {
   return new Date(d).toLocaleDateString('es-EC', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -27,7 +47,7 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-slate-100">
-    <ClientNavbar :usuario="auth.usuario" @logout="logout" />
+    <AppNavbar :usuario="auth.usuario" :links="navLinks" variant="blue" @logout="logout" />
 
     <main class="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-8 py-8 md:py-10 fade-in">
 
@@ -71,6 +91,24 @@ onMounted(async () => {
 
       <!-- Tabla -->
       <template v-else>
+        <!-- Controles superiores -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-4">
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-semibold text-slate-500 uppercase">Mostrar</label>
+            <select v-model="pageSize" @change="currentPage = 0"
+              class="px-2 py-1.5 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-blue-500">
+              <option :value="10">10 registros</option>
+              <option :value="20">20 registros</option>
+              <option :value="50">50 registros</option>
+            </select>
+          </div>
+          <div class="text-xs text-slate-400 font-medium">
+            Mostrando <span class="text-slate-700 font-semibold">{{ currentPage * pageSize + 1 }}</span> a
+            <span class="text-slate-700 font-semibold">{{ Math.min((currentPage + 1) * pageSize, store.historialPagos.length) }}</span> de
+            <span class="text-slate-700 font-semibold">{{ store.historialPagos.length }}</span> registros
+          </div>
+        </div>
+
         <p class="text-xs text-slate-400 text-right mb-1 sm:hidden">← desliza para ver más →</p>
         <div class="overflow-x-auto bg-white rounded-2xl shadow-sm">
           <table class="w-full border-collapse" style="min-width: 560px">
@@ -84,7 +122,7 @@ onMounted(async () => {
             </thead>
             <tbody>
               <tr
-                v-for="(pago, i) in store.historialPagos" :key="pago.id"
+                v-for="(pago, i) in pagosPaginados" :key="pago.id"
                 class="border-b border-slate-100 transition-colors hover:bg-blue-50"
                 :class="i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'"
               >
@@ -110,6 +148,26 @@ onMounted(async () => {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Paginación -->
+        <div v-if="totalPages > 1"
+          class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mt-4">
+          <button :disabled="currentPage === 0" @click="changePage(currentPage - 1)"
+            class="w-full sm:w-auto px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 cursor-pointer">
+            Anterior
+          </button>
+          <div class="flex items-center gap-1.5">
+            <button v-for="p in totalPages" :key="p" @click="changePage(p - 1)"
+              class="w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer"
+              :class="currentPage === p - 1 ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'">
+              {{ p }}
+            </button>
+          </div>
+          <button :disabled="currentPage >= totalPages - 1" @click="changePage(currentPage + 1)"
+            class="w-full sm:w-auto px-4 py-2 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 cursor-pointer">
+            Siguiente
+          </button>
         </div>
       </template>
 

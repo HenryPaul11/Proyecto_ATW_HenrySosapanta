@@ -3,8 +3,10 @@ package com.powerfit.service.impl;
 import com.powerfit.config.JwtUtil;
 import com.powerfit.dto.request.LoginRequest;
 import com.powerfit.dto.response.LoginResponse;
+import com.powerfit.entity.Cliente;
 import com.powerfit.entity.Usuario;
 import com.powerfit.exception.BadRequestException;
+import com.powerfit.repository.ClienteRepository;
 import com.powerfit.repository.UsuarioRepository;
 import com.powerfit.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     private final UsuarioRepository  usuarioRepository;
+    private final ClienteRepository  clienteRepository;
     private final JwtUtil            jwtUtil;
     private final PasswordEncoder    passwordEncoder;
 
@@ -31,28 +34,55 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse login(LoginRequest request) {
         String login = resolveLogin(request.getEmail());
-        Usuario usuario = usuarioRepository.findByEmail(login)
+
+        // 1. Buscar en usuarios (admin, entrenador)
+        Usuario usuario = usuarioRepository.findByEmail(login).orElse(null);
+        if (usuario != null) {
+            if (!passwordEncoder.matches(request.getPassword(), usuario.getPasswordHash()))
+                throw new BadRequestException("Credenciales incorrectas");
+            if (usuario.getEstado() == Usuario.EstadoGeneral.INACTIVO)
+                throw new BadRequestException("Usuario inactivo");
+
+            String rolNombre = usuario.getRol().getNombreRol();
+            String token = jwtUtil.generateToken(usuario.getEmail(), rolNombre);
+            Long   sucursalId     = usuario.getSucursal() != null ? usuario.getSucursal().getId()     : null;
+            String sucursalNombre = usuario.getSucursal() != null ? usuario.getSucursal().getNombre() : null;
+
+            log.info("Login exitoso: {} rol={} sucursal={}", usuario.getEmail(), rolNombre, sucursalId);
+
+            return LoginResponse.builder()
+                    .id(usuario.getId())
+                    .email(usuario.getEmail())
+                    .nombreCompleto(usuario.getNombreCompleto())
+                    .rol(rolNombre)
+                    .token(token)
+                    .sucursalId(sucursalId)
+                    .sucursalNombre(sucursalNombre)
+                    .build();
+        }
+
+        // 2. Fallback: buscar en clientes
+        Cliente cliente = clienteRepository.findByEmail(login)
                 .orElseThrow(() -> new BadRequestException("Credenciales incorrectas"));
 
-        if (!passwordEncoder.matches(request.getPassword(), usuario.getPasswordHash()))
+        if (cliente.getPasswordHash() == null ||
+            !passwordEncoder.matches(request.getPassword(), cliente.getPasswordHash()))
             throw new BadRequestException("Credenciales incorrectas");
 
-        if (usuario.getEstado() == Usuario.EstadoGeneral.INACTIVO)
-            throw new BadRequestException("Usuario inactivo");
+        if (cliente.getEstado() == Cliente.EstadoGeneral.INACTIVO)
+            throw new BadRequestException("Cliente inactivo");
 
-        String rolNombre = usuario.getRol().getNombreRol();
-        String token = jwtUtil.generateToken(usuario.getEmail(), rolNombre);
+        String token = jwtUtil.generateToken(cliente.getEmail(), "CLIENTE");
+        Long   sucursalId     = cliente.getSucursal() != null ? cliente.getSucursal().getId()     : null;
+        String sucursalNombre = cliente.getSucursal() != null ? cliente.getSucursal().getNombre() : null;
 
-        Long   sucursalId     = usuario.getSucursal() != null ? usuario.getSucursal().getId()     : null;
-        String sucursalNombre = usuario.getSucursal() != null ? usuario.getSucursal().getNombre() : null;
-
-        log.info("Login exitoso: {} rol={} sucursal={}", usuario.getEmail(), rolNombre, sucursalId);
+        log.info("Login exitoso (cliente): {} sucursal={}", cliente.getEmail(), sucursalId);
 
         return LoginResponse.builder()
-                .id(usuario.getId())
-                .email(usuario.getEmail())
-                .nombreCompleto(usuario.getNombreCompleto())
-                .rol(rolNombre)
+                .id(cliente.getId())
+                .email(cliente.getEmail())
+                .nombreCompleto(cliente.getNombreCompleto())
+                .rol("CLIENTE")
                 .token(token)
                 .sucursalId(sucursalId)
                 .sucursalNombre(sucursalNombre)

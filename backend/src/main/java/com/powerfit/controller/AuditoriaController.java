@@ -26,7 +26,8 @@ public class AuditoriaController {
             @RequestParam(required = false) String tabla,
             @RequestParam(required = false) String accion,
             @RequestParam(required = false) String usuario) {
-        List<Auditoria> lista = auditoriaRepo.findFiltered(sucursalId, tabla, accion, usuario);
+        List<Auditoria> lista = auditoriaRepo.findFiltered(sucursalId, tabla,
+                accion != null ? accion.toUpperCase() : null, usuario);
         for (Auditoria a : lista) {
             if (a.getUsuario() != null) a.getUsuario().getNombreCompleto();
             if (a.getSucursal() != null) a.getSucursal().getNombre();
