@@ -13,12 +13,14 @@ import com.powerfit.service.AuditoriaService;
 import com.powerfit.service.SesionService;
 import com.powerfit.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SesionServiceImpl implements SesionService {
@@ -95,6 +97,7 @@ public class SesionServiceImpl implements SesionService {
 
     @Override
     public SesionResponse crear(SesionRequest request) {
+        log.info("Registrando nueva Sesion");
         Sesion sesion = buildFromRequest(new Sesion(), request);
         Sesion saved = sesionRepository.save(sesion);
         try {
@@ -107,6 +110,7 @@ public class SesionServiceImpl implements SesionService {
 
     @Override
     public SesionResponse actualizar(Integer id, SesionRequest request) {
+        log.info("Actualizando Sesion id={}", id);
         Sesion sesion = findOrThrow(id);
         String datosAnteriores = "{\"estado\":\"" + sesion.getEstado() + "\"}";
         Sesion saved = sesionRepository.save(buildFromRequest(sesion, request));
@@ -120,6 +124,7 @@ public class SesionServiceImpl implements SesionService {
 
     @Override
     public void eliminar(Integer id) {
+        log.info("Eliminando Sesion id={}", id);
         Sesion sesion = findOrThrow(id);
         sesion.setEstado(Sesion.EstadoGeneral.INACTIVO);
         sesionRepository.save(sesion);

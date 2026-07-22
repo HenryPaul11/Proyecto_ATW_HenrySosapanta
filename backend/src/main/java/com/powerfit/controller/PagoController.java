@@ -7,6 +7,7 @@ import com.powerfit.exception.ResourceNotFoundException;
 import com.powerfit.repository.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/pagos")
 @RequiredArgsConstructor
@@ -46,7 +48,7 @@ public class PagoController {
     @GetMapping("/cliente/{clienteId}")
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<Pago>>> porCliente(@PathVariable Long clienteId) {
-        return ResponseEntity.ok(ApiResponse.ok(pagoRepo.findByClienteId(clienteId)));
+        return ResponseEntity.ok(ApiResponse.ok(pagoRepo.findActivosByClienteId(clienteId)));
     }
 
     @GetMapping("/estadisticas")
@@ -65,6 +67,7 @@ public class PagoController {
     @PostMapping
     @Transactional
     public ResponseEntity<ApiResponse<Pago>> registrar(@RequestBody Map<String, Object> body) {
+        log.info("Registrando nuevo Pago");
         Long membresiaId = Long.valueOf(body.get("membresiaId").toString());
         Membresia memb   = membresiaRepo.findById(membresiaId)
             .orElseThrow(() -> new ResourceNotFoundException("Membresía no encontrada"));
@@ -99,8 +102,11 @@ public class PagoController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
-        pagoRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pago no encontrado: " + id));
-        pagoRepo.deleteById(id);
-        return ResponseEntity.ok(ApiResponse.ok(null, "Pago eliminado"));
+        log.info("Eliminando Pago id={}", id);
+        Pago pago = pagoRepo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Pago no encontrado: " + id));
+        pago.setEstado(Pago.EstadoPago.ANULADO);
+        pagoRepo.save(pago);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Pago anulado"));
     }
 }

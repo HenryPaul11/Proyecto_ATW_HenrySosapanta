@@ -8,10 +8,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/registro")
 @RequiredArgsConstructor
@@ -38,6 +40,7 @@ public class RegistroController {
 
         AsignarMembresiaConPagoResponse response =
                 registroService.asignarMembresiaConPago(request);
+        log.info("Registrando membresia con pago para clienteId={}", request.getClienteId());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok(response,

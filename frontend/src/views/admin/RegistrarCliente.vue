@@ -66,7 +66,7 @@ async function registrar() {
   if (!validar()) return
   loading.value = true
   try {
-    const sucursalId = auth.sucursalId ?? auth.sucursalMatrizId ?? 1
+    const sucursalId = auth.sucursalId ?? 1
 
     await httpClient.post('/clientes', {
       nombreCompleto:     `${form.value.nombre.trim()} ${form.value.apellido.trim()}`,

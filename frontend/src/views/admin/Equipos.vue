@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { useEquiposStore, IMAGEN_EQUIPO_DEFAULT } from '@/stores/equiposStore'
+import { useEquiposStore, IMAGEN_EQUIPO_DEFAULT, normalizarEquipo } from '@/stores/equiposStore'
 import { httpClient, equiposTransferApi } from '@/services/api'
 import AppNavbar from '@/components/shared/AppNavbar.vue'
 import Footer from '@/components/shared/Footer.vue'
@@ -83,6 +83,7 @@ async function registrar() {
 
   try {
     await store.registrarEquipo({
+      imagen:       form.value.imagen.trim() || IMAGEN_EQUIPO_DEFAULT,
       nombre:      form.value.nombre.trim(),
       categoria:   form.value.categoria,
       descripcion: form.value.descripcion.trim(),
@@ -92,7 +93,7 @@ async function registrar() {
       modelo:      form.value.modelo.trim() || undefined,
       valorAdquisicion: form.value.valorAdquisicion ? Number(form.value.valorAdquisicion) : undefined,
       fechaAdquisicion: form.value.fechaAdquisicion || undefined,
-      sucursalId:  auth.sucursalId ?? auth.sucursalActivaId ?? 1,
+      sucursalId:  auth.sucursalId ?? 1,
     })
 
     form.value    = { nombre: '', categoria: 'Cardio', descripcion: '', imagen: '', estado: 'disponible', marca: '', modelo: '', valorAdquisicion: '', fechaAdquisicion: '' }
@@ -102,9 +103,11 @@ async function registrar() {
     setTimeout(() => message.value = '', 3000)
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Error al registrar el equipo.'
-    errorMsg.value = msg.includes('character varying(255)')
-      ? 'La URL de la imagen es demasiado larga. Reinicia el backend para aplicar la actualización de base de datos, o usa una URL más corta (por ejemplo, de Unsplash).'
-      : msg
+    errorMsg.value = msg.includes('character varying')
+      ? 'La URL de la imagen es demasiado larga. Usa una URL más corta.'
+      : msg.includes('http://') || msg.includes('https://')
+        ? msg
+        : msg
   } finally {
     loading.value = false
   }
@@ -132,13 +135,13 @@ function abrirEditar(e: any) {
 async function guardarEdicion() {
   loadingEditar.value = true
   try {
-    const res = await httpClient.put(`/equipos/${equipoEditar.value.id}`, {
+    const payload = {
       nombre: formEditar.value.nombre, categoria: formEditar.value.categoria,
       descripcion: formEditar.value.descripcion, estado: formEditar.value.estado,
-      imagenUrl: formEditar.value.imagen, imagen: formEditar.value.imagen,
-    })
-    const idx = store.equipos.findIndex((e: any) => e.id === equipoEditar.value.id)
-    if (idx !== -1) store.equipos[idx] = normalizarEquipo(res.data)
+      imagenUrl: formEditar.value.imagen || null,
+    }
+    await httpClient.put(`/equipos/${equipoEditar.value.id}`, payload)
+    await store.fetchEquipos(true)
     equipoEditar.value = null
     message.value = '✓ Equipo actualizado.'
     setTimeout(() => message.value = '', 3000)

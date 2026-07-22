@@ -49,7 +49,7 @@ public class Equipo {
     @Builder.Default
     private EstadoEquipo estado = EstadoEquipo.OPERATIVO;
 
-    @Column(length = 500)
+    @Column(length = 2000)
     private String imagenUrl;
 
     @Column(length = 255)

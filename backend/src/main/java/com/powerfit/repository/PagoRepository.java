@@ -18,8 +18,12 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
     List<Pago> findByClienteId(Long clienteId);
 
     @EntityGraph(attributePaths = {"cliente", "membresia", "membresia.plan"})
-    @Query("SELECT p FROM Pago p WHERE :sucursalId IS NULL OR p.sucursal.id = :sucursalId ORDER BY p.fechaPago DESC")
+    @Query("SELECT p FROM Pago p WHERE p.estado <> 'ANULADO' AND (:sucursalId IS NULL OR p.sucursal.id = :sucursalId) ORDER BY p.fechaPago DESC")
     Page<Pago> findBySucursal(@Param("sucursalId") Long sucursalId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"cliente", "membresia", "membresia.plan"})
+    @Query("SELECT p FROM Pago p WHERE p.estado <> 'ANULADO' AND p.cliente.id = :clienteId ORDER BY p.fechaPago DESC")
+    List<Pago> findActivosByClienteId(@Param("clienteId") Long clienteId);
 
     @Query("SELECT SUM(p.monto) FROM Pago p WHERE p.estado = 'COMPLETADO' AND (:sid IS NULL OR p.sucursal.id = :sid)")
     BigDecimal sumIngresos(@Param("sid") Long sucursalId);

@@ -7,6 +7,7 @@ import com.powerfit.exception.ResourceNotFoundException;
 import com.powerfit.repository.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/membresias")
 @RequiredArgsConstructor
@@ -90,6 +92,7 @@ public class MembresiaController {
 
     @PostMapping("/asignar")
     public ResponseEntity<ApiResponse<Membresia>> asignar(@RequestBody Map<String, Object> body) {
+        log.info("Registrando nueva Membresia");
         Long clienteId = Long.valueOf(body.get("clienteId").toString());
         // Soportar planId y tipoMembresiaId (compatibilidad frontend)
         Long planId = body.get("planId") != null ? Long.valueOf(body.get("planId").toString())
@@ -118,6 +121,7 @@ public class MembresiaController {
     @PutMapping("/{id}/renovar")
     public ResponseEntity<ApiResponse<Membresia>> renovar(@PathVariable Long id,
                                                            @RequestBody Map<String, Object> body) {
+        log.info("Actualizando Membresia id={}", id);
         Membresia m = membresiaRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Membresía no encontrada: " + id));
         Long planId = body.get("planId") != null ? Long.valueOf(body.get("planId").toString()) : m.getPlan().getId();

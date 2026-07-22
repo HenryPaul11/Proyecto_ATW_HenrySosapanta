@@ -8,10 +8,12 @@ import com.powerfit.repository.SucursalRepository;
 import com.powerfit.repository.UsuarioRepository;
 import com.powerfit.service.AuditoriaService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuditoriaServiceImpl implements AuditoriaService {
@@ -22,6 +24,7 @@ public class AuditoriaServiceImpl implements AuditoriaService {
 
     @Override
     public void registrar(String tabla, String accion, String usuarioEmail, String datosAnteriores, String datosNuevos, String ip) {
+        log.info("Registrando auditoria tabla={} accion={}", tabla, accion);
         Auditoria auditoria = Auditoria.builder()
                 .tablaAfectada(tabla)
                 .accion(Auditoria.AccionAuditoria.valueOf(accion.toUpperCase()))

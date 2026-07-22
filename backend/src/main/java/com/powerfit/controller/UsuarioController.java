@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/usuarios")
 @RequiredArgsConstructor
@@ -43,6 +45,7 @@ public class UsuarioController {
     @PostMapping
     @Operation(summary = "Crear usuario")
     public ResponseEntity<ApiResponse<UsuarioResponse>> crear(@Valid @RequestBody UsuarioRequest request) {
+        log.info("Registrando nuevo Usuario");
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok(usuarioService.crear(request), "Usuario creado correctamente"));
     }
@@ -51,12 +54,14 @@ public class UsuarioController {
     @Operation(summary = "Actualizar usuario")
     public ResponseEntity<ApiResponse<UsuarioResponse>> actualizar(
             @PathVariable Integer id, @Valid @RequestBody UsuarioRequest request) {
+        log.info("Actualizando Usuario id={}", id);
         return ResponseEntity.ok(ApiResponse.ok(usuarioService.actualizar(id, request), "Usuario actualizado"));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar usuario")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer id) {
+        log.info("Eliminando Usuario id={}", id);
         usuarioService.eliminar(id);
         return ResponseEntity.ok(ApiResponse.ok(null, "Usuario eliminado correctamente"));
     }

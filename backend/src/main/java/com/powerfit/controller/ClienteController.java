@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/clientes")
 @RequiredArgsConstructor
@@ -100,6 +102,7 @@ public class ClienteController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<Cliente>> crear(@RequestBody Map<String, Object> body) {
+        log.info("Registrando nuevo Cliente");
         Long sucursalId = body.get("sucursalId") != null ? Long.valueOf(body.get("sucursalId").toString()) : null;
         if (sucursalId == null) throw new BadRequestException("sucursalId es obligatorio");
         Sucursal sucursal = sucursalRepo.findById(sucursalId)
@@ -149,6 +152,7 @@ public class ClienteController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<Cliente>> actualizar(@PathVariable Long id,
                                                             @RequestBody Map<String, Object> body) {
+        log.info("Actualizando Cliente id={}", id);
         Cliente c = clienteRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + id));
         if (body.get("nombreCompleto") != null) c.setNombreCompleto(body.get("nombreCompleto").toString());
@@ -159,6 +163,7 @@ public class ClienteController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        log.info("Eliminando Cliente id={}", id);
         Cliente c = clienteRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + id));
         c.setEstado(Cliente.EstadoGeneral.INACTIVO);

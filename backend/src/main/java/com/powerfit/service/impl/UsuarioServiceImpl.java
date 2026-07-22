@@ -12,11 +12,13 @@ import com.powerfit.repository.SucursalRepository;
 import com.powerfit.repository.UsuarioRepository;
 import com.powerfit.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UsuarioServiceImpl implements UsuarioService {
@@ -38,6 +40,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public UsuarioResponse crear(UsuarioRequest request) {
+        log.info("Registrando nuevo Usuario email={}", request.getCorreo());
         if (usuarioRepository.existsByEmail(request.getCorreo())) {
             throw new BadRequestException("Ya existe un usuario con ese correo");
         }
@@ -64,6 +67,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public UsuarioResponse actualizar(Integer id, UsuarioRequest request) {
+        log.info("Actualizando Usuario id={}", id);
         Usuario usuario = findOrThrow(id);
         if (usuarioRepository.existsByEmailAndIdNot(request.getCorreo(), id.longValue())) {
             throw new BadRequestException("Ya existe un usuario con ese correo");
@@ -90,6 +94,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public void eliminar(Integer id) {
+        log.info("Eliminando Usuario id={}", id);
         Usuario usuario = findOrThrow(id);
         usuario.setEstado(Usuario.EstadoGeneral.INACTIVO);
         usuarioRepository.save(usuario);

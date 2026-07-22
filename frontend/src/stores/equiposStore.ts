@@ -6,7 +6,7 @@ import type { Equipo } from '@/services/api'
 export const IMAGEN_EQUIPO_DEFAULT =
   'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80'
 
-function normalizarEquipo(raw: Partial<Equipo> & Record<string, unknown>): Equipo {
+export function normalizarEquipo(raw: Partial<Equipo> & Record<string, unknown>): Equipo {
   const url = String(raw.imagenUrl ?? raw.imagen ?? '').trim()
   const imagen = url || IMAGEN_EQUIPO_DEFAULT
 

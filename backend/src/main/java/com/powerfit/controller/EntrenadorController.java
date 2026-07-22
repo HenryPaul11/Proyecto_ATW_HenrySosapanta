@@ -9,6 +9,7 @@ import com.powerfit.repository.*;
 import com.powerfit.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/entrenadores")
 @RequiredArgsConstructor
@@ -110,6 +112,7 @@ public class EntrenadorController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<Entrenador>> crear(@RequestBody Map<String, Object> body) {
+        log.info("Registrando nuevo Entrenador");
         Long sucursalId = securityUtil.getSucursalIdEfectiva();
 
         Sucursal sucursal;
@@ -180,6 +183,7 @@ public class EntrenadorController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<Entrenador>> actualizar(@PathVariable Long id,
                                                                @RequestBody Map<String, Object> body) {
+        log.info("Actualizando Entrenador id={}", id);
         Entrenador e = entrenadorRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Entrenador no encontrado: " + id));
         if (body.get("nombreCompleto") != null) e.setNombreCompleto(body.get("nombreCompleto").toString());
@@ -208,6 +212,7 @@ public class EntrenadorController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        log.info("Eliminando Entrenador id={}", id);
         Entrenador e = entrenadorRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Entrenador no encontrado: " + id));
         e.setEstado(Entrenador.EstadoGeneral.INACTIVO);

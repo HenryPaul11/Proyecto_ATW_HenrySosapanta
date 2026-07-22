@@ -10,6 +10,7 @@ import com.powerfit.service.AuditoriaService;
 import com.powerfit.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/equipos")
 @RequiredArgsConstructor
@@ -48,6 +50,7 @@ public class EquipoController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<Equipo>> crear(@RequestBody Map<String, Object> body) {
+        log.info("Registrando nuevo Equipo");
         Long sucursalId = securityUtil.getSucursalIdEfectiva();
 
         Sucursal sucursal;
@@ -74,6 +77,10 @@ public class EquipoController {
         }
 
         String serie = body.get("numeroSerie") != null ? body.get("numeroSerie").toString() : "SN-" + System.currentTimeMillis();
+        String imagenUrl = body.get("imagenUrl") != null ? body.get("imagenUrl").toString().trim() : null;
+        if (imagenUrl != null && !imagenUrl.isEmpty() && !imagenUrl.startsWith("http://") && !imagenUrl.startsWith("https://")) {
+            throw new BadRequestException("La URL de la imagen debe comenzar con http:// o https://");
+        }
 
         Equipo e = Equipo.builder()
             .sucursal(sucursal).categoria(cat)
@@ -81,17 +88,21 @@ public class EquipoController {
             .marca(body.get("marca")   != null ? body.get("marca").toString()  : null)
             .modelo(body.get("modelo") != null ? body.get("modelo").toString() : null)
             .descripcion(body.get("descripcion") != null ? body.get("descripcion").toString() : null)
-            .imagenUrl(body.get("imagenUrl") != null ? body.get("imagenUrl").toString() : null)
+            .imagenUrl(imagenUrl != null && !imagenUrl.isEmpty() ? imagenUrl : null)
             .numeroSerie(serie)
             .valorAdquisicion(body.get("valorAdquisicion") != null ? new BigDecimal(body.get("valorAdquisicion").toString()) : null)
             .estado(Equipo.EstadoEquipo.OPERATIVO)
             .build();
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(equipoRepo.save(e), "Equipo registrado"));
+        Equipo guardado = equipoRepo.save(e);
+        guardado.getSucursal().getId();
+        guardado.getCategoria().getNombre();
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(guardado, "Equipo registrado"));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<Equipo>> actualizar(@PathVariable Long id,
                                                            @RequestBody Map<String, Object> body) {
+        log.info("Actualizando Equipo id={}", id);
         Equipo e = equipoRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado: " + id));
         Long sucursalId = securityUtil.getSucursalIdEfectiva();
@@ -109,7 +120,13 @@ public class EquipoController {
             });
         }
         if (body.get("descripcion") != null) e.setDescripcion(body.get("descripcion").toString());
-        if (body.get("imagenUrl") != null) e.setImagenUrl(body.get("imagenUrl").toString());
+        if (body.get("imagenUrl") != null) {
+            String imgUrl = body.get("imagenUrl").toString().trim();
+            if (!imgUrl.isEmpty() && !imgUrl.startsWith("http://") && !imgUrl.startsWith("https://")) {
+                throw new BadRequestException("La URL de la imagen debe comenzar con http:// o https://");
+            }
+            e.setImagenUrl(imgUrl.isEmpty() ? null : imgUrl);
+        }
         if (body.get("marca") != null) e.setMarca(body.get("marca").toString());
         if (body.get("modelo") != null) e.setModelo(body.get("modelo").toString());
         if (body.get("categoria") != null) {
@@ -118,11 +135,15 @@ public class EquipoController {
                 categoriaRepo.save(CategoriaEquipo.builder().nombre(catNombre).build()));
             e.setCategoria(cat);
         }
-        return ResponseEntity.ok(ApiResponse.ok(equipoRepo.save(e), "Equipo actualizado"));
+        Equipo guardado = equipoRepo.save(e);
+        guardado.getSucursal().getId();
+        guardado.getCategoria().getNombre();
+        return ResponseEntity.ok(ApiResponse.ok(guardado, "Equipo actualizado"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        log.info("Eliminando Equipo id={}", id);
         Equipo e = equipoRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado: " + id));
         Long sucursalId = securityUtil.getSucursalIdEfectiva();

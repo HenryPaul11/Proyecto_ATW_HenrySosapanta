@@ -9,6 +9,7 @@ import com.powerfit.repository.PlanRepository;
 import com.powerfit.repository.SucursalRepository;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Planes / Tipos de Membresía")
@@ -52,6 +54,7 @@ public class PlanController {
 
     @PostMapping("/api/planes")
     public ResponseEntity<ApiResponse<Plan>> crear(@RequestBody Map<String, Object> body) {
+        log.info("Registrando nuevo Plan");
         Object sidObj = body.get("sucursalId");
         if (sidObj == null) throw new BadRequestException("sucursalId es obligatorio");
         Sucursal sucursal = sucursalRepo.findById(Long.valueOf(sidObj.toString()))
@@ -73,6 +76,7 @@ public class PlanController {
     @PutMapping("/api/planes/{id}")
     public ResponseEntity<ApiResponse<Plan>> actualizar(@PathVariable Long id,
                                                           @RequestBody Map<String, Object> body) {
+        log.info("Actualizando Plan id={}", id);
         Plan p = planRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Plan no encontrado: " + id));
         if (body.get("nombrePlan") != null) p.setNombrePlan(body.get("nombrePlan").toString());
@@ -83,6 +87,7 @@ public class PlanController {
 
     @DeleteMapping("/api/planes/{id}")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        log.info("Eliminando Plan id={}", id);
         Plan p = planRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Plan no encontrado: " + id));
         p.setEstado(Plan.EstadoGeneral.INACTIVO);

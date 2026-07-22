@@ -8,6 +8,7 @@ import com.powerfit.repository.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/sucursales")
 @RequiredArgsConstructor
@@ -42,6 +44,7 @@ public class SucursalController {
     @PostMapping
     @Transactional
     public ResponseEntity<ApiResponse<Sucursal>> crear(@RequestBody Map<String, Object> body) {
+        log.info("Registrando nueva Sucursal");
         String nombre = body.get("nombre") != null ? body.get("nombre").toString() : "";
         if (nombre.isBlank()) throw new BadRequestException("El nombre es obligatorio");
 
@@ -89,6 +92,7 @@ public class SucursalController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<Sucursal>> actualizar(@PathVariable Long id,
                                                              @RequestBody Map<String, Object> body) {
+        log.info("Actualizando Sucursal id={}", id);
         Sucursal s = sucursalRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Sucursal no encontrada: " + id));
         if (body.get("nombre")    != null) s.setNombre(body.get("nombre").toString());
@@ -100,6 +104,7 @@ public class SucursalController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        log.info("Eliminando Sucursal id={}", id);
         Sucursal s = sucursalRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Sucursal no encontrada: " + id));
         s.setEstado(Sucursal.EstadoGeneral.INACTIVO);

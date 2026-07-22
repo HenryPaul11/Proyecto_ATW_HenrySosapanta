@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/sesiones")
 @RequiredArgsConstructor
@@ -78,6 +80,7 @@ public class SesionController {
     @Operation(summary = "Crear sesión")
     public ResponseEntity<ApiResponse<SesionResponse>> crear(
             @Valid @RequestBody SesionRequest request) {
+        log.info("Registrando nueva Sesion");
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok(sesionService.crear(request), "Sesión creada correctamente"));
     }
@@ -86,6 +89,7 @@ public class SesionController {
     @Operation(summary = "Actualizar sesión — cambiar estado, agregar notas")
     public ResponseEntity<ApiResponse<SesionResponse>> actualizar(
             @PathVariable Integer id, @Valid @RequestBody SesionRequest request) {
+        log.info("Actualizando Sesion id={}", id);
         return ResponseEntity.ok(ApiResponse.ok(
                 sesionService.actualizar(id, request), "Sesión actualizada"));
     }
@@ -93,6 +97,7 @@ public class SesionController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar sesión (eliminación FÍSICA)")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Integer id) {
+        log.info("Eliminando Sesion id={}", id);
         sesionService.eliminar(id);
         return ResponseEntity.ok(ApiResponse.ok(null, "Sesión eliminada"));
     }
