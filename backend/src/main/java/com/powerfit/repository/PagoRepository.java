@@ -30,4 +30,7 @@ public interface PagoRepository extends JpaRepository<Pago, Long> {
 
     @Query("SELECT AVG(p.monto) FROM Pago p WHERE p.estado = 'COMPLETADO'")
     BigDecimal avgMonto();
+
+    @Query("SELECT COUNT(p) FROM Pago p WHERE (:sucursalId IS NULL OR p.sucursal.id = :sucursalId)")
+    long countBySucursalId(@Param("sucursalId") Long sucursalId);
 }

@@ -411,7 +411,7 @@ async function confirmarTransferir() {
                 class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 dark:text-blue-400 font-semibold text-xs py-2 rounded-lg transition-all cursor-pointer">
                 Editar
               </button>
-              <button v-if="!auth.esSucursal" @click.stop="abrirTransferir(e)"
+              <button @click.stop="abrirTransferir(e)"
                 class="flex-1 bg-amber-50 hover:bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:hover:bg-amber-800/50 dark:text-amber-400 font-semibold text-xs py-2 rounded-lg transition-all cursor-pointer">
                 Transferir
               </button>

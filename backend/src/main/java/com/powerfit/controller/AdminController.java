@@ -30,10 +30,10 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> stats(
             @RequestParam(required = false) Long sucursalId) {
 
-        long totalClientes    = clienteRepo.countByEstado(Cliente.EstadoGeneral.ACTIVO);
+        long totalClientes    = clienteRepo.countByEstadoAndSucursalId(Cliente.EstadoGeneral.ACTIVO, sucursalId);
         long membresiasActivas = membresiaRepo.countActivas(sucursalId);
         BigDecimal ingresos   = pagoRepo.sumIngresos(sucursalId);
-        long pagosTotales     = pagoRepo.count();
+        long pagosTotales     = pagoRepo.countBySucursalId(sucursalId);
 
         BigDecimal egresosEquipos = equipoRepo.sumValorAdquisicionMesActual(sucursalId);
         BigDecimal totalEgresos = egresosEquipos != null ? egresosEquipos : BigDecimal.ZERO;

@@ -5,6 +5,7 @@ import type { User } from '@/services/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const usuario = ref(sessionStorage.getItem('auth_usuario') || '')
+  const nombreCompleto = ref(sessionStorage.getItem('auth_nombreCompleto') || '')
   const rol = ref(sessionStorage.getItem('auth_rol') || '')
   const sucursalId = ref<number | null>(JSON.parse(sessionStorage.getItem('auth_sucursalId') || 'null'))
   const sucursalNombre = ref(sessionStorage.getItem('auth_sucursalNombre') || '')
@@ -16,11 +17,13 @@ export const useAuthStore = defineStore('auth', () => {
     const match = await authApi.login(u, p)
     if (match) {
       usuario.value = match.usuario
+      nombreCompleto.value = match.nombre || ''
       rol.value = match.rol
       sucursalId.value = match.sucursalId ?? null
       sucursalNombre.value = match.sucursalNombre ?? ''
       
       sessionStorage.setItem('auth_usuario', match.usuario)
+      sessionStorage.setItem('auth_nombreCompleto', match.nombre || '')
       sessionStorage.setItem('auth_rol', match.rol)
       sessionStorage.setItem('auth_sucursalId', JSON.stringify(match.sucursalId ?? null))
       sessionStorage.setItem('auth_sucursalNombre', match.sucursalNombre ?? '')
@@ -34,10 +37,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   function logout() {
     usuario.value = ''
+    nombreCompleto.value = ''
     rol.value = ''
     sucursalId.value = null
     sucursalNombre.value = ''
     sessionStorage.removeItem('auth_usuario')
+    sessionStorage.removeItem('auth_nombreCompleto')
     sessionStorage.removeItem('auth_rol')
     sessionStorage.removeItem('auth_token')
     sessionStorage.removeItem('auth_sucursalId')
@@ -46,6 +51,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isLoggedIn = () => !!usuario.value
 
-  return { usuario, rol, sucursalId, sucursalNombre, esSucursal, login, logout, isLoggedIn }
+  return { usuario, nombreCompleto, rol, sucursalId, sucursalNombre, esSucursal, login, logout, isLoggedIn }
 })
 

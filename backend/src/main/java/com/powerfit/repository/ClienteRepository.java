@@ -91,4 +91,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     List<Cliente> findBySucursalId(Long sucursalId);
 
     long countByEstado(Cliente.EstadoGeneral estado);
+
+    @Query("SELECT COUNT(c) FROM Cliente c WHERE c.estado = :estado AND (:sucursalId IS NULL OR c.sucursal.id = :sucursalId)")
+    long countByEstadoAndSucursalId(@Param("estado") Cliente.EstadoGeneral estado, @Param("sucursalId") Long sucursalId);
 }

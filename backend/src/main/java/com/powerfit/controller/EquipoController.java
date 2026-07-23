@@ -158,12 +158,20 @@ public class EquipoController {
     @PutMapping("/{id}/transferir")
     public ResponseEntity<ApiResponse<Equipo>> transferir(@PathVariable Long id,
                                                            @RequestBody Map<String, Object> body) {
-        if (!securityUtil.isAdminMatriz()) {
-            throw new ForbiddenException("Solo el administrador matriz puede transferir equipos");
-        }
-
         Equipo e = equipoRepo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Equipo no encontrado: " + id));
+
+        // Solo admin matriz o admin de la sucursal del equipo pueden transferir
+        Long sucursalActual = securityUtil.getSucursalIdEfectiva();
+        boolean esAdminMatriz = securityUtil.isAdminMatriz();
+        boolean esAdminSucursal = !esAdminMatriz
+            && sucursalActual != null
+            && e.getSucursal() != null
+            && e.getSucursal().getId().equals(sucursalActual);
+
+        if (!esAdminMatriz && !esAdminSucursal) {
+            throw new ForbiddenException("No tienes permiso para transferir este equipo");
+        }
 
         Object sidObj = body.get("sucursalDestinoId");
         if (sidObj == null) throw new BadRequestException("sucursalDestinoId es obligatorio");

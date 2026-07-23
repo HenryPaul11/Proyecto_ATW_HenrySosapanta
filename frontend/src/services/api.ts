@@ -289,8 +289,11 @@ export const authApi = {
 // ─── API Admin ────────────────────────────────────────────────────────────────
 
 export const adminApi = {
-  async getStats(): Promise<AdminStats> {
-    const res = await httpClient.get<any>('/admin/stats')
+  async getStats(sucursalId?: number | null): Promise<AdminStats> {
+    const params = new URLSearchParams()
+    if (sucursalId) params.set('sucursalId', String(sucursalId))
+    const qs = params.toString()
+    const res = await httpClient.get<any>(`/admin/stats${qs ? '?' + qs : ''}`)
     const d = res.data
     // Normalizar campos para compatibilidad con el dashboard
     return {

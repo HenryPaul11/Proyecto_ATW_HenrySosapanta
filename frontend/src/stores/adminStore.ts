@@ -7,10 +7,10 @@ export const useAdminStore = defineStore('admin', () => {
   const stats = ref<AdminStats | null>(null)
   const loading = ref(false)
 
-  async function fetchStats() {
+  async function fetchStats(sucursalId?: number | null) {
     loading.value = true
     try {
-      stats.value = await adminApi.getStats()
+      stats.value = await adminApi.getStats(sucursalId)
     } catch (e) {
       console.error('Error cargando stats:', e)
     } finally {

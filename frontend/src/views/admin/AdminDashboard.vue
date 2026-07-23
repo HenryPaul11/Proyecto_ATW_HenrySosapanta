@@ -28,7 +28,7 @@ const navLinks = computed(() => {
   return links
 })
 
-onMounted(() => admin.fetchStats())
+onMounted(() => admin.fetchStats(auth.sucursalId))
 </script>
 
 <template>
@@ -41,7 +41,7 @@ onMounted(() => admin.fetchStats())
       <div class="mb-8">
         <p class="text-blue-600 font-semibold text-sm mb-1">Panel de Administración</p>
         <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-          Bienvenido, {{ auth.usuario }}
+          Bienvenido, {{ auth.nombreCompleto || auth.usuario }}
           <img src="/icons/musculo.svg" alt="💪" class="w-8 h-8 icon-slate" />
         </h1>
         <p class="text-slate-400 text-sm mt-1">Resumen general del sistema</p>
