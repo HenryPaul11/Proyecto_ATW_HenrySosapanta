@@ -1,7 +1,9 @@
 ﻿<script setup lang="ts">
 import { ref } from 'vue'
 import { iaApi } from '@/services/api'
+import { useAuthStore } from '@/stores/authStore'
 
+const auth = useAuthStore()
 const abierto = ref(false)
 const mensaje = ref('')
 const mensajes = ref<{ rol: 'user' | 'ia'; texto: string }[]>([])
@@ -14,13 +16,19 @@ async function enviar() {
   mensaje.value = ''
   cargando.value = true
   try {
-    const keywords = ['cliente', 'membresia', 'membresías', 'pago', 'ingreso', 'vencida', 'vencimiento', 'plan', 'resumen', 'estadistica', 'reporte', 'cuantos', 'cuántos', 'total', 'dashboard']
+    const userRol = auth.rol || 'admin'
+    const keywords = ['cliente', 'membresia', 'membresías', 'pago', 'ingreso', 'vencida', 'vencimiento', 'plan', 'resumen', 'estadistica', 'reporte', 'cuantos', 'cuántos', 'total', 'dashboard', 'ejercicio', 'entren', 'rutina', 'muscul', 'pecho', 'espalda', 'pierna', 'nutri', 'dieta', 'proteina', 'fuerza', 'cardio']
     const esPreguntaDatos = keywords.some(k => texto.toLowerCase().includes(k))
     let respuesta: string
     if (esPreguntaDatos) {
-      respuesta = await iaApi.chatDatos(texto)
+      respuesta = await iaApi.chatDatos(texto, userRol)
     } else {
-      respuesta = await iaApi.chat(texto, 'Eres PowerFit AI, un asistente inteligente para un sistema de gestion de gimnasio. Responde en espanol de forma concisa y util.')
+      const rolPrompt = userRol === 'cliente'
+        ? 'Eres PowerFit AI, asistente de bienestar del gimnasio PowerFit para clientes. Responde en español sobre ejercicios, nutrición y membresías de forma amigable y motivadora.'
+        : userRol === 'entrenador'
+          ? 'Eres PowerFit AI, asistente técnico del gimnasio PowerFit para entrenadores. Responde en español con terminología fitness correcta sobre entrenamiento, ejercicios y programación.'
+          : 'Eres PowerFit AI, asistente administrativo del gimnasio PowerFit. Responde en español de forma concisa y profesional sobre gestión del negocio.'
+      respuesta = await iaApi.chat(texto, rolPrompt)
     }
     mensajes.value.push({ rol: 'ia', texto: respuesta })
   } catch {

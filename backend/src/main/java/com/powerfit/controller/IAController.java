@@ -30,7 +30,8 @@ public class IAController {
     @PostMapping("/chat-datos")
     public ResponseEntity<ApiResponse<Map<String, String>>> chatConDatos(@RequestBody Map<String, String> body) {
         String mensaje = body.getOrDefault("mensaje", "");
-        String respuesta = ollamaService.chatConDatos(mensaje);
+        String rol = body.getOrDefault("rol", "admin");
+        String respuesta = ollamaService.chatConDatos(mensaje, rol);
         return ResponseEntity.ok(ApiResponse.ok(Map.of("respuesta", respuesta)));
     }
 

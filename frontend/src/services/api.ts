@@ -492,8 +492,8 @@ export const iaApi = {
     return res.data?.respuesta || 'Sin respuesta'
   },
 
-  async chatDatos(mensaje: string): Promise<string> {
-    const res = await httpClient.post<any>('/ia/chat-datos', { mensaje })
+  async chatDatos(mensaje: string, rol?: string): Promise<string> {
+    const res = await httpClient.post<any>('/ia/chat-datos', { mensaje, rol: rol || 'admin' })
     return res.data?.respuesta || 'Sin respuesta'
   },
 
