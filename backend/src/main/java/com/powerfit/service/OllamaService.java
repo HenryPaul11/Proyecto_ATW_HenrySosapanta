@@ -181,13 +181,13 @@ public class OllamaService {
                 pregunta.contains("cardio") || pregunta.contains("rutina") || pregunta.contains("peso") ||
                 pregunta.contains("fuerza") || pregunta.contains("hipertrofia") || pregunta.contains("perder") ||
                 pregunta.contains("ganar") || pregunta.contains("tonificar")) {
-                ctx.append("\nEl usuario pregunta sobre ejercicios/entrenamiento. ",
-                    "Responde con recomendaciones específicas y seguras.\n");
+                ctx.append("\nEl usuario pregunta sobre ejercicios/entrenamiento. ")
+                    .append("Responde con recomendaciones específicas y seguras.\n");
             }
             if (pregunta.contains("comida") || pregunta.contains("nutri") || pregunta.contains("dieta") ||
                 pregunta.contains("proteina") || pregunta.contains("calori") || pregunta.contains("comer")) {
-                ctx.append("\nEl usuario pregunta sobre nutrición. ",
-                    "Responde con consejos generales saludables. No des planes dietéticos específicos.\n");
+                ctx.append("\nEl usuario pregunta sobre nutrición. ")
+                    .append("Responde con consejos generales saludables. No des planes dietéticos específicos.\n");
             }
             return ctx.toString();
         }
